@@ -158,16 +158,22 @@ faixa_azul |>
 
 
 for (log in faixa_azul |> 
-     filter(ano <= 2023) |> 
      group_by(id_logradouro) |> 
-     filter(n() == 1) |> 
+     filter(ano <= 2023, n() == 1) |> 
      pull(logradouro)){
   
+  cat(log, "\n\n")
+  
   if (log %in% (df |> distinct(logradouro) |> pull(logradouro))){
+    cat(log, " - Encontrado nos dados\n\n")
     data  <- faixa_azul |> filter(logradouro == log) |> pull(data)
     dados <- controle.sintetico(log, data)
+    cat("Dados coletados\n\n")
+    
     plot  <- plot.controle.sintetico(dados, log, data)
+    cat("Plot feito\n\n")
   }
   
 }
+
 
