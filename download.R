@@ -21,10 +21,11 @@ arrumar.dados <- function(){
     rename(dia = "Dia do Acidente",
            nm_municipio = "Município",
            ano_mes = "Ano/Mês do Acidente",
-           horario = "Hora do Acidente") |> 
+           horario = "Hora do Acidente",
+           data = "Data do Acidente") |> 
     filter(nm_municipio == "SAO PAULO") |>  
-    mutate(data = make_datetime(year = as.numeric(str_sub(ano_mes, 1, 4)), 
-                                month = as.numeric(str_sub(ano_mes, 6, 8)), 
+    mutate(data = make_datetime(year = year(data), 
+                                month = month(data), 
                                 day = as.numeric(dia), 
                                 hour = as.numeric(str_sub(horario, 1, 2)),
                                 min = as.numeric(str_sub(horario, 4, 5))))
@@ -40,16 +41,23 @@ arrumar.dados <- function(){
     write_csv("dados_tratados/acidentes.csv")
   
   df |> 
-    distinct(ano = year(data), mes = month(data)) |>
-    mutate(join = 1) |> 
-    left_join(df |> 
-                distinct(logradouro = Logradouro) |> 
-                mutate(join = 1)) |> 
-    select(-join) |> 
-    left_join(df |> 
-                group_by(ano = year(data), mes = month(data), logradouro = Logradouro) |> 
-                summarize(acidentes = n())) |> 
-    mutate(acidentes = acidentes |> replace_na(0)) |> 
+    rename(motocicletas = "Veículos Envolvidos - Motocicleta",
+           feridos_grave = "Pessoas Envolvidas - Grave",
+           feridos_leve = "Pessoas Envolvidas - Leve") |> 
+    group_by(ano = year(data), mes = month(data), logradouro = Logradouro) |> 
+    summarize(acidentes = n(),
+              acidentes_feridos = sum(ifelse(feridos_grave > 0 | feridos_leve > 0, 1, 0)),
+              acidentes_moto = sum(ifelse(motocicletas > 0, 1, 0)),
+              acidentes_moto_feridos = sum(ifelse((feridos_grave > 0 | feridos_leve > 0) & motocicletas > 0, 1, 0))) |> 
+    right_join(expand_grid(data = seq.Date(from = df$data |> min() |> as.Date(), 
+                                           to = df$data |> max() |> as.Date(), 
+                                           by = "month"),
+                           logradouro = df |> distinct(Logradouro) |> pull(Logradouro)) |> 
+                 mutate(mes = month(data),
+                        ano = year(data)) |> 
+                 select(-data)) |> 
+    mutate(across(everything(), ~ replace_na(.x, 0))) |> 
+    arrange(logradouro, desc(ano), desc(mes)) |> 
     write_csv("dados_tratados/logradouros.csv")
 }
 
@@ -58,4 +66,10 @@ if (!file.exists("dados_tratados")){arrumar.dados()}
 
 
 
-  
+
+
+
+
+
+
+
