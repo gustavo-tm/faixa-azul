@@ -2,7 +2,7 @@ library(tidyverse)
 
 # Dados ----
 faixa_azul <- readxl::read_excel("dados_tratados/vias_faixa_azul.xlsx") |> 
-  mutate(data = make_date(year = ano, month = mes, day = ifelse(dia |> is.na(), 1, dia)))
+  mutate(data = make_date(year = ano, month = mes))
 
 df <- read_csv("dados_tratados/logradouros.csv") |> 
   group_by(logradouro) |> 
@@ -118,7 +118,6 @@ controle.sintetico <- function(logradouro_tratamento, data_tratamento, nsplits =
 }
 
 
-
 bandeirantes <- controle.sintetico("AVENIDA DOS BANDEIRANTES", 
                                    make_date(year = 2022, month = 10), 
                                    variavel = "acidentes_moto_feridos_hp")
@@ -144,36 +143,42 @@ plot.controle.sintetico <- function(dados_controle_sintetico, logradouro_analise
     theme_classic() +
     theme(legend.position = c(0.25,0.25))
   
-    ggsave(paste("output/controle_sintetico/", logradouro_analise, ".pdf", sep = ""),
-           plot = gg, width = 8, height = 5)
+    return(gg)
 }
 
 # remotes::install_github("nsgrantham/ggbraid")
 
-faixa_azul |> 
-  rowwise() |> 
-  mutate(data = make_date(year = ano, month = mes),
-         df = list(controle.sintetico(logradouro, data)),
-         plot = list(plot.controle.sintetico(df, logradouro, data)))
+# faixa_azul |> 
+#   rowwise() |> 
+#   mutate(data = make_date(year = ano, month = mes),
+#          df = list(controle.sintetico(logradouro, data)),
+#          plot = list(plot.controle.sintetico(df, logradouro, data)))
 
 
 for (log in faixa_azul |> 
      group_by(id_logradouro) |> 
-     filter(ano <= 2023, n() == 1) |> 
+     filter(ano <= 2023, n() == 1) |>
      pull(logradouro)){
   
   cat(log, "\n\n")
   
   if (log %in% (df |> distinct(logradouro) |> pull(logradouro))){
     cat(log, " - Encontrado nos dados\n\n")
-    data  <- faixa_azul |> filter(logradouro == log) |> pull(data)
-    dados <- controle.sintetico(log, data)
-    cat("Dados coletados\n\n")
-    
-    plot  <- plot.controle.sintetico(dados, log, data)
-    cat("Plot feito\n\n")
+    for (variavel in c("acidentes_moto_feridos_sqrt_hp",
+                       "acidentes_moto_feridos_hp",
+                       "acidentes_moto_sqrt_hp",
+                       "acidentes_feridos_sqrt_hp",
+                       "acidentes_sqrt_hp")){
+      cat("Controle sintético para ", variavel, "\n\n")
+      data  <- faixa_azul |> filter(logradouro == log) |> pull(data)
+      dados <- controle.sintetico(log, data, variavel = variavel)
+      cat("Dados coletados\n\n")
+      
+      ggsave(paste("output/controle_sintetico/", variavel, "/", log, ".pdf", sep = ""),
+             plot = plot.controle.sintetico(dados, log, data), width = 8, height = 5)
+      cat("Plot feito\n\n")
+    }
   }
-  
 }
 
 
