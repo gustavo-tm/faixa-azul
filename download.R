@@ -34,10 +34,12 @@ arrumar.dados <- function(){
     select(ID, 
            data,
            logradouro = "Logradouro",
+           numero = "Numero/KM",
            latitude = "LAT_(GEO)",
            longitude = "LONG_(GEO)",
            feridos_graves = "Pessoas Envolvidas - Grave",
            feridos_leves = "Pessoas Envolvidas - Leve") |> 
+    mutate(numero = ifelse(numero == "NAO DISPONIVEL", NA, numero)) |> 
     write_csv("dados_tratados/acidentes.csv")
   
   df |> 
