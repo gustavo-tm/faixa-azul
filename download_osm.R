@@ -40,7 +40,7 @@ logradouros.OSM <- as_tibble(osm$osm_lines) |>
          superficie = surface,
          geometry) 
 
-logradouros.OSM |> write_csv("dados_tratados/logradouros_osm.csv")
+logradouros.OSM |> st_write("dados_tratados/logradouros_osm.gpkg")
 
 logradouros.OSM |>  
   st_as_sf() |>  

@@ -17,6 +17,16 @@ if (!file.exists("dados_brutos")){download.dados()}
 arrumar.dados <- function(){
   dir.create("dados_tratados/")
   
+  data.table::fread("dados_brutos/acidentes_fatais.csv", encoding = "Latin-1") |> 
+    filter(Município == "SAO PAULO") |> 
+    select(data = "Data do Acidente",
+           logradouro = "Logradouro",
+           veiculo = "Tipo do veículo da vítima",
+           latitude = "LAT_(GEO)",
+           longitude = "LONG_(GEO)") |> 
+    write_csv("dados_tratados/obitos.csv")
+  
+  
   df <- data.table::fread("dados_brutos/acidentes_naofatais.csv", encoding = "Latin-1") |>
     rename(dia = "Dia do Acidente",
            nm_municipio = "Município",
@@ -64,12 +74,6 @@ arrumar.dados <- function(){
 }
 
 if (!file.exists("dados_tratados")){arrumar.dados()}
-
-
-
-
-
-
 
 
 
