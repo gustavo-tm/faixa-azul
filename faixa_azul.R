@@ -1,5 +1,4 @@
 library(tidyverse)
-install.packages("emoGG")
 
 
 df <- read_csv("dados_tratados/logradouros.csv")
@@ -60,23 +59,23 @@ df |>
                                              "Não disponível" = "NAO DISPONIVEL")) |> 
                arrange(veiculo) |> 
                select(data, logradouro, veiculo),
-             aes(y = logradouro, colour = veiculo, shape = veiculo), size = 1.2, alpha = 1, stroke = .35) +
+             aes(y = logradouro, fill = veiculo, shape = veiculo), size = 1.2, alpha = .8, stroke = .1, colour = "white") +
   scale_x_date(limits = c(make_date(year = 2021, month = 1), make_date(year = 2024, month = 6))) +
   scale_linewidth_manual(values = c("TRUE" = 2, "FALSE" = 1.5), labels = c("TRUE" = "Pós faixa azul", "FALSE" = "Pré faixa azul")) +
   scale_alpha_manual(values = c("TRUE" = 1, "FALSE" = .20), labels = c("TRUE" = "Pós faixa azul", "FALSE" = "Pré faixa azul")) +
-  scale_colour_manual(values = c("Motocicleta" = "red",
+  scale_fill_manual(values = c("Motocicleta" = "red",
                                  "Automóvel" = "purple",
                                  "Ônibus ou caminhão" = "purple",
                                  "Pedestre ou bicicleta" = "purple",
                                  "Não disponível" = "darkred")) +
-  scale_shape_manual(values = c("Motocicleta" = 19,
-                                 "Automóvel" = 16,
-                                 "Ônibus ou caminhão" = 17,
-                                 "Pedestre ou bicicleta" = 18,
-                                 "Não disponível" = 15)) +
+  scale_shape_manual(values = c("Motocicleta" = 21,
+                                 "Automóvel" = 22,
+                                 "Ônibus ou caminhão" = 23,
+                                 "Pedestre ou bicicleta" = 24,
+                                 "Não disponível" = 25)) +
   guides(linewidth = guide_legend(""),
          alpha = guide_legend(""),
-         colour = guide_legend("Veículo da vítima fatal"),
+         fill = guide_legend("Veículo da vítima fatal"),
          shape = guide_legend("Veículo da vítima fatal")) +
   labs(title = "Evolução da implementação das faixas azuis em São Paulo", x = "", y = "") +
   theme_minimal() +
