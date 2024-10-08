@@ -48,7 +48,7 @@ df |>
   mutate(data = make_date(year = ano, month = mes),
          faixa_azul =  data > data_faixa_azul) |>
   ggplot(aes(x = data)) +
-  geom_line(aes(lwd = faixa_azul, y = reorder(logradouro, id_trecho), alpha = faixa_azul)) +
+  geom_line(aes(lwd = faixa_azul, y = reorder(logradouro, acidentes), alpha = faixa_azul)) +
   geom_point(data = obitos |>
                semi_join(faixa_azul) |>
                mutate(veiculo = fct_collapse(veiculo,
@@ -59,7 +59,7 @@ df |>
                                              "Não disponível" = "NAO DISPONIVEL")) |> 
                arrange(veiculo) |> 
                select(data, logradouro, veiculo),
-             aes(y = logradouro, fill = veiculo, shape = veiculo), size = 1.2, alpha = .8, stroke = .1, colour = "white") +
+             aes(y = logradouro, fill = veiculo, shape = veiculo), size = 2, alpha = .8, stroke = .1, colour = "white") +
   scale_x_date(limits = c(make_date(year = 2021, month = 1), make_date(year = 2024, month = 6))) +
   scale_linewidth_manual(values = c("TRUE" = 2, "FALSE" = 1.5), labels = c("TRUE" = "Pós faixa azul", "FALSE" = "Pré faixa azul")) +
   scale_alpha_manual(values = c("TRUE" = 1, "FALSE" = .20), labels = c("TRUE" = "Pós faixa azul", "FALSE" = "Pré faixa azul")) +
