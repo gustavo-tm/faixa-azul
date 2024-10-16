@@ -24,7 +24,8 @@ arrumar.dados <- function(){
            veiculo = "Tipo do veículo da vítima",
            latitude = "LAT_(GEO)",
            longitude = "LONG_(GEO)") |> 
-    mutate(across(c(longitude, latitude), ~ str_replace(.x, ",", "."))) |> 
+    mutate(across(c(longitude, latitude), ~ str_replace(.x, ",", ".")),
+           across(c(longitude, latitude), ~ ifelse(.x == "NAO DISPONIVEL", NA, .x))) |> 
     write_csv("dados_tratados/obitos.csv")
   
   
