@@ -43,7 +43,9 @@ match <- obitos |>
   group_by(id_acidente, logradouro, veiculo) |>
   filter(semelhanca == max(semelhanca))
 
-mapview(match, zcol = "semelhanca")
+mapview(match, zcol = "semelhanca") |> 
+  mapshot(url = "output/mapas/join_distancia.html")
+
 
 match |> 
   st_drop_geometry() |> 

@@ -1,5 +1,6 @@
 library(tidyverse)
-
+library(sf)
+library(mapview)
 # LINHA DO TEMPO ----
 
 df <- read_csv("dados_tratados/logradouros.csv")
@@ -109,4 +110,11 @@ logradouros |>
   filter(st_intersects(geom, distrito |> st_union()) |> as.logical()) |>
   mutate(data = as.factor(data)) |> 
   mapview(zcol = "data") |> 
-  mapshot(url = "output/logradouros_faixa_azul.html")
+  mapshot(url = "output/mapas/logradouros_faixa_azul.html")
+
+
+
+logradouros |> 
+  right_join(faixa_azul) |>
+  filter(st_intersects(geom, distrito |> st_union()) |> as.logical()) |> 
+  st_write("mariah.gpkg")
