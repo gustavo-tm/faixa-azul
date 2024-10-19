@@ -1,8 +1,12 @@
 library(tidyverse)
 
+a |>
+  as_tibble() |> 
+  mutate(teste = numero |> str_replace(",", ".") |> as.numeric()) |> 
+  filter(teste |> is.na())
 
 df <- bind_rows(
-  data.table::fread("dados_brutos/sinistros_fatais.csv", encoding = "Latin-1") |>
+  a <- data.table::fread("dados_brutos/sinistros_fatais.csv", encoding = "Latin-1") |>
     filter(Município == "SAO PAULO") |> 
     select(data = "Data do Sinistro",
            latitude, longitude,
@@ -10,7 +14,7 @@ df <- bind_rows(
            numero = "Númeral / KM",
            motocicleta = "Motocicleta envolvida") |>
     mutate(tipo = "SINISTRO FATAL",
-           numero = ifelse(numero == "NAO DISPONIVEL", NA, as.numeric(numero))),
+           numero = numero |> str_replace(",", ".") |> as.numeric()),
   data.table::fread("dados_brutos/sinistros_nao_fatais.csv", encoding = "Latin-1") |> 
     as_tibble() |> 
     filter(Município == "SAO PAULO") |> 
@@ -19,10 +23,13 @@ df <- bind_rows(
            logradouro = Logradouro,
            numero = "Numero/KM",
            motocicleta = "Motocicleta envolvida",
-           tipo = "Tipo de registro") |> 
-    mutate(numero = ifelse(numero == "NAO DISPONIVEL", NA, as.numeric(numero)))) |> 
+           tipo = "Tipo de registro")) |> 
   mutate(across(c(longitude, latitude), ~ str_replace(.x, ",", ".")),
-         data = lubridate::as_date(data, format = "%d/%m/%Y"))
+         data = lubridate::as_date(data, format = "%d/%m/%Y"),
+         logradouro = logradouro |> 
+           stringi::stri_trans_general("latin-ascii") |> 
+           str_to_upper() |> 
+           str_replace_all("[[:punct:]]", ""))
 
 df |> write_csv("dados_tratados/sinistros.csv")
 

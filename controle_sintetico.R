@@ -1,24 +1,34 @@
 library(tidyverse)
 
-# Dados ----
 faixa_azul <- readxl::read_excel("dados_tratados/vias_faixa_azul.xlsx") |> 
-  mutate(data = make_date(year = ano, month = mes))
+  mutate(data = make_date(year = ano, month = mes)) |> 
+  group_by(id_trecho, data, ano, mes) |> 
+  mutate(logradouro_conjunto = str_flatten(logradouro, collapse = "; ")) |> 
+  ungroup()
 
-df <- read_csv("dados_tratados/logradouros.csv") |> 
+df <- read_csv("dados_tratados/sinistros_logradouros.csv") |> 
+  # Calcular HP
   group_by(logradouro) |> 
-  mutate(acidentes_total = sum(acidentes)) |> 
-  filter(acidentes_total > 100) |> # Filtro apenas avenidas com mais de 20 acidentes no total
-  select(-acidentes_total) |> 
-  pivot_longer(4:7, values_to = "total") |> 
-  group_by(logradouro, name) |> 
-  mutate(hp = mFilter::hpfilter(total, freq = 144)$trend[,1],
-         sqrt_hp = mFilter::hpfilter(sqrt(total), freq = 144)$trend[,1]) |> 
+  filter(sum(sinistros) > 100) |> # Filtro apenas avenidas com mais de 20 acidentes no total
+  mutate(sinistros_hp = mFilter::hpfilter(sinistros, freq = 144)$trend[,1],
+         sinistros_moto_hp = mFilter::hpfilter(sinistros_moto, freq = 144)$trend[,1]) |> 
   ungroup() |> 
-  pivot_wider(id_cols = c(ano, mes, logradouro),
-              names_from = name,
-              values_from = c(total, sqrt_hp, hp),
-              names_glue = "{name}_{.value}") |> 
-  mutate(data = make_date(year = ano, month = mes))
+  
+  # Juntar trechos iguais
+  left_join(faixa_azul |> select(logradouro, logradouro_conjunto, data_faixa_azul = data)) |> 
+  mutate(logradouro = ifelse(is.na(logradouro_conjunto), logradouro, logradouro_conjunto)) |>
+  group_by(logradouro, ano, mes, data_faixa_azul) |> 
+  summarize(across(c(sinistros, sinistros_moto, sinistros_hp, sinistros_moto_hp), ~ sum(.x))) |> 
+  group_by(logradouro) |> 
+  mutate(data = make_date(year = ano, month = mes),
+         faixa_azul = ifelse(is.na(data_faixa_azul), FALSE, data > data_faixa_azul)) |> 
+  ungroup()
+
+xtabs(~ logradouro + data, data = df) |> 
+  as_tibble() |> 
+  filter(n == 0) |> 
+  dim() |> 
+  (\(dimensao) if(dimensao[1] != 0){print("Dataframe quebrado, há logradouros com datas incompletas")})(dimensao = _)
 
 ## Plot linha do tempo de cada avenida ----
 plot.acidentes <- function(logradouro_analise, data_faixa_azul){
@@ -26,8 +36,8 @@ plot.acidentes <- function(logradouro_analise, data_faixa_azul){
      filter(logradouro == logradouro_analise) |> 
      mutate(data = make_date(year = ano, month = mes))  |>  
      ggplot(aes(x = data)) +
-     geom_line(aes(y = acidentes_total, linetype = "Sinistros")) + 
-     geom_line(aes(y = acidentes_hp, linetype = "Sinistros (filtro HP)")) + 
+     geom_line(aes(y = sinistros, linetype = "Sinistros")) + 
+     geom_line(aes(y = sinistros_hp, linetype = "Sinistros (filtro HP)")) + 
      geom_vline(xintercept = data_faixa_azul, 
                 colour = "blue", lwd = 4, alpha = .1) +
      scale_linetype_manual(values = c("Sinistros" = "solid", "Sinistros (filtro HP)" = "dashed")) + 
@@ -40,15 +50,16 @@ plot.acidentes <- function(logradouro_analise, data_faixa_azul){
 }
 
 faixa_azul |> 
+  distinct(logradouro_conjunto, data) |> 
   rowwise() |> 
-  mutate(grafico = list(plot.acidentes(logradouro, data)))
+  mutate(grafico = list(plot.acidentes(logradouro_conjunto, data)))
 
 # Controle sintético ----
 
 ## Dataprep ----
 id_data <- tibble(data = seq.Date(from = df$data |> min() |> as.Date(), 
-                                      to = df$data |> max() |> as.Date(), 
-                                      by = "month")) |> 
+                                  to = df$data |> max() |> as.Date(), 
+                                  by = "month")) |> 
   mutate(ano = year(data),
          mes = month(data),
          id_data = as.factor(data) |> as.numeric())
@@ -57,7 +68,7 @@ id_logradouro <- df |>
   distinct(logradouro) |> 
   mutate(id_logradouro = row_number())
 
-controle.sintetico <- function(logradouro_tratamento, data_tratamento, nsplits = 5, variavel = "acidentes_moto_feridos_sqrt_hp"){
+controle.sintetico <- function(logradouro_tratamento, data_tratamento, nsplits = 5, variavel = "sinistros_moto_hp"){
   
   logradouro_tratamento <- id_logradouro |> 
     filter(logradouro == logradouro_tratamento) |> 
@@ -69,7 +80,7 @@ controle.sintetico <- function(logradouro_tratamento, data_tratamento, nsplits =
     left_join(id_logradouro) |> 
     select(id_data, id_logradouro, logradouro, y = variavel) |> 
     as.data.frame()
-
+  
   data_tratamento <- id_data |> 
     filter(ano == year(data_tratamento), mes == month(data_tratamento)) |> 
     pull(id_data) |> 
@@ -105,7 +116,7 @@ controle.sintetico <- function(logradouro_tratamento, data_tratamento, nsplits =
     time.plot = 1:max(dataprep$id_data)
   )
   
-  synth.out <- Synth::synth(data.prep.obj = dataprep.out)
+  synth.out <- Synth::synth(data.prep.obj = dataprep.out, Sigf.ipop = 2)
   
   return(data.frame(sintetico = dataprep.out$Y0plot %*% synth.out$solution.w,
                     id_data = dataprep.out$tag$time.plot,
@@ -114,13 +125,9 @@ controle.sintetico <- function(logradouro_tratamento, data_tratamento, nsplits =
            select(id_data, observado = paste("X", logradouro_tratamento, sep = ""), sintetico = w.weight) |> 
            mutate(tratado = id_data > data_tratamento) |> 
            left_join(id_data)) 
-    
+  
 }
 
-
-bandeirantes <- controle.sintetico("AVENIDA DOS BANDEIRANTES", 
-                                   make_date(year = 2022, month = 10), 
-                                   variavel = "acidentes_moto_feridos_hp")
 
 plot.controle.sintetico <- function(dados_controle_sintetico, logradouro_analise, data_tratamento){
   gg <- dados_controle_sintetico |> 
@@ -143,34 +150,22 @@ plot.controle.sintetico <- function(dados_controle_sintetico, logradouro_analise
     theme_classic() +
     theme(legend.position = c(0.25,0.25))
   
-    return(gg)
+  return(gg)
 }
-
-# remotes::install_github("nsgrantham/ggbraid")
-
-# faixa_azul |> 
-#   rowwise() |> 
-#   mutate(data = make_date(year = ano, month = mes),
-#          df = list(controle.sintetico(logradouro, data)),
-#          plot = list(plot.controle.sintetico(df, logradouro, data)))
 
 
 for (log in faixa_azul |> 
-     group_by(id_logradouro) |> 
-     filter(ano <= 2023, n() == 1) |>
-     pull(logradouro)){
+     distinct(logradouro_conjunto) |> 
+     pull(logradouro_conjunto)){
   
   cat(log, "\n\n")
   
   if (log %in% (df |> distinct(logradouro) |> pull(logradouro))){
     cat(log, " - Encontrado nos dados\n\n")
-    for (variavel in c("acidentes_moto_feridos_sqrt_hp",
-                       "acidentes_moto_feridos_hp",
-                       "acidentes_moto_sqrt_hp",
-                       "acidentes_feridos_sqrt_hp",
-                       "acidentes_sqrt_hp")){
+    for (variavel in c("sinistros_hp",
+                       "sinistros_moto_hp")){
       cat("Controle sintético para ", variavel, "\n\n")
-      data  <- faixa_azul |> filter(logradouro == log) |> pull(data)
+      data  <- faixa_azul |> distinct(logradouro_conjunto, data) |> filter(logradouro_conjunto == log) |> pull(data)
       dados <- controle.sintetico(log, data, variavel = variavel)
       cat("Dados coletados\n\n")
       
@@ -180,5 +175,3 @@ for (log in faixa_azul |>
     }
   }
 }
-
-
