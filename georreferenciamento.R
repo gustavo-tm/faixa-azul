@@ -13,19 +13,22 @@ logradouros <- st_read("dados_tratados/logradouros_osm.gpkg") |>
          tipo_via |> str_detect("link", negate = TRUE),
          as.logical(st_intersects(geom, distrito)))
 
-acidentes <- read_csv("dados_tratados/acidentes.csv") |> 
-  drop_na() |> 
-  st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |> 
-  st_transform("epsg:31983") |> 
-  filter(as.logical(st_intersects(geometry, distrito)))
+sinistros <- read_csv("dados_tratados/sinistros.csv")
 
-obitos <- read_csv("dados_tratados/obitos.csv") |> 
-  drop_na() |> 
+sinistros.geo <- sinistros |> 
+  drop_na() |>
   st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |> 
   st_transform("epsg:31983") |> 
-  filter(as.logical(st_intersects(geometry, distrito)))
-  
-match <- obitos |> 
+  filter(as.logical(st_intersects(geometry, distrito))) |> 
+  mutate(tipo = as.factor(tipo))
+
+sinistros.na <- sinistros |> 
+  filter(is.na(latitude) | is.na(longitude)) |> 
+  mutate(recuperavel = ifelse(logradouro != "NAO DISPONIVEL" & numero != 0, TRUE, FALSE))
+
+
+match <- sinistros.geo |> 
+  filter(tipo == "SINISTRO FATAL") |> 
   mutate(nearest = st_nearest_feature(geometry, logradouros),
          id_acidente = row_number()) |> 
   left_join(logradouros |> 
@@ -40,7 +43,7 @@ match <- obitos |>
                        str_to_upper() |> 
                        str_replace_all("[[:punct:]]", ""))) |> 
   mutate(semelhanca = stringdist::stringsim(logradouro, match)) |> 
-  group_by(id_acidente, logradouro, veiculo) |>
+  group_by(id_acidente, logradouro) |>
   filter(semelhanca == max(semelhanca))
 
 mapview(match, zcol = "semelhanca") |> 
