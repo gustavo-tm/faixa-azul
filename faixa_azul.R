@@ -84,7 +84,7 @@ df |>
   theme(plot.title.position = "plot",
         plot.title = element_text(hjust = 0.5))
 
-ggsave("output/obitos.pdf", width = 8, height = 5)
+ggsave("output/obitos.pdf", width = 10, height = 6)
 
 # MAPA ----
 
@@ -105,16 +105,17 @@ faixa_azul <- readxl::read_excel("dados_tratados/vias_faixa_azul.xlsx") |>
   mutate(data = make_date(year = ano, month = mes)) |> 
   select(-ano, -mes)
 
-logradouros |> 
+mapa.todas <- logradouros |> 
   right_join(faixa_azul) |>
   filter(st_intersects(geom, distrito |> st_union()) |> as.logical()) |>
   mutate(data = as.factor(data)) |> 
-  mapview(zcol = "data") |> 
-  mapshot(url = "output/mapas/logradouros_faixa_azul.html")
+  mapview(zcol = "data")
 
-
-
-logradouros |> 
+mapa.selecao <- logradouros |> 
   right_join(faixa_azul) |>
   filter(st_intersects(geom, distrito |> st_union()) |> as.logical()) |> 
-  st_write("mariah.gpkg")
+  semi_join(read_csv("dados_tratados/faixa_azul_selecao.csv") |> mutate(id_osm = as.character(id_osm))) |> 
+  mapview(color = "red")
+
+(mapa.todas + mapa.selecao) |> mapshot(url = "output/mapas/logradouros_faixa_azul.html")
+
