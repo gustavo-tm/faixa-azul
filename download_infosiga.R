@@ -6,7 +6,7 @@ a |>
   filter(teste |> is.na())
 
 df <- bind_rows(
-  a <- data.table::fread("dados_brutos/sinistros_fatais.csv", encoding = "Latin-1") |>
+  data.table::fread("dados_brutos/sinistros_fatais.csv", encoding = "Latin-1") |>
     filter(Município == "SAO PAULO") |> 
     select(data = "Data do Sinistro",
            latitude, longitude,
@@ -14,7 +14,7 @@ df <- bind_rows(
            numero = "Númeral / KM",
            motocicleta = "Motocicleta envolvida") |>
     mutate(tipo = "SINISTRO FATAL",
-           numero = numero |> str_replace(",", ".") |> as.numeric()),
+           numero = numero |> str_replace(",", ".")),
   data.table::fread("dados_brutos/sinistros_nao_fatais.csv", encoding = "Latin-1") |> 
     as_tibble() |> 
     filter(Município == "SAO PAULO") |> 
