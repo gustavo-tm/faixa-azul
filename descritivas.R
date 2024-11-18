@@ -115,32 +115,7 @@ mapa.selecao <- logradouros |>
   mapview(color = "red")
 
 (mapa.todas + mapa.selecao) |> mapshot(url = "output/mapas/logradouros_faixa_azul.html")
-# 
-# logradouros |>
-#   semi_join(faixa_azul) |> 
-#   left_join(read_csv("dados_tratados/faixa_azul_selecao.csv") |> 
-#               mutate(faixa_azul = "faixa_azul", id_osm = as.character(id_osm))) |> 
-#   mutate(tamanho = st_length(geom)) |>
-#   st_drop_geometry() |> 
-#   group_by(logradouro, faixa_azul) |> 
-#   summarize(tamanho = tamanho |> as.numeric() |> sum()) |> 
-#   ungroup() |> 
-#   make_long(logradouro, faixa_azul, value = tamanho) |> 
-#   ggplot(aes(x = x, 
-#              next_x = next_x, 
-#              node = factor(node), 
-#              next_node = factor(next_node),
-#              fill = node,
-#              value = value,
-#              label = node)) +
-#   geom_sankey(flow.alpha = 1, na.rm = T, space = 0, colour = "black", lwd = .1) +
-#   # geom_sankey_label(size = 3.5, color = "black", fill = "white", alpha = .9) +
-#   theme_sankey() +
-#   theme(legend.position = "none")
-# 
-# 
-# pivot_wider(names_from = faixa_azul, values_from = tamanho, values_fill = 0)
-#   
+ 
 logradouros |>
   semi_join(faixa_azul) |> 
   left_join(read_csv("dados_tratados/faixa_azul_selecao.csv") |> 
@@ -165,20 +140,38 @@ logradouros |>
 ggsave("output/tamanho-trechos.pdf", width = 7, height = 6)
 
 
-data.frame(x = "G", y = c("A", "B"), z = 1:10) |> 
-  ggplot(aes(x = z, y = x, fill = y, group = z)) +
-  geom_col(position = "stack")
+logradouros |>
+  semi_join(faixa_azul) |> 
+  left_join(read_csv("dados_tratados/faixa_azul_selecao.csv") |> 
+              mutate(faixa_azul = "faixa_azul", id_osm = as.character(id_osm))) |> 
+  st_drop_geometry() |> 
+  summarize(across(c(tipo_via, limite_velocidade, faixas, superficie, mao_unica), ~ fct_infreq(.x) |> levels() |> first()))
 
 
-
-
-
-
-
-
-
-
-
+read_csv("dados_tratados/frota.csv") |>
+  mutate(tp_veiculo = fct_collapse(tipo_veiculo,
+                                     carro = c("automovel", "caminhonete", "camioneta"),
+                                     moto = c("motocicleta", "ciclomotor", "motoneta"),
+                                     other_level = "outros"),
+         across(c(tp_veiculo, tipo_veiculo), ~ factor(.x, levels = c("carro", "automovel", "caminhonete", "camioneta",
+                                                                     "moto", "motocicleta", "ciclomotor", "motoneta"))),
+         data = make_date(year = ano, month = mes)) |> 
+  arrange(data) |> 
+  filter(tp_veiculo %in% c("carro", "moto")) |> 
+  (\(df) ggplot() +
+     geom_line(data = df |> 
+                 group_by(tipo_veiculo) |> 
+                 mutate(variacao = frota / lag(frota) - 1),
+               aes(x = data, y = variacao, colour = tipo_veiculo, group = "A"), 
+               lwd = 1, alpha = .5) +
+     geom_line(data = df |> 
+                 group_by(data, tp_veiculo) |> 
+                 summarize(frota = sum(frota)) |> 
+                 group_by(tp_veiculo) |> 
+                 mutate(variacao = frota / lag(frota) - 1),
+               aes(x = data, y = variacao, colour = tp_veiculo), lwd = 1) +
+     scale_y_continuous("", limits = c(-.01, .05)))(df = _)
+  
 
 
 
