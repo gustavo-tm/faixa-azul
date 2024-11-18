@@ -28,7 +28,6 @@ sinistros.na <- sinistros |>
 
 
 match <- sinistros.geo |> 
-  filter(tipo == "SINISTRO FATAL") |> 
   mutate(nearest = st_nearest_feature(geometry, logradouros),
          id_acidente = row_number()) |> 
   left_join(logradouros |> 
@@ -36,7 +35,7 @@ match <- sinistros.geo |>
               mutate(nearest = row_number()) |> 
               separate_wider_delim(logradouro_ref, ";", names_sep = "_", too_few = "align_start") |> 
               pivot_longer(cols = starts_with("logradouro")) |> 
-              select(nearest, match = value) |> 
+              select(id_osm, nearest, match = value) |> 
               drop_na() |> 
               mutate(match = match |> 
                        stringi::stri_trans_general("latin-ascii") |> 
@@ -44,9 +43,10 @@ match <- sinistros.geo |>
                        str_replace_all("[[:punct:]]", ""))) |> 
   mutate(semelhanca = stringdist::stringsim(logradouro, match)) |> 
   group_by(id_acidente, logradouro) |>
-  filter(semelhanca == max(semelhanca))
+  filter(semelhanca == max(semelhanca)) |> 
+  ungroup()
 
-mapview(match, zcol = "semelhanca") |> 
+mapview(match |> sample_n(10000), zcol = "semelhanca") |> 
   mapshot(url = "output/mapas/join_distancia.html")
 
 
@@ -54,4 +54,51 @@ match |>
   st_drop_geometry() |> 
   ggplot() +
   geom_histogram(aes(x = semelhanca))
+
+
+# match |> 
+#   left_join(read_csv("dados_tratados/faixa_azul_selecao.csv") |> 
+#               mutate(faixa_azul = TRUE, id_osm = as.character(id_osm))) |> 
+#   st_drop_geometry() |> 
+#   mutate(faixa_azul = replace_na(faixa_azul, FALSE)) |> 
+#   group_by(ano = year(data), mes = month(data), faixa_azul) |> 
+#   summarize(sinistros = n()) |> 
+#   ggplot(aes(x = make_date(year = ano, month = mes), y = sinistros, colour = faixa_azul)) +
+#   geom_line()
+
+
+
+
+df <- logradouros |> 
+  st_drop_geometry() |> 
+  as_tibble() |> 
+  select(id_osm, faixas, limite_velocidade, mao_unica, superficie, tipo_via) |> 
+  left_join(read_csv("dados_tratados/faixa_azul_selecao.csv") |>
+              mutate(trecho_faixa_azul = TRUE, id_osm = as.character(id_osm))) |>
+  mutate(trecho_faixa_azul = replace_na(trecho_faixa_azul, FALSE)) |> 
+  right_join(match) |> 
+  filter(tipo != "NOTIFICACAO") |> 
+  left_join(readxl::read_excel("dados_tratados/vias_faixa_azul.xlsx") |>
+              mutate(data = make_date(year = ano, month = mes), via_faixa_azul = TRUE) |> 
+              select(match = logradouro_osm, data_faixa_azul = data, via_faixa_azul)) |> 
+  mutate(via_faixa_azul = replace_na(via_faixa_azul, FALSE),
+         tratamento = ifelse(trecho_faixa_azul == TRUE & data_faixa_azul < data, TRUE, FALSE),
+         fatal = tipo == "SINISTRO FATAL")
+
+df |> distinct(tipo_via)
+
+lm(fatal ~ as.numeric(limite_velocidade) + as.numeric(faixas) + tipo_via + mao_unica + superficie + motocicleta + tratamento + via_faixa_azul + trecho_faixa_azul, data = df) |> 
+  summary()
+
+glm(fatal ~ as.numeric(limite_velocidade) + as.numeric(faixas) + tipo_via + mao_unica + superficie + motocicleta + tratamento + via_faixa_azul + trecho_faixa_azul, 
+    data = df, family = "binomial") |> 
+  summary()
+
+
+
+
+
+
+
+
 

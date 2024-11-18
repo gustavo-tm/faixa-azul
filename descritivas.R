@@ -159,19 +159,33 @@ read_csv("dados_tratados/frota.csv") |>
   arrange(data) |> 
   filter(tp_veiculo %in% c("carro", "moto")) |> 
   (\(df) ggplot() +
+     geom_hline(yintercept = 0, linetype = "dashed", lwd = .75, alpha = .8) +
      geom_line(data = df |> 
                  group_by(tipo_veiculo) |> 
                  mutate(variacao = frota / lag(frota) - 1),
-               aes(x = data, y = variacao, colour = tipo_veiculo, group = "A"), 
-               lwd = 1, alpha = .5) +
+               aes(x = data, y = variacao, colour = tipo_veiculo), 
+               lwd = .5, alpha = .3) +
      geom_line(data = df |> 
                  group_by(data, tp_veiculo) |> 
                  summarize(frota = sum(frota)) |> 
                  group_by(tp_veiculo) |> 
                  mutate(variacao = frota / lag(frota) - 1),
                aes(x = data, y = variacao, colour = tp_veiculo), lwd = 1) +
-     scale_y_continuous("", limits = c(-.01, .05)))(df = _)
+     scale_y_continuous("Variação mensal na frota", limits = c(-.01, .05), labels = scales::percent) +
+     scale_colour_manual("Modo de transporte",
+                         breaks = c("carro", "automovel", "caminhonete", "camioneta",
+                                    "moto", "motocicleta", "ciclomotor", "motoneta"),
+                         values = c("carro" = "#693829FF", 
+                                    "automovel" = "#894B33FF", 
+                                    "caminhonete" = "#A56A3EFF", 
+                                    "camioneta" = "#CFB267FF",
+                                    "moto" = "#345084FF", 
+                                    "motocicleta" = "#3D619DFF", 
+                                    "ciclomotor" = "#5480B5FF", 
+                                    "motoneta" = "#9CA9BAFF"))+
+     labs(x = NULL) +
+     theme_minimal())(df = _)
   
-
+ggsave("output/evolucao-frotas.pdf", width = 8, height = 5)
 
 
