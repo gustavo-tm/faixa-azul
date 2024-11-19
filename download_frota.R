@@ -22,6 +22,9 @@ LEFT JOIN (SELECT DISTINCT id_municipio,nome  FROM `basedosdados.br_bd_diretorio
 frota <- read_sql(query, billing_project_id = get_billing_id())
 
 frota |> 
+  write_csv("dados_brutos/frota.csv")
+
+frota |> 
   filter(id_municipio == "3550308") |> 
   select(ano, mes, tipo_veiculo, frota = quantidade) |> 
   write_csv("dados_tratados/frota.csv")

@@ -1,6 +1,7 @@
 library(tidyverse)
 library(sf)
 library(mapview)
+library(gt)
 
 distrito <- read_sf("dados_tratados/distrito/SIRGAS_SHP_distrito.shp") |> 
   st_set_crs("epsg:31983") |> 
@@ -16,6 +17,7 @@ logradouros <- st_read("dados_tratados/logradouros_osm.gpkg") |>
 sinistros <- read_csv("dados_tratados/sinistros.csv")
 
 sinistros.geo <- sinistros |> 
+  select(-quantidade) |> 
   drop_na() |>
   st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |> 
   st_transform("epsg:31983") |> 
@@ -97,6 +99,35 @@ glm(fatal ~ as.numeric(limite_velocidade) + as.numeric(faixas) + tipo_via + mao_
 
 
 
+
+temp <- logradouros |> 
+  mutate(tamanho = st_length(geom)) |> 
+  st_drop_geometry() |> 
+  select(id_osm, faixas, limite_velocidade, mao_unica, superficie, tipo_via, tamanho) |> 
+  left_join(read_csv("dados_tratados/faixa_azul_selecao.csv") |>
+              mutate(trecho_faixa_azul = TRUE, id_osm = as.character(id_osm))) |> 
+  left_join(match |> 
+              st_drop_geometry() |> 
+              group_by(id_osm) |> 
+              summarize(semelhanca = mean(semelhanca),
+                        sinistros = n(),
+                        sinistros_moto = sum(motocicleta))) |> 
+  mutate(across(c(trecho_faixa_azul, semelhanca, sinistros, sinistros_moto), ~ replace_na(.x, 0))) |> 
+  group_by(trecho_faixa_azul) |> 
+  summarize(
+    across(
+      c(sinistros, sinistros_moto, faixas, limite_velocidade, tamanho, semelhanca), 
+      ~ .x |> as.numeric() |> mean(na.rm = TRUE) |> round(2)),
+    across(
+      c(mao_unica, superficie, tipo_via), 
+      ~ fct_infreq(.x) |> levels() |> first())) |> 
+  mutate(across(everything(), ~ as.character(.x))) |>
+  pivot_longer(2:10) |> 
+  pivot_wider(names_from = trecho_faixa_azul, id_cols = name, values_from = value)
+
+temp |> 
+  gt() |> 
+  gtsave("output/comparativo-grupos.html")
 
 
 

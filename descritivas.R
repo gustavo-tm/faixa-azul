@@ -189,3 +189,73 @@ read_csv("dados_tratados/frota.csv") |>
 ggsave("output/evolucao-frotas.pdf", width = 8, height = 5)
 
 
+read_csv("dados_tratados/sinistros.csv") |>
+  filter(year(data) > 2018, year(data) <= 2023) |> 
+  mutate(mes = fct_collapse(month(data) |> factor(),
+                            "Jan-Mar" = 1:3,
+                            "Abr-Jun" = 4:6,
+                            "Jul-Set" = 7:9,
+                            "Out-Dez" = 10:12,
+                            other_level = "teste")) |> 
+  group_by(hora = hour(data), dia = day(data), mes) |> 
+  summarize(sinistros = n()) |> 
+  ggplot(aes(x = dia, y = hora, fill = sinistros)) +
+  geom_tile() +
+  facet_grid(cols = vars(mes)) +
+  theme_minimal() +
+  scale_fill_viridis_c() +
+  scale_y_continuous("Horário", breaks = 0:11*2) +
+  scale_x_continuous("Dia do mês", breaks = NULL)
+
+ggsave("output/sinistros-horario/sinistros.pdf", width = 10, height =4)
+
+
+
+read_csv("dados_tratados/sinistros.csv") |>
+  filter(year(data) > 2018, year(data) <= 2023, motocicleta == 1) |> 
+  mutate(mes = fct_collapse(month(data) |> factor(),
+                            "Jan-Mar" = 1:3,
+                            "Abr-Jun" = 4:6,
+                            "Jul-Set" = 7:9,
+                            "Out-Dez" = 10:12,
+                            other_level = "teste")) |> 
+  group_by(hora = hour(data), dia = day(data), mes) |> 
+  summarize(sinistros = n()) |> 
+  ggplot(aes(x = dia, y = hora, fill = sinistros)) +
+  geom_tile() +
+  facet_grid(cols = vars(mes)) +
+  theme_minimal() +
+  scale_fill_viridis_c() +
+  scale_y_continuous("Horário", breaks = 0:11*2) +
+  scale_x_continuous("Dia do mês", breaks = NULL)
+
+ggsave("output/sinistros-horario/motocicletas.pdf", width = 10, height =4)
+
+read_csv("dados_tratados/sinistros.csv") |>
+  filter(year(data) > 2018, year(data) <= 2023) |> 
+  mutate(mes = fct_collapse(month(data) |> factor(),
+                            "Jan-Mar" = 1:3,
+                            "Abr-Jun" = 4:6,
+                            "Jul-Set" = 7:9,
+                            "Out-Dez" = 10:12,
+                            other_level = "teste")) |> 
+  group_by(hora = hour(data), dia = day(data), mes) |> 
+  summarize(sinistros = sum(quantidade, na.rm = TRUE)) |> 
+  ggplot(aes(x = dia, y = hora, fill = sinistros)) +
+  geom_tile() +
+  facet_grid(cols = vars(mes)) +
+  theme_minimal() +
+  scale_fill_viridis_c() +
+  scale_y_continuous("Horário", breaks = 0:11*2) +
+  scale_x_continuous("Dia do mês", breaks = NULL)
+
+ggsave("output/sinistros-horario/obitos.pdf", width = 10, height =4)
+
+
+
+
+
+
+
+
+
