@@ -5,10 +5,9 @@ library(gt)
 
 distrito <- read_sf("dados_tratados/distrito/SIRGAS_SHP_distrito.shp") |> 
   st_set_crs("epsg:31983") |> 
-  # filter(ds_subpref == "SE") |> 
   summarize(geom = st_union(geometry) |> st_simplify(dTolerance = 100))
 
-logradouros <- st_read("dados_tratados/logradouros_osm.gpkg") |> 
+logradouros <- st_read("dados_tratados/trechos_osm.gpkg") |> 
   st_transform("epsg:31983") |> 
   filter(tipo_via != "service",
          tipo_via |> str_detect("link", negate = TRUE),
@@ -51,11 +50,15 @@ match <- sinistros.geo |>
 mapview(match |> sample_n(10000), zcol = "semelhanca") |> 
   mapshot(url = "output/mapas/join_distancia.html")
 
-
 match |> 
   st_drop_geometry() |> 
   ggplot() +
   geom_histogram(aes(x = semelhanca))
+
+
+match |> 
+  select(id_acidente, id_osm, data, logradouro = match, motocicleta, tipo) |> 
+  st_drop_geometry()
 
 
 # match |> 
@@ -87,18 +90,21 @@ df <- logradouros |>
          tratamento = ifelse(trecho_faixa_azul == TRUE & data_faixa_azul < data, TRUE, FALSE),
          fatal = tipo == "SINISTRO FATAL")
 
-df |> distinct(tipo_via)
 
-lm(fatal ~ as.numeric(limite_velocidade) + as.numeric(faixas) + tipo_via + mao_unica + superficie + motocicleta + tratamento + via_faixa_azul + trecho_faixa_azul, data = df) |> 
+lm(fatal ~ as.numeric(limite_velocidade) + as.numeric(faixas) + tipo_via + mao_unica + superficie + motocicleta + tratamento + via_faixa_azul + trecho_faixa_azul + factor(ano) + factor(mes), 
+   data = df |> mutate(ano = year(data), mes = month(data)) |> filter(ano > 2018)) |> 
   summary()
 
-glm(fatal ~ as.numeric(limite_velocidade) + as.numeric(faixas) + tipo_via + mao_unica + superficie + motocicleta + tratamento + via_faixa_azul + trecho_faixa_azul, 
-    data = df, family = "binomial") |> 
+glm(fatal ~ as.numeric(limite_velocidade) + as.numeric(faixas) + tipo_via + mao_unica + superficie + motocicleta * tratamento + via_faixa_azul + trecho_faixa_azul + factor(ano) + factor(mes), 
+    data = df |> mutate(ano = year(data), mes = month(data)) |> filter(ano > 2018), family = "binomial") |> 
   summary()
 
 
 
-
+df |> 
+  distinct(id_osm, tipo_via, trecho_faixa_azul) |> 
+  group_by(trecho_faixa_azul) |> 
+  count(tipo_via)
 
 temp <- logradouros |> 
   mutate(tamanho = st_length(geom)) |> 
@@ -130,6 +136,6 @@ temp |>
   gtsave("output/comparativo-grupos.html")
 
 
-
+logradouros <- read_csv("dados_tratados/logradouros.csv")
 
 
