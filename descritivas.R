@@ -7,7 +7,7 @@ library(ggsankey)
 # LINHA DO TEMPO ----
 
 df <- read_csv("dados_tratados/sinistros_logradouros.csv")
-faixa_azul <- readxl::read_excel("dados_tratados/vias_faixa_azul.xlsx")
+faixa_azul <- readxl::read_excel("dados_tratados/faixa_azul_vias.xlsx")
 
 fix.alias <- function(df){
   df |> 
