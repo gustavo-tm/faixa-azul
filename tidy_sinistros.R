@@ -33,8 +33,8 @@ df <- bind_rows(
            stringi::stri_trans_general("latin-ascii") |> 
            str_to_upper() |> 
            str_replace_all("[[:punct:]]", ""),
-         id_acidente = row_number()) |> 
-  select(id_acidente, data, logradouro, latitude, longitude, tipo, quantidade_envolvidos = quantidade, indicacao_motocicleta = motocicleta)
+         id_sinistro = row_number()) |> 
+  select(id_sinistro, data, logradouro, latitude, longitude, tipo, quantidade_envolvidos = quantidade, indicacao_motocicleta = motocicleta)
 
 df |> write_csv("banco_dados/sinistros.csv")
 

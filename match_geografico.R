@@ -28,13 +28,13 @@ match <- sinistros |>
                        str_to_upper() |> 
                        str_replace_all("[[:punct:]]", ""))) |> 
   mutate(distancia_semantica = stringdist::stringsim(logradouro, match)) |> 
-  group_by(id_acidente, logradouro) |>
+  group_by(id_sinistro, logradouro) |>
   filter(distancia_semantica == max(distancia_semantica)) |> 
   ungroup()
 
 match |> 
   st_drop_geometry() |> 
-  select(id_acidente, id_osm, data, distancia_geografica, distancia_semantica) |> 
+  select(id_sinistro, id_osm, data, distancia_geografica, distancia_semantica) |> 
   write_csv("banco_dados/match_geografico.csv")
 
 
