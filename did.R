@@ -1,9 +1,9 @@
 library(tidyverse)
 library(did)
 
-logradouros.sinistros <- read_csv("dados_tratados/logradouros_sinistros.csv")
-logradouros.OSM <- read_csv("dados_tratados/logradouros_osm.csv")
-logradouros.faixa <- readxl::read_excel("dados_tratados/vias_faixa_azul.xlsx")
+logradouros.sinistros <- read_csv("dados_tratados/infosiga_logradouros.csv")
+logradouros.OSM <- read_csv("dados_tratados/osm_logradouros.csv")
+logradouros.faixa <- readxl::read_excel("dados_tratados/faixa_azul_vias.xlsx")
 
 
 data <- logradouros.sinistros |> 

@@ -40,7 +40,7 @@ trechos.OSM <- as_tibble(osm$osm_lines) |>
          superficie = surface,
          geometry) 
 
-trechos.OSM |> st_write("dados_tratados/trechos_osm.gpkg")
+trechos.OSM |> st_write("dados_tratados/osm_trechos.gpkg")
 
 trechos.OSM |>  
   st_as_sf() |>  
@@ -58,7 +58,7 @@ trechos.OSM |>
   mapshot(url = "output/logradouros_osm_itaim.html")
 
 
-trechos.OSM  <- st_read("dados_tratados/trechos_osm.gpkg")
+trechos.OSM  <- st_read("dados_tratados/osm_trechos.gpkg")
 
 logradouros.OSM <- trechos.OSM |>
   mutate(tamanho = st_length(geom)) |> 
@@ -77,7 +77,7 @@ logradouros.OSM <- trechos.OSM |>
       ~ fct_infreq(.x) |> levels() |> first()),
     tamanho = sum(tamanho) |> as.numeric())
 
-logradouros.OSM |> write_csv("dados_tratados/logradouros_osm.csv")
+logradouros.OSM |> write_csv("dados_tratados/osm_logradouros.csv")
 
 # logradouros.OSM |> 
 #   filter(tipo_via %in% c("trunk", "primary", "secondary")) |> View()

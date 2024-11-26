@@ -7,13 +7,13 @@ distrito <- read_sf("dados_tratados/distrito/SIRGAS_SHP_distrito.shp") |>
   st_set_crs("epsg:31983") |> 
   summarize(geom = st_union(geometry) |> st_simplify(dTolerance = 100))
 
-logradouros <- st_read("dados_tratados/trechos_osm.gpkg") |> 
+logradouros <- st_read("dados_tratados/osm_trechos.gpkg") |> 
   st_transform("epsg:31983") |> 
   filter(tipo_via != "service",
          tipo_via |> str_detect("link", negate = TRUE),
          as.logical(st_intersects(geom, distrito)))
 
-sinistros <- read_csv("dados_tratados/sinistros.csv")
+sinistros <- read_csv("dados_tratados/infosiga_sinistros.csv")
 
 sinistros.geo <- sinistros |> 
   select(-quantidade) |> 
@@ -57,8 +57,30 @@ match |>
 
 
 match |> 
-  select(id_acidente, id_osm, data, logradouro = match, motocicleta, tipo) |> 
-  st_drop_geometry()
+  write_csv("dados_tratados/match_sinistros.csv")
+
+
+match |>  
+  st_drop_geometry() |> 
+  semi_join(logradouros |> 
+              filter(tipo_via %in% c("trunk", "primary", "secondary", "tertiary")) |> 
+              select(id_osm)) |> 
+  group_by(ano = year(data), mes = month(data), id_osm) |> 
+  summarize(sinistros = n(), .groups = "drop") |> 
+  complete(ano, mes, id_osm, 
+           fill = list(sinistros = 0)) |> 
+  write_csv("dados_tratados/match_trechos.csv")
+
+
+
+
+
+
+
+
+
+
+
 
 
 # match |> 
@@ -83,7 +105,7 @@ df <- logradouros |>
   mutate(trecho_faixa_azul = replace_na(trecho_faixa_azul, FALSE)) |> 
   right_join(match) |> 
   filter(tipo != "NOTIFICACAO") |> 
-  left_join(readxl::read_excel("dados_tratados/vias_faixa_azul.xlsx") |>
+  left_join(readxl::read_excel("dados_tratados/faixa_azul_vias.xlsx") |>
               mutate(data = make_date(year = ano, month = mes), via_faixa_azul = TRUE) |> 
               select(match = logradouro_osm, data_faixa_azul = data, via_faixa_azul)) |> 
   mutate(via_faixa_azul = replace_na(via_faixa_azul, FALSE),
@@ -136,6 +158,7 @@ temp |>
   gtsave("output/comparativo-grupos.html")
 
 
-logradouros <- read_csv("dados_tratados/logradouros.csv")
+logradouros <- st_read("dados_brutos/logradouros/SIRGAS_SHP_logradouronbl_line.shp")
+
 
 

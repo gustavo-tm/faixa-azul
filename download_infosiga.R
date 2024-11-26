@@ -35,7 +35,7 @@ df <- bind_rows(
            str_replace_all("[[:punct:]]", "")) |> 
   select(-c(ano, mes, dia, hora))
 
-df |> write_csv("dados_tratados/sinistros.csv")
+df |> write_csv("dados_tratados/infosiga_sinistros.csv")
 
 df |> 
   group_by(ano = year(data), mes = month(data), logradouro) |> 
@@ -46,5 +46,5 @@ df |>
   complete(ano, mes, logradouro, 
            fill = list(sinistros = 0, sinistros_moto = 0)) |> 
   arrange(logradouro, desc(ano), desc(mes)) |> 
-  write_csv("dados_tratados/logradouros_sinistros.csv")
+  write_csv("dados_tratados/infosiga_logradouros.csv")
 
