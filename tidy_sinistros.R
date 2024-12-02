@@ -34,7 +34,7 @@ df <- bind_rows(
            str_to_upper() |> 
            str_replace_all("[[:punct:]]", ""),
          id_sinistro = row_number()) |> 
-  select(id_sinistro, data, logradouro, latitude, longitude, tipo, quantidade_envolvidos = quantidade, indicacao_motocicleta = motocicleta)
+  select(id_sinistro, data, logradouro, numero, latitude, longitude, tipo, quantidade_envolvidos = quantidade, indicacao_motocicleta = motocicleta)
 
 df |> write_csv("banco_dados/sinistros.csv")
 

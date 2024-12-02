@@ -1,6 +1,7 @@
 library(tidyverse)
 library(sf)
-# library(mapview)
+library(tidygeocoder)
+library(mapview)
 # library(gt)
 
 
@@ -38,7 +39,65 @@ match |>
   write_csv("banco_dados/match_geografico.csv")
 
 
-# mapview(match |> sample_n(10000), zcol = "semelhanca") |> 
+
+sinistros |> 
+  st_drop_geometry() |> 
+  count(numero) |> 
+  arrange(-n) |> 
+  mutate(percentual = n / sum(n),
+         percent_cum = cumsum(percentual))
+
+sinistros |> 
+  st_drop_geometry() |> 
+  filter(numero < 2100, numero > 0) |> 
+  ggplot() +
+  geom_histogram(aes(x = numero), bins = 200) 
+
+
+
+
+
+distancias <- sinistros |> 
+  sample_n(1000) |> 
+  as_tibble() |> 
+  filter(!is.na(numero), !is.na(logradouro)) |> 
+  rename(geometry_infosiga = geometry) |> 
+  mutate(address = str_glue("{numero} {logradouro}"),
+         street = str_glue("{numero} {logradouro}"),
+         city = "São Paulo",
+         county = "São Paulo",
+         state = "São Paulo",
+         country = "Brazil") |> 
+  geocode(street=street,
+          city=city,
+          county=county,
+          state=state,
+          country=country,
+          method = 'osm', lat = nova_latitude , long = nova_longitude) |> 
+  filter(!is.na(nova_latitude), !is.na(nova_longitude)) |> 
+  st_as_sf(coords = c("nova_longitude", "nova_latitude"), crs = 4326) |> 
+  st_transform("epsg:31983") |> 
+  mutate(distancia = st_distance(geometry_infosiga, geometry, by_element = T)) |> 
+  select(address, geometry_infosiga, geometry_osm = geometry, distancia)
+
+linhas <- distancias |> 
+  as_tibble() |> 
+  mutate(id = row_number()) |> 
+  pivot_longer(c(geometry_infosiga, geometry_osm)) |> 
+  st_as_sf() |> 
+  group_by(id) |> 
+  summarize(linha = st_union(value)) |> 
+  st_cast("LINESTRING")
+
+list(linhas = linhas, 
+     pontos_infosiga = distancias |> st_set_geometry("geometry_infosiga"),
+     pontos_osm = distancias |> st_set_geometry("geometry_osm")) |> 
+  mapview(col.regions = list("black", "darkblue", "darkgreen")) |> 
+  mapshot(url = "output/mapas/georref-pontos-osm.html")
+
+
+
+# mapview(match |> sample_n(10000), zcol = "semelhangeometry_infosiga# mapview(match |> sample_n(10000), zcol = "semelhanca") |> 
 #   mapshot(url = "output/mapas/join_distancia.html")
 # 
 # match |> 

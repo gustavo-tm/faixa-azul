@@ -11,6 +11,7 @@ limpar.logradouro <- function(df){
 }
 
 
+
 logradouros <- read_csv("banco_dados/logradouros.csv") 
 logradouros.infosiga <- read_csv("banco_dados/sinistros.csv") |> count(logradouro) |> limpar.logradouro()
 logradouros.osm <- st_read("banco_dados/trechos.gpkg") |> st_drop_geometry() |> filter(tipo_via != "service") |> as_tibble() |> limpar.logradouro() |> distinct(logradouro) 
@@ -32,18 +33,27 @@ remover.componente <- function(df, componente = "tipo"){
   
   df |> 
     mutate(logradouro = paste(" ", logradouro, sep = "") |> 
-             str_remove_all(pattern)) |> View()
-             
-             
-             
-             )
+             str_replace_all(pattern, " "))
 }
 
 
 logradouros.infosiga |> 
   remover.componente("preposicao") |> 
+  remover.componente("titulo") |> 
+  remover.componente("titulo_abrev") |> 
   remover.componente("tipo") |> 
-  remover.componente("tipo_abrev") |> View()
+  remover.componente("tipo_abrev") |> 
+  limpar.logradouro() |> 
+  semi_join(logradouros.osm |> 
+              remover.componente("preposicao") |> 
+              remover.componente("titulo") |> 
+              remover.componente("titulo_abrev") |> 
+              remover.componente("tipo") |> 
+              remover.componente("tipo_abrev") |> 
+              limpar.logradouro()) |> summarize(n = sum(n))
+
+  
+
 
 
 
