@@ -1,7 +1,8 @@
 library(tidyverse)
 library(gt)
 
-df <- bigtabledf <- bind_rows(
+df <- bind_rows(
+  #SINISTROS FATAIS
   data.table::fread("dados_brutos/sinistros_fatais.csv", encoding = "Latin-1") |>
     filter(Município == "SAO PAULO") |> 
     select(ano = "Ano do Sinistro",
@@ -15,7 +16,12 @@ df <- bigtabledf <- bind_rows(
            quantidade = "Quantidade de vítimas fatais") |>
     mutate(tipo = "SINISTRO FATAL",
            numero = numero |> str_replace(",", ".")),
-  data.table::fread("dados_brutos/sinistros_nao_fatais.csv", encoding = "Latin-1") |> 
+  
+  #SINISTROS NAO FATAIS
+  bind_rows(
+    data.table::fread("dados_brutos/sinistros_nao_fatais_2019-2020.csv", encoding = "Latin-1"),
+    data.table::fread("dados_brutos/sinistros_nao_fatais_2021-2024.csv", encoding = "Latin-1")
+  ) |> 
     as_tibble() |> 
     filter(Município == "SAO PAULO") |> 
     select(ano = "Ano do Sinistro",
@@ -35,7 +41,7 @@ df <- bigtabledf <- bind_rows(
            str_to_upper() |> 
            str_replace_all("[[:punct:]]", ""),
          id_sinistro = row_number()) |> 
-  select(id_sinistro, data, logradouro, numero, latitude, longitude, tipo, quantidade_envolvidos = quantidade, indicacao_motocicleta = motocicleta)
+  select(id_sinistro, data, logradouro, numero, latitude, longitude, tipo, quantidade_envolvidos = quantidade, motocicletas = motocicleta)
 
 df |> write_csv("banco_dados/sinistros.csv")
 

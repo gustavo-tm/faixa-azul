@@ -44,7 +44,7 @@ trechos.OSM |>
   mutate(comprimento = st_length(geom)) |> 
   st_write("banco_dados/trechos.gpkg")
 
-# 
+
 # trechos.OSM |>  
 #   st_as_sf() |>  
 #   mapview() |> 
