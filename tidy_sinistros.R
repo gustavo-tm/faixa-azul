@@ -1,6 +1,7 @@
 library(tidyverse)
+library(gt)
 
-df <- bind_rows(
+df <- bigtabledf <- bind_rows(
   data.table::fread("dados_brutos/sinistros_fatais.csv", encoding = "Latin-1") |>
     filter(Município == "SAO PAULO") |> 
     select(ano = "Ano do Sinistro",
@@ -38,17 +39,19 @@ df <- bind_rows(
 
 df |> write_csv("banco_dados/sinistros.csv")
 
-# 
-# df |> write_csv("dados_tratados/infosiga_sinistros.csv")
-# 
-# df |> 
-#   group_by(ano = year(data), mes = month(data), logradouro) |> 
-#   summarize(sinistros = n(),
-#             sinistros_moto = sum(ifelse(motocicleta > 0, 1, 0)),
-#             .groups = "drop") |> 
-#   filter(ano > 2018) |> 
-#   complete(ano, mes, logradouro, 
-#            fill = list(sinistros = 0, sinistros_moto = 0)) |> 
-#   arrange(logradouro, desc(ano), desc(mes)) |> 
-#   write_csv("dados_tratados/infosiga_logradouros.csv")
-# 
+df |> 
+  as_tibble() |> 
+  group_by(ano = year(data), tipo) |> 
+  summarize(n = n(), .groups = "drop") |> 
+  filter(ano >= 2019) |> 
+  pivot_wider(names_from = tipo, values_from = n, id_cols = ano) |> 
+  gt() |> 
+  cols_move(columns = "NOTIFICACAO",
+            after = "SINISTRO NAO FATAL") |> 
+  cols_label(ano = "Ano",
+             "SINISTRO FATAL" = "Sinistros fatais",
+             "NOTIFICACAO" = "Notificações",
+             "SINISTRO NAO FATAL" = "Sinistros não fatais") |> 
+  fmt_number(columns = 2:4, decimals = 0, sep_mark = ".") |> 
+  as_latex() |> cat()
+ 

@@ -16,7 +16,7 @@ sinistros <- read_csv("banco_dados/sinistros.csv")
 
 df.trecho <- match |> 
   left_join(sinistros) |> 
-  filter(year(data) >= 2018, indicacao_motocicleta == 1) |> # Antes de 2018 há apenas sinistros com óbito
+  filter(year(data) >= 2019, tipo != "NOTIFICACAO") |> # Antes de 2019 há apenas sinistros com óbito
   semi_join(trechos, by = join_by(id_osm)) |> 
   group_by(data = make_date(year = year(data), month = month(data)), id_osm) |> 
   summarize(sinistros = n(), .groups = "drop") |> 
@@ -82,23 +82,43 @@ did.controle <- att_gt(yname = "sinistros_por_metro",
               clustervars = "id_osm",
               data = df.trecho |> mutate(sinistros_por_metro = sinistros / comprimento),
               xformla = ~ tipo_via + faixas + limite_velocidade)
-did.controle |>
-  aggte() |>
-  summary()
 
-did.controle |>
-  aggte(type = "dynamic", na.rm = T) |>
-  ggdid() +
-  scale_x_continuous("Meses até o tratamento", limits = c(-12, 12), breaks = (0:6-3)*10) +
-  theme_minimal()
+preparar.grafico <- function(att_gt){
+  att_gt |>
+    aggte(type = "dynamic", na.rm = T) |> 
+    (\(result) tibble(egt = result$egt, 
+                      att = result$att.egt, 
+                      se = result$se.egt, 
+                      crit_val = result$crit.val.egt))(result = _) |> 
+    mutate(ci_low = att - crit_val * se,
+           ci_high = att + crit_val * se)
+    # left_join(df.trecho |> 
+    #             distinct(data, mes) |> 
+    #             rename(egt = mes))
+}
 
-did |>
-  aggte(type = "dynamic", na.rm = T) |>
-  ggdid() +
-  scale_x_continuous("Meses até o tratamento", limits = c(-30, 30), breaks = (0:6-3)*10) +
-  theme_minimal()
 
-# 
+result <- bind_rows(
+  did.controle |> 
+    preparar.grafico() |> 
+    mutate(controle = TRUE),
+  did |> 
+    preparar.grafico() |> 
+    mutate(controle = FALSE)
+)
+
+result |> 
+  filter(abs(egt) <= 12) |> 
+  ggplot(aes(x = factor(egt), colour = controle, y = att)) +
+  geom_pointrange(aes(ymin = ci_low, ymax = ci_high), position = position_dodge(width = .5), fatten = 1) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = factor(0), alpha = .05, lwd = 5) +
+  theme_minimal() +
+  labs(x = "Meses ao tratamento", y = "Efeito do tratamento")
+  
+
+
+
 
 did.logradouro <- att_gt(yname = "sinistros",
                          tname = "mes",
@@ -130,6 +150,48 @@ did.logradouro_controle |>
   ggdid() +
   scale_x_continuous("Meses até o tratamento", limits = c(-30, 30), breaks = (0:6-3)*10) +
   theme_minimal() 
+
+
+
+
+
+
+
+
+
+df.trecho |> 
+  group_by(data, grupo_tratamento = (data_implementacao != 0 & mes > data_implementacao)) |>
+  # group_by(data, grupo_tratamento = (data_implementacao != 0)) |>
+  summarize(sinistros = sum(sinistros), 
+            comprimento = sum(comprimento),
+            .groups = "drop") |> 
+  mutate(sinistro_km = sinistros * 10^3 / comprimento) |> 
+  ggplot(aes(x = data, y = sinistro_km, colour = grupo_tratamento)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # logradouros.sinistros <- read_csv("dados_tratados/infosiga_logradouros.csv")
 # logradouros.OSM <- read_csv("dados_tratados/osm_logradouros.csv")
