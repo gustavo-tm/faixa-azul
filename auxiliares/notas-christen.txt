@@ -1,0 +1,28 @@
+# Problema principal ----
+- Matching impreciso : nomes escritos de maneira incorreta
+- Duplicatas: mesma coisa, mas escrita de formas diferentes
+
+# Etapas ----
+
+## Pré processamento
+1. remoção de caracteres e palavras indesejadas
+- transf ASCII
+- números e romanos
+- espaços
+
+2. deixar por extenso as abreviações e corrigir grafia
+
+3. parsing: separação de atributos em colunas 
+
+4. verificação validade dos atributos
+
+criação de atributo: título, tipo, centroide
+
+
+## Indexing: criar candidatos de matching mais apropriados
+
+## Comparações: cálculo de critério de similaridade
+
+## Classificação: match, não match, match potencial (revisão manual)
+
+## Avaliação
