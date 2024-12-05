@@ -26,3 +26,4 @@ logradouros |>
   select(id_logradouro = lg_codlog, logradouro, tipo_abrev = lg_tipo, tipo, titulo_abrev = lg_titulo, titulo = titulo_ext, preposicao = lg_prep, nome = lg_nome) |> 
   distinct() |> 
   write_csv("banco_dados/logradouros.csv")
+

@@ -1,0 +1,50 @@
+tipo_abrev,tipo
+AC,Acesso
+AL,Alameda
+AV,Avenida
+BC,Beco
+CM,Caminho
+CMP,Caminho particular
+CP,Caminho de pedestre
+CV,Complexo Viário
+EL,Espaço livre
+EPL,Esplanada
+ES,Estrada
+ESC,Escadaria
+ESP,Estrada particular
+EST,Estacionamento
+GL,Galeria
+JD,Jardim
+LD,Ladeira
+LG,Largo
+PA,Passarela
+PC,Praça
+PCR,Praça de retorno
+PP,Passagem de pedestres
+PQ,Parque
+PS,Passagem
+PSP,Passagem particular
+PSS,Passagem subterrânea
+PT,Pátio
+PTE,Ponte
+PTL,Pontilhão
+R,Rua
+RP,Rua particular
+RPJ,Rua projetada
+RV,Rodovia
+SV,Servidão
+TN,Túnel
+TPJ,Travessa Projetada
+TV,Travessa
+TVP,Travessa particular
+VCP,Via de circulação de pedestres
+VD,Viaduto
+VE,Viela
+VEL,Via elevada
+VEP,Viela particular
+VER,Vereda
+VES,Viela Sanitária
+VIA,Via
+VL,Vila
+VLP,Vila particular
+VP,Via de pedestre
