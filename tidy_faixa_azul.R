@@ -1,6 +1,7 @@
 library(tidyverse)
+library(sf)
 
-faixa_azul.vias <- readxl::read_excel("dados_tratados/faixa_azul_vias.xlsx")
+faixa_azsfheadersfaixa_azul.vias <- readxl::read_excel("dados_tratados/faixa_azul_vias.xlsx")
 faixa_azul.selecao <- read_csv("dados_tratados/faixa_azul_selecao.csv", col_types = list(id_osm = "c"))
 trechos <- st_read("banco_dados/trechos.gpkg")
 
@@ -18,6 +19,9 @@ faixa_azul <- faixa_azul.selecao |>
               distinct() |>
               group_by(logradouro) |> 
               filter(n() == 1)) |> 
+  mutate(data_implementacao = case_when(logradouro == "AVENIDA SANTOS DUMONT" & id_osm == "4331480" ~ make_date(year = 2023, month = 10),
+                                        logradouro == "AVENIDA SANTOS DUMONT" & id_osm != "4331480" ~ make_date(year = 2024, month = 4),
+                                        .default = data_implementacao)) |> 
   select(-logradouro) 
 
 faixa_azul |> 
