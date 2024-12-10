@@ -1,8 +1,8 @@
 library(tidyverse)
 library(stringdist)
 library(fuzzyjoin)
-library(stringr)
-library(stringi)
+# library(stringr)
+# library(stringi)
 library(sf)
 
 
@@ -151,3 +151,4 @@ join.pelado |>
   group_by(logradouro.x) |>
   filter(distancia == min(distancia)) |>
   ungroup() |> summarize(n = sum(n))
+
