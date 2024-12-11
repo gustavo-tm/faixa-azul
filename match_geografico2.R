@@ -1,5 +1,6 @@
 library(tidyverse)
 library(sf)
+library(mapview)
 
 match_nome <- read_csv("banco_dados/match_nome.csv")
 
@@ -30,6 +31,7 @@ match_geografico <- distancias |>
 match_geografico |> 
   write_csv("banco_dados/match_geografico.csv")
 
+
 match_geografico |> 
   mutate(quantil = ntile(distancia_geografica, 100)) |>
   group_by(quantil) |> 
@@ -56,3 +58,31 @@ match_geografico |>
   facet_wrap(~distancia_nome) +
   theme_minimal()
 
+nomes <- read_csv("banco_dados/sinistros.csv")
+nomes.osm <- st_read("banco_dados/trechos.gpkg")
+match_geografico |> 
+  filter(distancia_geografica > 1000) |> 
+  left_join(nomes) |>
+  View()
+
+nomes |> 
+  filter(id_sinistro == 39714) |> 
+  View()
+  
+match_nome |> 
+  filter(id_sinistro == 39714) |> 
+  separate_longer_delim(id_osm, delim = ";") |> 
+  left_join(nomes.osm) |> 
+  View()
+
+tibble(street="78, AVSUMARE",
+        city="SÃO PAULO",
+        county="SÃO PAULO",
+        state="SÃO PAULO",
+        country="BRAZIL") |> 
+  tidygeocoder::geocode(street=street,
+                        city=city,
+                        county=county,
+                        state=state,
+                        country=country,
+                        method = 'osm', lat = nova_latitude , long = nova_longitude)

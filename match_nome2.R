@@ -61,6 +61,7 @@ osm <- st_read("banco_dados/trechos.gpkg") |>
   filter(tipo_via != "service") |> 
   select(id_osm, starts_with("logradouro")) |>
   separate_wider_delim(logradouro_ref, delim = ";", too_few = "align_start", names_sep = "_") |>
+  separate_wider_delim(logradouro_alt1, delim = ";", too_few = "align_start", names_sep = "_") |>
   pivot_longer(starts_with("logradouro")) |>
   drop_na() |> 
   select(id_osm, logradouro = value) |> 
