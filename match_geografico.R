@@ -1,214 +1,64 @@
 library(tidyverse)
 library(sf)
-library(tidygeocoder)
 library(mapview)
-# library(gt)
 
+match_nome <- read_csv("banco_dados/match_nome.csv")
 
 trechos <- st_read("banco_dados/trechos.gpkg") |> 
   st_transform("epsg:31983") |> 
-  filter(tipo_via != "service")
+  filter(tipo_via != "service") |> 
+  select(id_osm, geometria_trecho = geom)
 
 sinistros <- read_csv("banco_dados/sinistros.csv") |> 
   filter(!is.na(longitude), !is.na(latitude)) |> 
   st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |> 
-  st_transform("epsg:31983")
+  st_transform("epsg:31983") |> 
+  select(id_sinistro, geometria_ponto = geometry)
 
-match <- sinistros |> 
-  mutate(nearest = st_nearest_feature(geometry, trechos),
-         distancia_geografica = st_distance(geometry, trechos$geom[nearest], by_element = TRUE) |> as.numeric()) |> 
-  left_join(trechos |> 
-              st_drop_geometry() |> 
-              mutate(nearest = row_number()) |> 
-              separate_wider_delim(logradouro_ref, ";", names_sep = "_", too_few = "align_start") |> 
-              pivot_longer(cols = starts_with("logradouro")) |> 
-              select(id_osm, nearest, match = value) |> 
-              drop_na() |> 
-              mutate(match = match |> 
-                       stringi::stri_trans_general("latin-ascii") |> 
-                       str_to_upper() |> 
-                       str_replace_all("[[:punct:]]", ""))) |> 
-  mutate(distancia_semantica = stringdist::stringsim(logradouro, match)) |> 
-  group_by(id_sinistro, logradouro) |>
-  filter(distancia_semantica == max(distancia_semantica)) |> 
+distancias <- match_nome |> 
+  separate_longer_delim(id_osm, delim = ";") |> 
+  left_join(sinistros) |> 
+  left_join(trechos) |>
+  mutate(distancia_geografica = st_distance(geometria_trecho, geometria_ponto, by_element = TRUE))
+
+match_geografico <- distancias |> 
+  select(-geometria_ponto, -geometria_trecho) |> 
+  arrange(id_sinistro, distancia_geografica) |> 
+  group_by(id_sinistro) |> 
+  top_n(-1) |> 
   ungroup()
 
-match |> 
-  st_drop_geometry() |> 
-  select(id_sinistro, id_osm, data, distancia_geografica, distancia_semantica) |> 
+match_geografico |> 
   write_csv("banco_dados/match_geografico.csv")
 
 
+match_geografico |> 
+  mutate(quantil = ntile(distancia_geografica, 100)) |>
+  group_by(quantil) |> 
+  summarize(distancia_geografica = median(as.numeric(distancia_geografica)),
+            distancia_nome = mean(distancia_nome)) |> 
+  ggplot(aes(x = quantil, y = as.numeric(distancia_geografica))) +
+  geom_line(aes(colour = distancia_nome), lwd = 3) +
+  scale_y_continuous(transform = "log10", labels = scales::number, breaks = 10^(0:6)) +
+  scale_colour_gradient(low = "white", high = "darkred", limits = c(0, .2)) +
+  theme_minimal()
 
-sinistros |> 
-  st_drop_geometry() |> 
-  count(numero) |> 
-  arrange(-n) |> 
-  mutate(percentual = n / sum(n),
-         percent_cum = cumsum(percentual))
+match_geografico |> 
+  ggplot(aes(y = as.numeric(distancia_geografica))) + 
+  geom_histogram(bins = 50) +
+  scale_y_continuous(transform = "log10", labels = scales::number, breaks = 10^(0:6)) +
+  facet_wrap(~distancia_nome) +
+  theme_minimal()
 
-sinistros |> 
-  st_drop_geometry() |> 
-  filter(numero < 2100, numero > 0) |> 
-  ggplot() +
-  geom_histogram(aes(x = numero), bins = 200) 
-
-
-
-
-
-distancias <- sinistros |> 
-  sample_n(1000) |> 
-  as_tibble() |> 
-  filter(!is.na(numero), !is.na(logradouro)) |> 
-  rename(geometry_infosiga = geometry) |> 
-  mutate(address = str_glue("{numero} {logradouro}"),
-         street = str_glue("{numero} {logradouro}"),
-         city = "São Paulo",
-         county = "São Paulo",
-         state = "São Paulo",
-         country = "Brazil") |> 
-  geocode(street=street,
-          city=city,
-          county=county,
-          state=state,
-          country=country,
-          method = 'osm', lat = nova_latitude , long = nova_longitude) |> 
-  filter(!is.na(nova_latitude), !is.na(nova_longitude)) |> 
-  st_as_sf(coords = c("nova_longitude", "nova_latitude"), crs = 4326) |> 
-  st_transform("epsg:31983") |> 
-  mutate(distancia = st_distance(geometry_infosiga, geometry, by_element = T)) |> 
-  select(address, geometry_infosiga, geometry_osm = geometry, distancia)
-
-linhas <- distancias |> 
-  as_tibble() |> 
-  mutate(id = row_number()) |> 
-  pivot_longer(c(geometry_infosiga, geometry_osm)) |> 
-  st_as_sf() |> 
-  group_by(id) |> 
-  summarize(linha = st_union(value)) |> 
-  st_cast("LINESTRING")
-
-list(linhas = linhas, 
-     pontos_infosiga = distancias |> st_set_geometry("geometry_infosiga"),
-     pontos_osm = distancias |> st_set_geometry("geometry_osm")) |> 
-  mapview(col.regions = list("black", "darkblue", "darkgreen")) |> 
-  mapshot(url = "output/mapas/georref-pontos-osm.html")
+match_geografico |> 
+  mutate(quantil = ntile(distancia_geografica, 100)) |> 
+  ggplot(aes(y = as.numeric(distancia_geografica))) + 
+  geom_histogram(aes(after_stat(density)), bins = 50) +
+  scale_y_continuous(transform = "log10", labels = scales::number, breaks = 10^(0:6)) +
+  facet_wrap(~distancia_nome) +
+  theme_minimal()
 
 
-
-# mapview(match |> sample_n(10000), zcol = "semelhangeometry_infosiga# mapview(match |> sample_n(10000), zcol = "semelhanca") |> 
-#   mapshot(url = "output/mapas/join_distancia.html")
-# 
-# match |> 
-#   st_drop_geometry() |> 
-#   ggplot() +
-#   geom_histogram(aes(x = semelhanca))
-# 
-# 
-# match |> 
-#   write_csv("dados_tratados/match_sinistros.csv")
-# 
-# 
-# match |>  
-#   st_drop_geometry() |> 
-#   semi_join(logradouros |> 
-#               filter(tipo_via %in% c("trunk", "primary", "secondary", "tertiary")) |> 
-#               select(id_osm)) |> 
-#   group_by(ano = year(data), mes = month(data), id_osm) |> 
-#   summarize(sinistros = n(), .groups = "drop") |> 
-#   complete(ano, mes, id_osm, 
-#            fill = list(sinistros = 0)) |> 
-#   write_csv("dados_tratados/match_trechos.csv")
-
-
-
-
-
-
-
-
-
-
-
-
-
-# match |> 
-#   left_join(read_csv("dados_tratados/faixa_azul_selecao.csv") |> 
-#               mutate(faixa_azul = TRUE, id_osm = as.character(id_osm))) |> 
-#   st_drop_geometry() |> 
-#   mutate(faixa_azul = replace_na(faixa_azul, FALSE)) |> 
-#   group_by(ano = year(data), mes = month(data), faixa_azul) |> 
-#   summarize(sinistros = n()) |> 
-#   ggplot(aes(x = make_date(year = ano, month = mes), y = sinistros, colour = faixa_azul)) +
-#   geom_line()
-
-
-
-
-df <- logradouros |> 
-  st_drop_geometry() |> 
-  as_tibble() |> 
-  select(id_osm, faixas, limite_velocidade, mao_unica, superficie, tipo_via) |> 
-  left_join(read_csv("dados_tratados/faixa_azul_selecao.csv") |>
-              mutate(trecho_faixa_azul = TRUE, id_osm = as.character(id_osm))) |>
-  mutate(trecho_faixa_azul = replace_na(trecho_faixa_azul, FALSE)) |> 
-  right_join(match) |> 
-  filter(tipo != "NOTIFICACAO") |> 
-  left_join(readxl::read_excel("dados_tratados/faixa_azul_vias.xlsx") |>
-              mutate(data = make_date(year = ano, month = mes), via_faixa_azul = TRUE) |> 
-              select(match = logradouro_osm, data_faixa_azul = data, via_faixa_azul)) |> 
-  mutate(via_faixa_azul = replace_na(via_faixa_azul, FALSE),
-         tratamento = ifelse(trecho_faixa_azul == TRUE & data_faixa_azul < data, TRUE, FALSE),
-         fatal = tipo == "SINISTRO FATAL")
-
-
-lm(fatal ~ as.numeric(limite_velocidade) + as.numeric(faixas) + tipo_via + mao_unica + superficie + motocicleta + tratamento + via_faixa_azul + trecho_faixa_azul + factor(ano) + factor(mes), 
-   data = df |> mutate(ano = year(data), mes = month(data)) |> filter(ano > 2018)) |> 
-  summary()
-
-glm(fatal ~ as.numeric(limite_velocidade) + as.numeric(faixas) + tipo_via + mao_unica + superficie + motocicleta * tratamento + via_faixa_azul + trecho_faixa_azul + factor(ano) + factor(mes), 
-    data = df |> mutate(ano = year(data), mes = month(data)) |> filter(ano > 2018), family = "binomial") |> 
-  summary()
-
-
-
-df |> 
-  distinct(id_osm, tipo_via, trecho_faixa_azul) |> 
-  group_by(trecho_faixa_azul) |> 
-  count(tipo_via)
-
-temp <- logradouros |> 
-  mutate(tamanho = st_length(geom)) |> 
-  st_drop_geometry() |> 
-  select(id_osm, faixas, limite_velocidade, mao_unica, superficie, tipo_via, tamanho) |> 
-  left_join(read_csv("dados_tratados/faixa_azul_selecao.csv") |>
-              mutate(trecho_faixa_azul = TRUE, id_osm = as.character(id_osm))) |> 
-  left_join(match |> 
-              st_drop_geometry() |> 
-              group_by(id_osm) |> 
-              summarize(semelhanca = mean(semelhanca),
-                        sinistros = n(),
-                        sinistros_moto = sum(motocicleta))) |> 
-  mutate(across(c(trecho_faixa_azul, semelhanca, sinistros, sinistros_moto), ~ replace_na(.x, 0))) |> 
-  group_by(trecho_faixa_azul) |> 
-  summarize(
-    across(
-      c(sinistros, sinistros_moto, faixas, limite_velocidade, tamanho, semelhanca), 
-      ~ .x |> as.numeric() |> mean(na.rm = TRUE) |> round(2)),
-    across(
-      c(mao_unica, superficie, tipo_via), 
-      ~ fct_infreq(.x) |> levels() |> first())) |> 
-  mutate(across(everything(), ~ as.character(.x))) |>
-  pivot_longer(2:10) |> 
-  pivot_wider(names_from = trecho_faixa_azul, id_cols = name, values_from = value)
-
-temp |> 
-  gt() |> 
-  gtsave("output/comparativo-grupos.html")
-
-
-logradouros <- st_read("dados_brutos/logradouros/SIRGAS_SHP_logradouronbl_line.shp")
-
-
-
+match_geografico |> 
+  filter(as.numeric(distancia_geografica) > 200) |> 
+  View()

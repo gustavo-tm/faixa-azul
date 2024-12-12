@@ -6,7 +6,6 @@ library(fuzzyjoin)
 library(sf)
 
 
-# 3.5 DATA PRE-PROCESSING ----
 limpar <- function(coluna){
   coluna |> 
     # Removing Unwanted Characters and Tokens
@@ -29,9 +28,16 @@ padronizar <- function(coluna){
     str_replace_all(setNames(titulo$titulo_ext, titulo$titulo)) |> #correcao titulo (BRIG -> BRIGADEIRO)
     limpar()
 }
+tokenizar <- function(df){
+  df |> 
+    mutate(logradouro_limpo = logradouro |> 
+             str_replace_all(string = _, setNames(rep(" ", length(titulo$titulo_ext)), titulo$titulo_ext)) |> 
+             str_replace_all(string = _, setNames(rep(" ", length(tipo$tipo)), tipo$tipo)) |> 
+             limpar()) |> 
+    regex_left_join(tipo |> select(tipo), by = join_by(logradouro == tipo)) |> 
+    regex_left_join(titulo |> select(titulo = titulo_ext), by = join_by(logradouro == titulo))
+}
 
-# logradouros <- read_csv("banco_dados/logradouros.csv")
-logradouros.infosiga <- read_csv("banco_dados/sinistros.csv") |> filter(tipo != "NOTIFICACAO") |> count(logradouro)
 
 preposicao <- read_csv("dados_tratados/logradouros/preposicao.csv") |> 
   mutate(across(everything(), ~ limpar(.x)))
@@ -43,112 +49,77 @@ titulo <- read_csv("dados_tratados/logradouros/titulo.csv") |>
   mutate(across(everything(), ~ limpar(.x)))
 
 
+infosiga <- read_csv("banco_dados/sinistros.csv") |> 
+  filter(tipo != "NOTIFICACAO", logradouro != "NAO DISPONIVEL") |> 
+  select(id_sinistro, logradouro) |> 
+  mutate(logradouro = padronizar(logradouro))
 
-logradouros.infosiga |> 
-  filter(str_detect(str_to_upper(logradouro), " MAIO | FARIA ")) |> 
-  mutate(padronizar(logradouro)) |> 
-  View()
+infosiga.token <- infosiga |> tokenizar()
 
-
-
-logradouros <- read_csv("banco_dados/logradouros.csv")
-logradouros.osm <- st_read("banco_dados/trechos.gpkg") |> st_drop_geometry() |> filter(tipo_via != "service") |> as_tibble()
-
-#171381 = 100%
-logradouros.infosiga |> summarize(n = sum(n)) 
-
-# DEDUPLICATION: 20,192 -> 19,380 ()
-logradouros.infosiga |> 
-  mutate(logradouro = padronizar(logradouro)) |> 
-  group_by(logradouro) |> 
-  summarize(n = sum(n))
-
-
-#136281 = 79,5%
-logradouros.infosiga |> 
-  mutate(logradouro = limpar(logradouro)) |> 
-  semi_join(logradouros.osm |> 
-              select(logradouro) |> 
-              mutate(logradouro = limpar(logradouro))) |> 
-  summarize(n = sum(n)) 
-
-#138905 = 81,0%
-logradouros.infosiga |> 
-  mutate(logradouro = padronizar(logradouro)) |> 
-  semi_join(logradouros.osm |> 
-              select(logradouro) |> 
-              mutate(logradouro = padronizar(logradouro))) |> 
-  summarize(n = sum(n)) 
-
-#140579 = 82,0%
-logradouros.infosiga |>
-  mutate(logradouro = logradouro |> limpar()) |>
-  semi_join(logradouros.osm |>
-              select(id_osm, starts_with("logradouro")) |>
-              separate_wider_delim(logradouro_ref, delim = ";", too_few = "align_start", names_sep = "_") |>
-              pivot_longer(starts_with("logradouro")) |>
-              drop_na() |>
-              mutate(logradouro = value |> limpar())) |> 
-  summarize(n = sum(n))
-
-#143814 = 83,9%
-logradouros.osm.clean <- logradouros.osm |>
+osm <- st_read("banco_dados/trechos.gpkg") |> 
+  st_drop_geometry() |> 
+  filter(tipo_via != "service") |> 
   select(id_osm, starts_with("logradouro")) |>
   separate_wider_delim(logradouro_ref, delim = ";", too_few = "align_start", names_sep = "_") |>
+  separate_wider_delim(logradouro_alt1, delim = ";", too_few = "align_start", names_sep = "_") |>
   pivot_longer(starts_with("logradouro")) |>
-  drop_na() |>
-  mutate(logradouro = value |> padronizar()) |> 
-  select(logradouro) |> distinct() |> drop_na()
+  drop_na() |> 
+  select(id_osm, logradouro = value) |> 
+  mutate(logradouro = padronizar(logradouro))
 
-logradouros.infosiga |>
-  mutate(logradouro = logradouro |> padronizar()) |>
-  semi_join(logradouros.osm.clean) |> 
-  summarize(n = sum(n))
+osm.token <- osm |> tokenizar()
 
 
-# FUZZY JOIN
-logradouros.potencial <- logradouros.infosiga |>
-  mutate(logradouro = logradouro |> limpar() |> padronizar()) |>
-  anti_join(logradouros.osm.clean) |> 
-  group_by(logradouro) |> summarize(n = sum(n)) |> 
-  arrange(-n)
+join <- infosiga.token |> 
+  stringdist_left_join(osm.token, 
+                       method = "osa", distance_col = "distancia", max_dist = 2, by = join_by(logradouro_limpo))
 
 
-
-join <- logradouros.potencial |> 
-  stringdist_left_join(logradouros.osm.clean, method = "osa", distance_col = "distancia", max_dist = 5)
-
-#143814 + 7430 = 151244 = 88,2%
-join |> 
-  filter(distancia <= 1) |> 
-  group_by(logradouro.x) |>
-  filter(distancia == min(distancia)) |>
+join.reduce <- join |> 
+  mutate(across(c(tipo.x, tipo.y, titulo.x, titulo.y), ~ replace_na(.x, "")),
+         match_tipo = tipo.x == tipo.y,
+         match_titulo = titulo.x == titulo.y) |> 
+  select(id_sinistro, id_osm, distancia, match_tipo, match_titulo) |> 
+  distinct() |>
+  
+  # Se o sinistro apresentar um match perfeito, remover todos os outros
+  mutate(gold_match = distancia == 0 & match_tipo == TRUE & match_titulo == TRUE) |> 
+  group_by(id_sinistro) |> 
+  filter(gold_match == max(gold_match)) |> 
   ungroup() |> 
-  summarize(n = sum(n))
+  
+  # Se não houver match perfeito, selecionar o match com menor distancia
+  group_by(id_sinistro) |> 
+  filter(distancia == min(distancia)) |> 
+  ungroup() |> 
 
-#143814 + 8963 = 152777 = 89,1%
-join |> 
-  filter(distancia <= 2) |> 
-  group_by(logradouro.x) |>
-  filter(distancia == min(distancia)) |>
-  ungroup() |>
-  summarize(n = sum(n))
+  # Se houver impate de distância, desempatar usando match tipo e título
+  group_by(id_sinistro) |> 
+  filter((match_tipo + match_titulo) == max(match_tipo + match_titulo)) |> 
+  ungroup() |> 
+  
+  select(id_sinistro, id_osm, distancia_nome = distancia)
 
 
-#152777 + 10243 = 95,1%
-join.pelado <- logradouros.potencial |> 
-  anti_join(join |> 
-              filter(distancia <= 2),
-            by = join_by(logradouro == logradouro.x)) |> 
-  mutate(logradouro = str_replace_all(logradouro, setNames(rep(" ", length(tipo$tipo)), tipo$tipo))) |> 
-  stringdist_left_join(y= logradouros.osm.clean |> 
-                         mutate(logradouro = str_replace_all(logradouro, setNames(rep(" ", length(tipo$tipo)), tipo$tipo))) |> 
-                         distinct(),
-                       method = "osa", distance_col = "distancia", max_dist = 2)
+# Formato para reduzir o tamanho do arquivo
+join.reduce |> 
+  group_by(id_sinistro) |> 
+  summarize(id_osm = paste(id_osm, collapse = ";"),
+            distancia_nome = nth(distancia_nome, 1)) |> 
+  write_csv("banco_dados/match_nome.csv")
 
-join.pelado |> 
-  filter(distancia <= 1) |> 
-  group_by(logradouro.x) |>
-  filter(distancia == min(distancia)) |>
-  ungroup() |> summarize(n = sum(n))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

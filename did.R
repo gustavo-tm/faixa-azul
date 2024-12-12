@@ -50,9 +50,6 @@ preparar.grafico <- function(df, y = "sinistros", clustervars = c("id_osm", "log
                       crit_val = result$crit.val.egt))(result = _) |> 
     mutate(ci_low = att - crit_val * se,
            ci_high = att + crit_val * se)
-  # left_join(df.trecho |> 
-  #             distinct(data, mes) |> 
-  #             rename(egt = mes))
 }
 
 plotar.grafico <- function(df, titulo = NULL){
@@ -190,8 +187,10 @@ logradouros <- trechos|>
     data_implementacao = first(data_implementacao))
 
 
-df.logradouro <- sinistros |>
-  filter(year(data) >= 2018) |>
+df.logradouro <- match |> 
+  left_join(sinistros) |> 
+  filter(year(data) >= 2019, tipo != "NOTIFICACAO") |> # Antes de 2019 há apenas sinistros com óbito
+  semi_join(trechos, by = join_by(id_osm)) |>
   group_by(data = make_date(year = year(data), month = month(data)), logradouro) |>
   summarize(sinistros = n(), 
             sinistros_moto = sum(motocicletas > 0),
@@ -215,7 +214,7 @@ bind_rows(
     preparar.grafico(formula = ~ 1, clustervars = c("logradouro"), idname = "logradouro") |> 
     mutate(controle = FALSE),
   df.logradouro |> 
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade + comprimento, clustervars = c("logradouro"), idname = "logradouro") |> 
+    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, clustervars = c("logradouro"), idname = "logradouro") |> 
     mutate(controle = TRUE)) |> 
   filter(abs(egt) <= 12) |> 
   plotar.grafico(titulo = "Sinistros totais")
@@ -230,7 +229,7 @@ bind_rows(
     mutate(controle = FALSE),
   df.logradouro |> 
     mutate(sinistros_km = sinistros * 1000 / comprimento) |>
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade + comprimento, y = "sinistros_km", clustervars = c("logradouro"), idname = "logradouro") |> 
+    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, y = "sinistros_km", clustervars = c("logradouro"), idname = "logradouro") |> 
     mutate(controle = TRUE)) |> 
   filter(abs(egt) <= 12) |> 
   plotar.grafico(titulo = "Sinistros por km")
@@ -246,7 +245,7 @@ bind_rows(
     preparar.grafico(formula = ~ 1, y = "sinistros_moto", clustervars = c("logradouro"), idname = "logradouro") |> 
     mutate(controle = FALSE),
   df.logradouro |> 
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade + comprimento, y = "sinistros_moto", clustervars = c("logradouro"), idname = "logradouro") |> 
+    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, y = "sinistros_moto", clustervars = c("logradouro"), idname = "logradouro") |> 
     mutate(controle = TRUE)) |> 
   filter(abs(egt) <= 12) |> 
   plotar.grafico(titulo = "Sinistros totais de moto")
@@ -262,7 +261,7 @@ bind_rows(
     mutate(controle = FALSE),
   df.logradouro |> 
     mutate(sinistros_moto_km = sinistros_moto * 1000 / comprimento) |>
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade + comprimento, y = "sinistros_moto_km", clustervars = c("logradouro"), idname = "logradouro") |> 
+    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, y = "sinistros_moto_km", clustervars = c("logradouro"), idname = "logradouro") |> 
     mutate(controle = TRUE)) |> 
   filter(abs(egt) <= 12) |> 
   plotar.grafico(titulo = "Sinistros de moto por km")
@@ -279,7 +278,7 @@ bind_rows(
     mutate(controle = FALSE),
   df.logradouro |> 
     mutate(diff = (sinistros - sinistros_moto) - sinistros_moto) |> #sinistro sem moto - sinistro com moto
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade + comprimento, y = "diff", clustervars = c("logradouro"), idname = "logradouro") |> 
+    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, y = "diff", clustervars = c("logradouro"), idname = "logradouro") |> 
     mutate(controle = TRUE)) |> 
   filter(abs(egt) <= 12) |> 
   plotar.grafico(titulo = "Diferença entre sinistros sem e com moto")
@@ -297,7 +296,7 @@ bind_rows(
   df.logradouro |> 
     mutate(diff = (sinistros - sinistros_moto) - sinistros_moto,
            diff_km = diff * 1000 / comprimento) |> #sinistro sem moto - sinistro com moto
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade + comprimento, y = "diff_km", clustervars = c("logradouro"), idname = "logradouro") |> 
+    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, y = "diff_km", clustervars = c("logradouro"), idname = "logradouro") |> 
     mutate(controle = TRUE)) |> 
   filter(abs(egt) <= 12) |> 
   plotar.grafico(titulo = "Diferença entre sinistros sem e com moto por km")
