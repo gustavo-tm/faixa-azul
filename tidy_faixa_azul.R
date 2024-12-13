@@ -1,7 +1,7 @@
 library(tidyverse)
 library(sf)
 
-faixa_azsfheadersfaixa_azul.vias <- readxl::read_excel("dados_tratados/faixa_azul_vias.xlsx")
+faixa_azul.vias <- readxl::read_excel("dados_tratados/faixa_azul_vias.xlsx")
 faixa_azul.selecao <- read_csv("dados_tratados/faixa_azul_selecao.csv", col_types = list(id_osm = "c"))
 trechos <- st_read("banco_dados/trechos.gpkg")
 
@@ -27,6 +27,9 @@ faixa_azul <- faixa_azul.selecao |>
 faixa_azul |> 
   write_csv("banco_dados/faixa_azul.csv")
 
+
+
+# Plot mapa -----
 
 distrito <- st_read("dados_tratados/distrito/SIRGAS_SHP_distrito.shp") |> 
   st_set_crs("epsg:31983") |> 

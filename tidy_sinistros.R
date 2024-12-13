@@ -1,45 +1,40 @@
 library(tidyverse)
 library(gt)
 
-df <- bind_rows(
-  #SINISTROS FATAIS
-  data.table::fread("dados_brutos/sinistros_fatais.csv", encoding = "Latin-1") |>
-    filter(Município == "SAO PAULO") |> 
-    select(ano = "Ano do Sinistro",
-           mes = "Mês do Sinistro",
-           dia = "Dia do Sinistro",
-           hora = "Hora do Sinistro",
-           latitude, longitude,
-           logradouro = Logradouro,
-           numero = "Númeral / KM",
-           motocicleta = "Motocicleta envolvida",
-           quantidade = "Quantidade de vítimas fatais") |>
-    mutate(tipo = "SINISTRO FATAL",
-           numero = numero |> str_replace(",", ".")),
-  
-  #SINISTROS NAO FATAIS
-  bind_rows(
-    data.table::fread("dados_brutos/sinistros_nao_fatais_2019-2020.csv", encoding = "Latin-1"),
-    data.table::fread("dados_brutos/sinistros_nao_fatais_2021-2024.csv", encoding = "Latin-1")
-  ) |> 
-    as_tibble() |> 
-    filter(Município == "SAO PAULO") |> 
-    select(ano = "Ano do Sinistro",
-           mes = "Mês do Sinistro",
-           dia = "Dia do Sinistro",
-           hora = "Hora do Sinistro",
-           latitude, longitude,
-           logradouro = Logradouro,
-           numero = "Numero/KM",
-           motocicleta = "Motocicleta envolvida",
-           tipo = "Tipo de registro") |> 
-    mutate(hora = str_sub(hora, 1, 2) |> as.numeric())) |>
+sinistro.fatais <- data.table::fread("dados_brutos/sinistros_fatais.csv", encoding = "Latin-1") |>
+  filter(Município == "SAO PAULO") |> 
+  select(ano = "Ano do Sinistro",
+         mes = "Mês do Sinistro",
+         dia = "Dia do Sinistro",
+         hora = "Hora do Sinistro",
+         latitude, longitude,
+         logradouro = Logradouro,
+         numero = "Númeral / KM",
+         motocicleta = "Motocicleta envolvida",
+         quantidade = "Quantidade de vítimas fatais") |>
+  mutate(tipo = "SINISTRO FATAL",
+         numero = numero |> str_replace(",", "."))
+
+sinistros.naofatais <- bind_rows(
+  data.table::fread("dados_brutos/sinistros_nao_fatais_2019-2020.csv", encoding = "Latin-1"),
+  data.table::fread("dados_brutos/sinistros_nao_fatais_2021-2024.csv", encoding = "Latin-1")) |> 
+  as_tibble() |> 
+  filter(Município == "SAO PAULO") |> 
+  select(ano = "Ano do Sinistro",
+         mes = "Mês do Sinistro",
+         dia = "Dia do Sinistro",
+         hora = "Hora do Sinistro",
+         latitude, longitude,
+         logradouro = Logradouro,
+         numero = "Numero/KM",
+         motocicleta = "Motocicleta envolvida",
+         tipo = "Tipo de registro") |> 
+  mutate(hora = str_sub(hora, 1, 2) |> as.numeric())
+
+
+df <- bind_rows(sinistro.fatais, sinistro.naofatais) |>
   mutate(across(c(longitude, latitude), ~ str_replace(.x, ",", ".")),
          data = lubridate::make_datetime(year = ano, month = mes, day = dia, hour = as.numeric(hora)),
-         logradouro = logradouro |> 
-           stringi::stri_trans_general("latin-ascii") |> 
-           str_to_upper() |> 
-           str_replace_all("[[:punct:]]", ""),
          id_sinistro = row_number()) |> 
   select(id_sinistro, data, logradouro, numero, latitude, longitude, tipo, quantidade_envolvidos = quantidade, motocicletas = motocicleta)
 
