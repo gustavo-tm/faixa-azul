@@ -127,13 +127,17 @@ distancias <- join |>
   # Encontrar o vizinho mais próximo e depois calcular a distância é significativamente mais rápido do que calcular todas as distâncias e depois pegar a menor, 
   # mas essa parte demora bastante para rodar mesmo (são 8 milhões de comparações)
   group_by(id_sinistro) |> 
-  filter(row_number() == st_nearest_feature(nth(geometria_ponto, 1), geometria_trecho))
-
-distancias <- distancias |> 
+  filter(row_number() == st_nearest_feature(nth(geometria_ponto, 1), geometria_trecho)) |> 
   mutate(distancia = st_distance(geometria_ponto, geometria_trecho, by_element = TRUE) |> as.numeric())
 
+distancias |> 
+  st_drop_geometry() |> 
+  select(id_sinistro, id_osm, distancia_nome, distancia_geografica = distancia) |> 
+  write_csv("dados_tratados/match_A.csv")
 
-match_geografico |> 
+
+distancias |>
+  st_drop_geometry() |> 
   mutate(quantil = ntile(distancia_geografica, 100)) |>
   group_by(quantil) |> 
   summarize(distancia_geografica = median(as.numeric(distancia_geografica)),
@@ -167,13 +171,9 @@ join <- infosiga |>
   filter(!is.na(longitude), !is.na(latitude)) |> 
   st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |> 
   st_transform("epsg:31983") |> 
-  mutate(geometry = st_buffer(geometry, 200)) |>
+  mutate(geometry = st_buffer(geometry, 250)) |>
   select(id_sinistro, geometry) |> 
   st_join(osm |> select(id_osm, geom) |> st_transform("epsg:31983"))
-
-join |> 
-  head(10)
-
 
 match_nome <- join |> 
   st_drop_geometry() |> 
@@ -187,12 +187,48 @@ match_nome <- join |>
   filter(similaridade == max(similaridade)) |> 
   mutate(distancia_nome = stringdist(logradouro_limpo.x, logradouro_limpo.y))
 
-match_nome |> 
-  filter(similaridade != 1) |> 
-  select(id_sinistro, logradouro_limpo.x, logradouro_limpo.y, similaridade, distancia_nome) |> 
-  distinct() |> 
+match_grafico <- match_nome |> 
+  select(id_sinistro, id_osm) |> 
+  left_join(infosiga |> 
+              filter(!is.na(longitude), !is.na(latitude)) |>
+              st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |>
+              st_transform("epsg:31983") |>
+              select(id_sinistro, geometria_ponto = geometry)) |> 
+  left_join(osm |> 
+              st_transform("epsg:31983") |>
+              select(id_osm, geometria_trecho = geom)) |> 
+  filter(!st_is_empty(geometria_ponto), !st_is_empty(geometria_trecho)) |>
+  
+  # Encontrar o vizinho mais próximo e depois calcular a distância é significativamente mais rápido do que calcular todas as distâncias e depois pegar a menor, 
+  # mas essa parte demora bastante para rodar mesmo (são 8 milhões de comparações)
+  group_by(id_sinistro) |> 
+  filter(row_number() == st_nearest_feature(nth(geometria_ponto, 1), geometria_trecho)) |> 
+  mutate(distancia = st_distance(geometria_ponto, geometria_trecho, by_element = TRUE) |> as.numeric()) |> 
+  ungroup()
+
+match <- match_grafico |> 
+  st_drop_geometry() |> 
+  select(id_sinistro, id_osm, distancia_geografica = distancia) |> 
+  left_join(match_nome)
+
+match |> 
   View()
 
+match |> 
+  ggplot() +
+  geom_histogram(aes(x = similaridade, fill = distancia_nome, group = distancia_nome), bins = 20) +
+  scale_fill_binned(type = "viridis", breaks = c(-Inf, 0, 1, 2, 5, 10, 20, Inf)) +
+  # scale_y_continuous(trans = "sqrt") +
+  theme_minimal()
+
+ggsave("output/match-distancia-nome.pdf", width = 5, height = 5)
+
+match |> 
+  mutate(distancia_geografica = cut(distancia_geografica, breaks = c(0, 10, 40, 80, 150, 250))) |> 
+  ggplot() +
+  geom_histogram(aes(x = similaridade, fill = distancia_geografica)) +
+  scale_fill_viridis_d(na.value = "red") +
+  scale_y_continuous(trans = "log10")
 
 
 # MATCH COMPARAÇÃO ----
