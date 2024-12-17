@@ -212,7 +212,7 @@ match <- match_grafico |>
   left_join(match_nome)
 
 match |> 
-  View()
+  write_csv("dados_tratados/match_B.csv")
 
 match |> 
   ggplot() +
@@ -232,5 +232,18 @@ match |>
 
 
 # MATCH COMPARAÇÃO ----
+match.a <- read_csv("dados_tratados/match_A.csv")
+match.b <- read_csv("dados_tratados/match_B.csv")
+
+match.b |> 
+  filter(similaridade >= .8, distancia_geografica < 250)
+
+
+matches <- full_join(match.a, match.b, by = join_by(id_sinistro))
+
+
+
+
+
 
 
