@@ -2,27 +2,44 @@ library(tidyverse)
 library(sf)
 library(did)
 
-match <- read_csv("banco_dados/match_geografico.csv", col_types = list(id_osm = "c"))
+match <- read_csv("banco_dados/match.csv", col_types = list(id_osm = "c")) |> 
+  mutate(golden_match = 
+           similaridade > .75 & 
+           distancia_geografica < 100 &
+           match_titulo == TRUE &
+           match_tipo == TRUE)
 
 trechos <- st_read("banco_dados/trechos.gpkg") |> 
   st_drop_geometry() |> 
   as_tibble() |> 
-  select(id_osm, logradouro, tipo_via, faixas, limite_velocidade, mao_unica, superficie, comprimento) |> 
-  filter(tipo_via %in% c("trunk", "primary", "secondary"))
+  filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
+  
+  #Limpar os nomes dos logradouros
+  left_join(read_csv("dados_tratados/osm-token.csv", col_types = list(id_osm = "c")) |> 
+              select(id_osm, logradouro_limpo) |> 
+              mutate(len = str_length(logradouro_limpo)) |> 
+              group_by(id_osm) |> 
+              arrange(-len) |> 
+              summarize(logradouro_limpo = nth(logradouro_limpo, 1), .groups = "drop")) |> 
+  select(id_osm, logradouro, logradouro_limpo, tipo_via, faixas, limite_velocidade, mao_unica, superficie, comprimento)
+
+
 
 faixa_azul <- read_csv("banco_dados/faixa_azul.csv", col_types = list(id_osm = "c"))
 
-sinistros <- read_csv("banco_dados/sinistros.csv")
-
-df.trecho <- match |> 
-  left_join(sinistros) |> 
+sinistros <- read_csv("banco_dados/sinistros.csv") |> 
   filter(year(data) >= 2019, tipo != "NOTIFICACAO") |> # Antes de 2019 há apenas sinistros com óbito
+  select(id_sinistro, data, quantidade_envolvidos, motocicletas)
+
+df.trecho <- sinistros |> 
+  left_join(match) |> 
   semi_join(trechos, by = join_by(id_osm)) |> 
   group_by(data = make_date(year = year(data), month = month(data)), id_osm) |> 
   summarize(sinistros = n(), 
             sinistros_moto = sum(motocicletas > 0),
+            sinistros_moto_golden = sum(motocicletas > 0 & golden_match == TRUE),
             .groups = "drop") |> 
-  complete(data, id_osm, fill = list(sinistros = 0, sinistros_moto = 0)) |> # Painel balanceado
+  complete(data, id_osm, fill = list(sinistros = 0, sinistros_moto = 0, sinistros_moto_golden = 0)) |> # Painel balanceado
   left_join(trechos |> 
               left_join(faixa_azul |> distinct())) |> 
   
@@ -35,7 +52,7 @@ df.trecho <- match |>
          id_osm = as.numeric(id_osm))
 
 
-preparar.grafico <- function(df, y = "sinistros", clustervars = c("id_osm", "logradouro"), formula = ~ tipo_via + faixas + limite_velocidade, idname = "id_osm"){
+preparar.grafico <- function(df, y = "sinistros", clustervars = c("id_osm", "logradouro_limpo"), formula = ~ tipo_via + faixas + limite_velocidade, idname = "id_osm"){
   att_gt(yname = y,
          tname = "mes",
          idname = idname,
@@ -99,10 +116,10 @@ ggsave("output/did/sinistros-km.pdf", width = 8, height = 6)
 
 bind_rows(
   df.trecho |> 
-    preparar.grafico(formula = ~ 1, y = "sinistros_moto") |> 
+    preparar.grafico(formula = ~ 1, y = "sinistros_moto_golden") |> 
     mutate(controle = FALSE),
   df.trecho |> 
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, y = "sinistros_moto") |> 
+    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade + comprimento, y = "sinistros_moto_golden") |> 
     mutate(controle = TRUE)) |> 
   filter(abs(egt) <= 12) |> 
   plotar.grafico(titulo = "Sinistros totais de moto")
@@ -164,39 +181,33 @@ ggsave("output/did/sinistros-diff-km.pdf", width = 8, height = 6)
 
 
 
-
-
-
-
-
-logradouros <- trechos|>
+logradouros <- trechos |>
   left_join(faixa_azul) |>
-  mutate(logradouro = logradouro |>
-           stringi::stri_trans_general("latin-ascii") |>
-           str_to_upper() |>
-           str_replace_all("[[:punct:]]", "")) |>
-  group_by(logradouro) |>
+  group_by(logradouro_limpo, data_implementacao) |>
   summarize(
     across(
       c(faixas, limite_velocidade),
-      ~ .x |> as.numeric() |> mean(na.rm = TRUE) |> round(2)),
+      ~ .x |> as.numeric() |> mean(na.rm = TRUE)),
     across(
       c(mao_unica, superficie, tipo_via),
       ~ fct_infreq(.x) |> levels() |> first()),
     comprimento = sum(comprimento) |> as.numeric(),
-    data_implementacao = first(data_implementacao))
+    trechos = n()) |> 
+  group_by(logradouro_limpo) |> 
+  mutate(logradouro = case_when(n() > 1 ~ str_c(logradouro_limpo, " (", row_number(), ")"),
+                                TRUE ~ logradouro_limpo))
 
-
-df.logradouro <- match |> 
-  left_join(sinistros) |> 
-  filter(year(data) >= 2019, tipo != "NOTIFICACAO") |> # Antes de 2019 há apenas sinistros com óbito
+df.logradouro <- sinistros |> 
+  left_join(match) |> 
   semi_join(trechos, by = join_by(id_osm)) |>
+  
   group_by(data = make_date(year = year(data), month = month(data)), logradouro) |>
   summarize(sinistros = n(), 
             sinistros_moto = sum(motocicletas > 0),
+            sinistros_moto_golden = sum(motocicletas > 0 & golden_match == TRUE),
             .groups = "drop") |> 
-  complete(data, logradouro, fill = list(sinistros = 0, sinistros_moto = 0)) |>
-  right_join(logradouros) |>
+  complete(data, logradouro, fill = list(sinistros = 0, sinistros_moto = 0, sinistros_moto_golden = 0)) |> # Painel balanceado
+  left_join(logradouros) |>
 
   #trasformacao da data em valor numerico (na ordem)
   mutate(mes = data) |>
