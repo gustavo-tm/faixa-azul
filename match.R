@@ -86,6 +86,7 @@ osm.token <- osm |>
   tokenizar(id = "id_osm")
 
 osm.token |> write_csv("dados_tratados/osm-token.csv")
+infosiga.token |> write_csv("dados_tratados/infosiga-token.csv")
 
 join <- infosiga |> 
   filter(!is.na(longitude), !is.na(latitude)) |> 

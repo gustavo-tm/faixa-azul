@@ -3,133 +3,105 @@ library(sf)
 library(units)
 library(mapview)
 library(ggsankey)
+library(paletteer)
 
-# LINHA DO TEMPO ----
+trechos <- st_read("banco_dados/trechos.gpkg") |> 
+  mutate(id_osm = as.numeric(id_osm))
+sinistros <- read_csv("banco_dados/sinistros.csv")
+faixa_azul <- read_csv("banco_dados/faixa_azul.csv")
+match <- read_csv("banco_dados/match.csv")
+osm.token <- read_csv("dados_tratados/osm-token.csv") |> 
+  mutate(len = str_length(logradouro_limpo)) |> 
+  group_by(id_osm) |> 
+  arrange(-len) |> 
+  filter(row_number() == 1) |> 
+  ungroup() |> 
+  arrange(id_osm)
 
-df <- read_csv("banco_dados/sinistros.csv")
-faixa_azul <- readxl::read_excel("dados_tratados/faixa_azul_vias.xlsx")
+# OBITOS E FAIXA AZUL ----
 
-fix.alias <- function(df){
-  df |> 
-    mutate(logradouro = case_when(logradouro == "AVENIDA VINTE E TRES DE MAIO" ~ "AVENIDA 23 DE MAIO",
-                                  logradouro == "RUA MIGUEL YUNES" ~ "AVENIDA MIGUEL YUNES",
-                                  logradouro == "TUNEL AYRTON SENNA" ~ "ACESSO TUNEL AYRTON SENNA",
-                                  TRUE ~ logradouro))
-}
-
-
-obitos <- read_csv("banco_dados/sinistros.csv") |> 
+osm.token |> 
+  right_join(osm.token |> 
+              left_join(faixa_azul) |> 
+              filter(!data_implementacao |> is.na()) |> 
+              distinct(logradouro, data_implementacao)) |> 
+  select(id_osm, logradouro_completo = logradouro, data_implementacao) |> 
+  left_join(match) |> 
+  filter(similaridade > .75 | (match_tipo == TRUE & match_titulo == TRUE)) |> 
+  left_join(sinistros, by = join_by(id_sinistro)) |> 
   filter(tipo == "SINISTRO FATAL") |> 
-  fix.alias()
+  mutate(motocicleta = motocicletas > 0,
+         logradouro_completo = factor(logradouro_completo) |> fct_rev()) |>
+  (\(df) ggplot() +
+     geom_rect(aes(xmin = as.Date(-Inf), 
+                   xmax = as.Date(data_implementacao), 
+                   ymin = as.numeric(logradouro_completo) - .15, 
+                   ymax = as.numeric(logradouro_completo) + .15),
+               data = df |> distinct(logradouro_completo, data_implementacao),
+               fill = "grey85") +
+     geom_rect(aes(xmin = as.Date(data_implementacao), 
+                   xmax = as.Date(Inf), 
+                   ymin = as.numeric(logradouro_completo) - .27, 
+                   ymax = as.numeric(logradouro_completo) + .27),
+               data = df |> distinct(logradouro_completo, data_implementacao),
+               fill = "#333F48FF", alpha = .9) +
+     geom_point(aes(x = as.Date(data), y = logradouro_completo, fill = motocicleta, shape = motocicleta), 
+                alpha = .9, stroke = .15, colour = "white", size = 3,
+                data = df) +
+     scale_fill_manual("Veículo da vítima", values = c("TRUE" = "#BA0C2FFF", "FALSE" = "#C6AA76FF"), labels = c("TRUE" = "Motocicleta", "FALSE" = "Outros")) +
+     scale_shape_manual("Veículo da vítima", values = c("TRUE" = 21, "FALSE" = 22), labels = c("TRUE" = "Motocicleta", "FALSE" = "Outros")) +
+     scale_x_date(limits = c(make_date(year = 2021, month = 1), max(df$data))) +
+     labs(y = NULL, x = NULL) +
+     theme_minimal())(df = _)
 
+ggsave("output/obitos.pdf", width = 11, height = 7)
 
-df |>
-  right_join(faixa_azul |> select(logradouro, id_logradouro)) |> 
-  group_by(id_logradouro, mes, ano) |>
-  summarize(acidentes = sum(sinistros),
-            logradouro = first(logradouro)) |>
-  left_join(faixa_azul |>
-              mutate(data_faixa_azul = make_date(year = ano, month = mes)) |>
-              select(logradouro, data_faixa_azul, id_trecho)) |>
-  mutate(data = make_date(year = ano, month = mes),
-         faixa_azul =  data > data_faixa_azul) |> 
-  ggplot(aes(x = data, y = reorder(logradouro, id_trecho),
-             lwd = faixa_azul,
-             alpha = faixa_azul)) +
-  geom_line() +
-  scale_x_date(limits = c(make_date(year = 2021, month = 1), make_date(year = 2024, month = 9))) +
-  scale_linewidth_manual(values = c("TRUE" = 2, "FALSE" = 1.5), labels = c("TRUE" = "Implementado", "FALSE" = "Não Há")) +
-  scale_alpha_manual(values = c("TRUE" = 1, "FALSE" = .20), labels = c("TRUE" = "Implementado", "FALSE" = "Não Há")) +
-  guides(linewidth = guide_legend("Faixa Azul"),
-         alpha = guide_legend("Faixa Azul")) +
-  labs(title = "Evolução da implementação das faixas azuis em São Paulo", x = "", y = "") +
+# SINISTROS EM CADA HORA DO DIA ----
+
+read_csv("banco_dados/sinistros.csv") |>
+  filter(year(data) > 2018, year(data) <= 2023) |> 
+  mutate(mes = fct_collapse(month(data) |> factor(),
+                            "Jan-Mar" = 1:3,
+                            "Abr-Jun" = 4:6,
+                            "Jul-Set" = 7:9,
+                            "Out-Dez" = 10:12,
+                            other_level = "teste")) |> 
+  group_by(hora = hour(data), dia = day(data), mes) |> 
+  summarize(sinistros = n()) |> 
+  ggplot(aes(x = dia, y = hora, fill = sinistros)) +
+  geom_tile() +
+  facet_grid(cols = vars(mes)) +
   theme_minimal() +
-  theme(plot.title.position = "plot",
-        plot.title = element_text(hjust = 0.5))
+  scale_fill_viridis_c() +
+  scale_y_continuous("Horário", breaks = 0:11*2) +
+  scale_x_continuous("Dia do mês", breaks = NULL)
 
-ggsave("output/evolucao_faixas.pdf", width = 8, height = 5)
+ggsave("output/horarios-sinistros.pdf", width = 10, height =4)
 
-df |> 
-  right_join(faixa_azul |> select(logradouro, id_logradouro)) |> 
-  group_by(id_logradouro, mes, ano) |> 
-  summarize(sinistros = sum(sinistros),
-            logradouro = first(logradouro)) |> 
+# TAMANHO VIAS ----
+
+
+osm.token |> 
+  right_join(osm.token |> 
+               left_join(faixa_azul) |> 
+               filter(!data_implementacao |> is.na()) |> 
+               distinct(logradouro, data_implementacao)) |> 
+  select(id_osm, logradouro_completo = logradouro, data_implementacao) |> 
   left_join(faixa_azul |> 
-              mutate(data_faixa_azul = make_date(year = ano, month = mes)) |> 
-              select(logradouro, data_faixa_azul, id_trecho)) |> 
-  mutate(data = make_date(year = ano, month = mes),
-         faixa_azul =  data > data_faixa_azul) |>
-  ggplot(aes(x = data)) +
-  geom_line(aes(lwd = faixa_azul, y = reorder(logradouro, sinistros), alpha = faixa_azul)) +
-  geom_point(data = obitos |>
-               semi_join(faixa_azul) |> 
-               mutate(motocicleta = as.logical(motocicleta)) |> 
-               select(data, logradouro, motocicleta),
-             aes(y = logradouro, fill = factor(motocicleta), shape = factor(motocicleta)), size = 2, alpha = .8, stroke = .1, colour = "white") +
-  scale_x_date(limits = c(make_date(year = 2021, month = 1), make_date(year = 2024, month = 9))) +
-  scale_linewidth_manual(values = c("TRUE" = 2, "FALSE" = 1.5), labels = c("TRUE" = "Pós faixa azul", "FALSE" = "Pré faixa azul")) +
-  scale_alpha_manual(values = c("TRUE" = 1, "FALSE" = .20), labels = c("TRUE" = "Pós faixa azul", "FALSE" = "Pré faixa azul")) +
-  scale_fill_manual(values = c("TRUE" = "red", "FALSE" = "purple"), labels = c("TRUE" = "Motocicleta", "FALSE" = "Outros")) +
-  scale_shape_manual(values = c("TRUE" = 21, "FALSE" = 22), labels = c("TRUE" = "Motocicleta", "FALSE" = "Outros")) +
-  guides(linewidth = guide_legend(""),
-         alpha = guide_legend(""),
-         fill = guide_legend("Veículo da vítima fatal"),
-         shape = guide_legend("Veículo da vítima fatal")) +
-  labs(title = "Evolução da implementação das faixas azuis em São Paulo", x = "", y = "") +
-  theme_minimal() +
-  theme(plot.title.position = "plot",
-        plot.title = element_text(hjust = 0.5))
-
-ggsave("output/obitos.pdf", width = 10, height = 6)
-
-# MAPA ----
-
-distrito <- read_sf("dados_tratados/distrito/SIRGAS_SHP_distrito.shp") |> 
-  st_set_crs("epsg:31983") |> 
-  filter(!ds_nome %in% c("PARELHEIROS", "MARSILAC", "RIO PEQUENO", "JAGUARE"))
-
-logradouros <- st_read("dados_tratados/logradouros_osm.gpkg") |> 
-  st_transform("epsg:31983") |> 
-  mutate(logradouro = logradouro |> 
-           stringi::stri_trans_general("latin-ascii") |> 
-           str_to_upper() |> 
-           str_replace_all("[[:punct:]]", "")) |> 
-  fix.alias()
-
-
-faixa_azul <- readxl::read_excel("dados_tratados/vias_faixa_azul.xlsx") |> 
-  select(logradouro = logradouro_osm, ano, mes) |> 
-  mutate(data = make_date(year = ano, month = mes)) |> 
-  select(-ano, -mes)
-
-mapa.todas <- logradouros |> 
-  right_join(faixa_azul) |>
-  filter(st_intersects(geom, distrito |> st_union()) |> as.logical()) |>
-  mutate(data = as.factor(data)) |> 
-  mapview(zcol = "data")
-
-mapa.selecao <- logradouros |> 
-  right_join(faixa_azul) |>
-  filter(st_intersects(geom, distrito |> st_union()) |> as.logical()) |> 
-  semi_join(read_csv("dados_tratados/faixa_azul_selecao.csv") |> mutate(id_osm = as.character(id_osm))) |> 
-  mapview(color = "red")
-
-(mapa.todas + mapa.selecao) |> mapshot(url = "output/mapas/logradouros_faixa_azul.html")
- 
-logradouros |>
-  semi_join(faixa_azul) |> 
-  left_join(read_csv("dados_tratados/faixa_azul_selecao.csv") |> 
-              mutate(faixa_azul = "faixa_azul", id_osm = as.character(id_osm))) |> 
-  mutate(tamanho = st_length(geom), faixa_azul = replace_na(faixa_azul, "sem_faixa")) |>
+              mutate(faixa_azul = "faixa_azul") |> 
+              select(id_osm, faixa_azul)) |> 
+  left_join(trechos |> select(id_osm, geometry = geom)) |> 
+  mutate(faixa_azul = replace_na(faixa_azul, "sem_faixa"),
+         tamanho = st_length(geometry)) |> 
   st_drop_geometry() |> 
-  group_by(logradouro, faixa_azul) |> 
+  group_by(logradouro_completo, faixa_azul) |> 
   summarize(tamanho = tamanho |> sum()) |> 
-  group_by(logradouro) |> 
+  group_by(logradouro_completo) |> 
   mutate(order = sum(tamanho), 
          faixa_azul = factor(faixa_azul, 
                              levels = c("sem_faixa", "faixa_azul"),
                              labels = c("Trecho comum", "Trecho de faixa azul"))) |> 
-  ggplot(aes(x = tamanho, y = reorder(logradouro, order), fill = faixa_azul)) +
+  ggplot(aes(x = tamanho, y = reorder(logradouro_completo, order), fill = faixa_azul)) +
   geom_col(colour = "black", lwd = .1) +
   scale_x_units("Tamanho da via", unit = "km") +
   labs(y = NULL) +
@@ -140,116 +112,22 @@ logradouros |>
 ggsave("output/tamanho-trechos.pdf", width = 7, height = 6)
 
 
-logradouros |>
-  semi_join(faixa_azul) |> 
-  left_join(read_csv("dados_tratados/faixa_azul_selecao.csv") |> 
-              mutate(faixa_azul = "faixa_azul", id_osm = as.character(id_osm))) |> 
-  st_drop_geometry() |> 
-  summarize(across(c(tipo_via, limite_velocidade, faixas, superficie, mao_unica), ~ fct_infreq(.x) |> levels() |> first()))
+# RADIAL ANO MES ----
 
-
-read_csv("dados_tratados/frota.csv") |>
-  mutate(tp_veiculo = fct_collapse(tipo_veiculo,
-                                     carro = c("automovel", "caminhonete", "camioneta"),
-                                     moto = c("motocicleta", "ciclomotor", "motoneta"),
-                                     other_level = "outros"),
-         across(c(tp_veiculo, tipo_veiculo), ~ factor(.x, levels = c("carro", "automovel", "caminhonete", "camioneta",
-                                                                     "moto", "motocicleta", "ciclomotor", "motoneta"))),
-         data = make_date(year = ano, month = mes)) |> 
-  arrange(data) |> 
-  filter(tp_veiculo %in% c("carro", "moto")) |> 
-  (\(df) ggplot() +
-     geom_hline(yintercept = 0, linetype = "dashed", lwd = .75, alpha = .8) +
-     geom_line(data = df |> 
-                 group_by(tipo_veiculo) |> 
-                 mutate(variacao = frota / lag(frota) - 1),
-               aes(x = data, y = variacao, colour = tipo_veiculo), 
-               lwd = .5, alpha = .3) +
-     geom_line(data = df |> 
-                 group_by(data, tp_veiculo) |> 
-                 summarize(frota = sum(frota)) |> 
-                 group_by(tp_veiculo) |> 
-                 mutate(variacao = frota / lag(frota) - 1),
-               aes(x = data, y = variacao, colour = tp_veiculo), lwd = 1) +
-     scale_y_continuous("Variação mensal na frota", limits = c(-.01, .05), labels = scales::percent) +
-     scale_colour_manual("Modo de transporte",
-                         breaks = c("carro", "automovel", "caminhonete", "camioneta",
-                                    "moto", "motocicleta", "ciclomotor", "motoneta"),
-                         values = c("carro" = "#693829FF", 
-                                    "automovel" = "#894B33FF", 
-                                    "caminhonete" = "#A56A3EFF", 
-                                    "camioneta" = "#CFB267FF",
-                                    "moto" = "#345084FF", 
-                                    "motocicleta" = "#3D619DFF", 
-                                    "ciclomotor" = "#5480B5FF", 
-                                    "motoneta" = "#9CA9BAFF"))+
-     labs(x = NULL) +
-     theme_minimal())(df = _)
+sinistros |> 
+  filter(tipo != "NOTIFICACAO", year(data) > 2018) |> 
+  group_by(ano = year(data), mes = month(data)) |> 
+  summarize(n = n(), .groups = "drop") |>
+  (\(.) bind_rows(., . |> filter(mes == 12) |> mutate(mes = 0, ano = ano + 1)))() |>
+  ggplot(aes(x = mes, y = n, colour = factor(ano))) +
+  geom_line(lwd = 1.5, alpha = .75) +
+  coord_radial(expand = FALSE, inner.radius = 0.1, r_axis_inside = TRUE) +
+  scale_y_continuous(limits = c(1000, 3000)) +
+  scale_x_continuous(breaks = 1:12, labels = 1:12) +
+  theme_minimal() 
   
-ggsave("output/evolucao-frotas.pdf", width = 8, height = 5)
+ggsave("output/sinistros-meses.pdf", width = 8, height = 8)
 
-
-read_csv("dados_tratados/sinistros.csv") |>
-  filter(year(data) > 2018, year(data) <= 2023) |> 
-  mutate(mes = fct_collapse(month(data) |> factor(),
-                            "Jan-Mar" = 1:3,
-                            "Abr-Jun" = 4:6,
-                            "Jul-Set" = 7:9,
-                            "Out-Dez" = 10:12,
-                            other_level = "teste")) |> 
-  group_by(hora = hour(data), dia = day(data), mes) |> 
-  summarize(sinistros = n()) |> 
-  ggplot(aes(x = dia, y = hora, fill = sinistros)) +
-  geom_tile() +
-  facet_grid(cols = vars(mes)) +
-  theme_minimal() +
-  scale_fill_viridis_c() +
-  scale_y_continuous("Horário", breaks = 0:11*2) +
-  scale_x_continuous("Dia do mês", breaks = NULL)
-
-ggsave("output/sinistros-horario/sinistros.pdf", width = 10, height =4)
-
-
-
-read_csv("dados_tratados/sinistros.csv") |>
-  filter(year(data) > 2018, year(data) <= 2023, motocicleta == 1) |> 
-  mutate(mes = fct_collapse(month(data) |> factor(),
-                            "Jan-Mar" = 1:3,
-                            "Abr-Jun" = 4:6,
-                            "Jul-Set" = 7:9,
-                            "Out-Dez" = 10:12,
-                            other_level = "teste")) |> 
-  group_by(hora = hour(data), dia = day(data), mes) |> 
-  summarize(sinistros = n()) |> 
-  ggplot(aes(x = dia, y = hora, fill = sinistros)) +
-  geom_tile() +
-  facet_grid(cols = vars(mes)) +
-  theme_minimal() +
-  scale_fill_viridis_c() +
-  scale_y_continuous("Horário", breaks = 0:11*2) +
-  scale_x_continuous("Dia do mês", breaks = NULL)
-
-ggsave("output/sinistros-horario/motocicletas.pdf", width = 10, height =4)
-
-read_csv("dados_tratados/sinistros.csv") |>
-  filter(year(data) > 2018, year(data) <= 2023) |> 
-  mutate(mes = fct_collapse(month(data) |> factor(),
-                            "Jan-Mar" = 1:3,
-                            "Abr-Jun" = 4:6,
-                            "Jul-Set" = 7:9,
-                            "Out-Dez" = 10:12,
-                            other_level = "teste")) |> 
-  group_by(hora = hour(data), dia = day(data), mes) |> 
-  summarize(sinistros = sum(quantidade, na.rm = TRUE)) |> 
-  ggplot(aes(x = dia, y = hora, fill = sinistros)) +
-  geom_tile() +
-  facet_grid(cols = vars(mes)) +
-  theme_minimal() +
-  scale_fill_viridis_c() +
-  scale_y_continuous("Horário", breaks = 0:11*2) +
-  scale_x_continuous("Dia do mês", breaks = NULL)
-
-ggsave("output/sinistros-horario/obitos.pdf", width = 10, height =4)
 
 
 
