@@ -3,6 +3,8 @@ library(sf)
 library(osmdata)
 
 trechos <- read_sf("banco_dados/trechos.gpkg")
+distrito <- read_sf("dados_tratados/distrito/SIRGAS_SHP_distrito.shp") |> st_set_crs("epsg:31983") 
+
 
 # Radar próximo ----
 radares <- getbb('São Paulo') |> 
@@ -54,12 +56,62 @@ amenidades <- getbb('São Paulo') |>
   opq(bbox = _) |> 
   add_osm_feature(key = 'amenity')  |> 
   osmdata_sf() |> 
+  st_crop
   (\(amenidades) bind_rows(
     as_tibble(amenidades$osm_points) |> filter(!is.na(amenity)),
     as_tibble(amenidades$osm_polygons) |> filter(!is.na(amenity)),
     as_tibble(amenidades$osm_multipolygons) |> filter(!is.na(amenity))))() |> 
-  select(id_osm_amenidade = osm_id, nome = name, tipo_amenidade = amenity, geometry)
+  select(id_osm_amenidade = osm_id, nome = name, tipo_amenidade = amenity, geometry) |> 
+  mutate(tipo_geometria = st_geometry_type(geometry))
 
+amenidades |> 
+  filter(tipo_geometria == "POINT") |> 
+  st_set_geometry("geometry") |> 
+  st_transform(crs = "epsg:31983") |>
+  st_intersection(distrito) |> 
+  st_coordinates() |> 
+  ggplot() +
+  geom_sf(data = distrito, aes(geometry = geometry), colour = NA) +
+  geom_point(aes(x = X, y = Y), stroke = 0, size = .1, alpha = .2) +
+  geom_hex(aes(x = X, y = Y, fill = after_stat(level),
+               alpha = ifelse(after_stat(level) == min(after_stat(level)), 0, 0.5)), 
+           alpha = .5, colour = "black", geom = "polygon") +
+  theme_void() +
+  theme(legend.position = "none")
+
+
+amenidades |> 
+  filter(tipo_geometria == "POINT") |> 
+  st_set_geometry("geometry") |> 
+  st_transform(crs = "epsg:31983") |>
+  st_intersection(distrito) |> 
+  st_coordinates() |> 
+  ggplot() +
+  geom_sf(data = distrito, aes(geometry = geometry), colour = NA) +
+  # geom_point(aes(x = X, y = Y), stroke = 0, size = .1, alpha = .2) +
+  geom_hex(aes(x = X, y = Y), alpha = .9, bins = 60) +
+  # scale_fill_viridis_c(limits = c(40, 10^2), na.value = "transparent") +
+  scale_fill_gradient("Número de amenidades", low = "grey90", high = "darkblue") +
+  theme_void()
+
+ggsave("output/amenidades.pdf", width = 10, height = 12.5)
+
+amenidade_proxima <- trechos |> 
+  filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
+  st_simplify(dTolerance = 10) |> 
+  st_buffer(30) |> 
+  st_join(amenidades |> filter(tipo_geometria == "POINT") |> st_set_geometry("geometry")) |> 
+  st_drop_geometry() |> 
+  group_by(id_osm) |> 
+  summarize(amenidades = n()) |> 
+  right_join(trechos |> 
+               filter(tipo_via %in% c("trunk", "primary", "secondary"))) |> 
+  mutate(amenidades = replace_na(amenidades, 0)) |> 
+  right_join(trechos |> 
+               st_drop_geometry() |> 
+               filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
+               select(id_osm)) |> 
+  mutate(amenidades = replace_na(amenidades, 0))
 
 # Output ----
 
@@ -67,7 +119,8 @@ complemento <- trechos |>
   st_drop_geometry() |> 
   select(id_osm) |> 
   left_join(intersec) |> 
-  left_join(radar_proximo)
+  left_join(radar_proximo) |> 
+  left_join(amenidade_proxima)
 
 write_csv(complemento, "banco_dados/trechos_complemento.csv")
 
