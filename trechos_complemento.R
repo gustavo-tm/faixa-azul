@@ -47,6 +47,19 @@ intersec <- trechos |>
   summarize(intersec = n()) |> 
   select(id_osm, intersec)
 
+# POIs ----
+
+
+amenidades <- getbb('São Paulo') |> 
+  opq(bbox = _) |> 
+  add_osm_feature(key = 'amenity')  |> 
+  osmdata_sf() |> 
+  (\(amenidades) bind_rows(
+    as_tibble(amenidades$osm_points) |> filter(!is.na(amenity)),
+    as_tibble(amenidades$osm_polygons) |> filter(!is.na(amenity)),
+    as_tibble(amenidades$osm_multipolygons) |> filter(!is.na(amenity))))() |> 
+  select(id_osm_amenidade = osm_id, nome = name, tipo_amenidade = amenity, geometry)
+
 
 # Output ----
 
