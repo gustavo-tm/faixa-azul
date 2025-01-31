@@ -13,4 +13,7 @@ radares <- getbb('São Paulo') |>
          limite_velocidade_pesados = "maxspeed:hgv",
          geometry)
 
-write_csv(radares, "dados_tratados/radares.csv")
+st_write(radares, "dados_tratados/radares.gpkg")
+radares <- read_sf("dados_tratados/radares.gpkg")
+
+
