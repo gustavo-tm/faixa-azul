@@ -98,7 +98,6 @@ ggsave("output/obitos_ordenado.pdf", width = 11, height = 7)
 sinistros |> 
   filter(tipo == "SINISTRO FATAL", year(data) > 2015) |> 
   left_join(match, by = join_by(id_sinistro)) |> 
-  # mutate(data = make_date(year = year(data), month = month(data))) |> 
   left_join(faixa_azul |> distinct()) |> 
   mutate(match_sucesso = is.na(id_osm) == FALSE,
          faixa_azul = is.na(data_implementacao) == FALSE) |> 
@@ -123,7 +122,6 @@ ggsave("output/comparacao_panfleto/obitos_tempo.pdf", width = 8, height = 5)
 sinistros |> 
   filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
   left_join(match, by = join_by(id_sinistro)) |> 
-  # mutate(data = make_date(year = year(data), month = month(data))) |> 
   left_join(faixa_azul |> distinct()) |> 
   mutate(match_sucesso = is.na(id_osm) == FALSE,
          faixa_azul = is.na(data_implementacao) == FALSE) |> 
@@ -172,6 +170,37 @@ sinistros |>
   labs(x = NULL, fill = "Local do sinistro", y = "Óbitos em sinistros fatais envolvendo motociclistas")
 
 ggsave("output/comparacao_panfleto/obitos_moto_tempo_faixa_azul.pdf", width = 8, height = 5)
+
+frota <- read_csv("dados_tratados/frota_sp.csv")
+
+
+left_join(
+  sinistros |> 
+    filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
+    group_by(ano = year(data)) |> 
+    summarize(mortes = sum(quantidade_envolvidos)),
+  frota |> 
+    filter(mes == 12, tipo_veiculo %in% c("motocicleta", "motoneta")) |> 
+    group_by(ano) |> 
+    summarize(motocicletas = sum(quantidade))) |> 
+  pivot_longer(mortes:motocicletas) |> 
+  group_by(name) |> 
+  mutate(num_indice = (value / first(value))-1) |> 
+  ggplot(aes(x = factor(ano), y = num_indice)) +
+  geom_line(aes(group = name, colour = name)) +
+  geom_point(colour = "grey50") +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent) +
+  scale_colour_manual("Quantidade anual \n registrada de", values = c(rgb(.3, .05, .1), rgb(.9, .8, .5)), 
+                      labels = c("Óbitos em sinistros fatais que envolveram motocicleta", "Frota de motocicletas e motonetas")) +
+  theme(legend.position = "top",) +
+  labs(y = "Variação percentual (referência: 2016)", x = NULL) +
+  guides(colour=guide_legend(nrow=2,byrow=TRUE))
+
+
+ggsave("output/comparacao_panfleto/frota_vs_mortes.pdf", width = 7, height = 5)
+
+
 
 
 # SINISTROS EM CADA HORA DO DIA ----
