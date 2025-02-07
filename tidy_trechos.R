@@ -24,7 +24,7 @@ gg <- osm$osm_lines |>
 
 ggsave("output/vias_osm.pdf", gg, width = 30, height = 40)
 
-trechos.OSM <- as_tibble(osm$osm_lines) |> 
+osm <- as_tibble(osm$osm_lines) |> 
   select(id_osm = osm_id,
          logradouro = name,
          logradouro_alt1 = alt_name,
@@ -38,8 +38,50 @@ trechos.OSM <- as_tibble(osm$osm_lines) |>
          motocicleta = motorcycle,
          mao_unica = oneway,
          superficie = surface,
+         elevado = bridge,
          geometry) |> 
   mutate(comprimento = st_length(geometry) |> as.numeric())
 
-trechos.OSM |> 
+# Interpolação com mediana 
+logradouro <- osm |> 
+  filter(!logradouro |> is.na()) |> 
+  st_drop_geometry() |> 
+  group_by(logradouro) |> 
+  summarize(
+    across(
+      c(everything(), - comprimento),
+      ~ fct_infreq(.x) |> levels() |> first())) |> 
+  pivot_longer(c(everything(), - logradouro))
+
+trechos <- osm |> 
+  # Selecionar apenas as linhas e colunas que devem ser interpoladas
+  filter(!logradouro |> is.na()) |> 
+  select(-comprimento) |> st_drop_geometry() |>
+  
+  #Completar apenas células com NA
+  pivot_longer(c(everything(), - logradouro,  - id_osm)) |> 
+  left_join(logradouro, by = join_by(logradouro, name)) |> 
+  mutate(value = ifelse(test = is.na(value.x), yes = value.y, no = value.x)) |> 
+  pivot_wider(id_cols = c(id_osm, logradouro), names_from = name, values_from = value) |> 
+  
+  #Incluir o restante da base de volta
+  left_join(osm |> select(id_osm, comprimento, geom)) |> 
+  (\(df) bind_rows(df, osm |> anti_join(df, by = join_by(id_osm))))()
+
+# Compreender quanto foi preenchido
+left_join(
+  osm |> 
+    st_drop_geometry() |> 
+    summarize(across(everything(), ~ .x |> is.na() |> sum())) |> 
+    pivot_longer(everything()),
+  trechos |> 
+    st_drop_geometry() |> 
+    summarize(across(everything(), ~ .x |> is.na() |> sum())) |> 
+    pivot_longer(everything()),
+  by = join_by(name)
+) |> mutate(preenchimento = value.x - value.y,
+            preenchimento_percent = preenchimento / value.x) |> 
+  write_csv("output/interpolacao_trechos_resultado.csv")
+
+trechos |> 
   st_write("banco_dados/trechos.gpkg")
