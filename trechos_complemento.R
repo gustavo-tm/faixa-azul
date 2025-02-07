@@ -21,6 +21,7 @@ st_write(radares, "dados_tratados/radares.gpkg")
 radares <- read_sf("dados_tratados/radares.gpkg")
 
 radar_proximo <- trechos |> 
+  #Detecta ruas no raio de 100m
   st_join(radares |> 
             st_buffer(100)) |> 
   st_drop_geometry() |> 
@@ -41,15 +42,21 @@ intersec <- trechos |>
   filter(tipo_via != "service") |> 
   mutate(elevado = is.na(elevado) == FALSE) |> 
   select(id_osm, elevado) |> 
+  
+  #Join geográfico da base de vias com ela mesma
   left_join(osm.token) |> 
   (\(df) st_join(df, df))() |> 
   st_drop_geometry() |> 
+  
+  #Apenas intersecção se não tiver o mesmo nome, mesmo ID e se tiver na mesma altura
   filter(id_osm.x != id_osm.y,
-         elevado.x == elevado.y,
+         elevado.x == elevado.y, #ponte não tem intersecção com rua
          logradouro_limpo.x != logradouro_limpo.y) |> 
   group_by(id_osm = id_osm.x) |> 
   summarize(intersec = n()) |> 
-  select(id_osm, intersec)
+  select(id_osm, intersec) |>  
+  right_join(trechos |> filter(tipo_via != "service") |> select(id_osm)) |> 
+  mutate(intersec = replace_na(intersec, 0))
 
 # POIs ----
 
@@ -74,22 +81,6 @@ amenidades |>
   st_coordinates() |> 
   ggplot() +
   geom_sf(data = distrito, aes(geometry = geometry), colour = NA) +
-  geom_point(aes(x = X, y = Y), stroke = 0, size = .1, alpha = .2) +
-  geom_hex(aes(x = X, y = Y, fill = after_stat(level),
-               alpha = ifelse(after_stat(level) == min(after_stat(level)), 0, 0.5)), 
-           alpha = .5, colour = "black", geom = "polygon") +
-  theme_void() +
-  theme(legend.position = "none")
-
-
-amenidades |> 
-  filter(tipo_geometria == "POINT") |> 
-  st_set_geometry("geometry") |> 
-  st_transform(crs = "epsg:31983") |>
-  st_intersection(distrito) |> 
-  st_coordinates() |> 
-  ggplot() +
-  geom_sf(data = distrito, aes(geometry = geometry), colour = NA) +
   # geom_point(aes(x = X, y = Y), stroke = 0, size = .1, alpha = .2) +
   geom_hex(aes(x = X, y = Y), alpha = .9, bins = 60) +
   # scale_fill_viridis_c(limits = c(40, 10^2), na.value = "transparent") +
@@ -101,6 +92,8 @@ ggsave("output/amenidades.pdf", width = 10, height = 12.5)
 amenidade_proxima <- trechos |> 
   filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
   st_simplify(dTolerance = 10) |> 
+  
+  #Detecta amenidades em um buffer de 30m da rua
   st_buffer(30) |> 
   st_join(amenidades |> filter(tipo_geometria == "POINT") |> st_set_geometry("geometry")) |> 
   st_drop_geometry() |> 
