@@ -23,13 +23,51 @@ trechos <- st_read("banco_dados/trechos.gpkg") |>
               summarize(logradouro_limpo = nth(logradouro_limpo, 1), .groups = "drop")) |> 
   select(id_osm, logradouro, logradouro_limpo, tipo_via, faixas, limite_velocidade, mao_unica, superficie, comprimento)
 
-
-
 faixa_azul <- read_csv("banco_dados/faixa_azul.csv", col_types = list(id_osm = "c"))
 
 sinistros <- read_csv("banco_dados/sinistros.csv") |> 
   filter(year(data) >= 2019, tipo != "NOTIFICACAO") |> # Antes de 2019 há apenas sinistros com óbito
   select(id_sinistro, data, quantidade_envolvidos, motocicletas)
+
+
+fit.did <- function(df, y = "sinistros", clustervars = c("id_osm", "logradouro_limpo"), control_group = "nevertreated", 
+                    formula = ~ tipo_via + faixas + limite_velocidade, idname = "id_osm"){
+  att_gt(yname = y,
+         tname = "mes",
+         idname = idname,
+         gname = "data_implementacao",
+         clustervars = clustervars,
+         control_group = control_group,
+         data = df,
+         xformla = formula) |>
+    aggte(type = "dynamic", na.rm = T)
+}
+
+preparar.grafico <- function(fit){
+  fit |> 
+    (\(result) tibble(egt = result$egt,
+                      att = result$att.egt,
+                      se = result$se.egt,
+                      crit_val = result$crit.val.egt))(result = _) |>
+    mutate(ci_low = att - crit_val * se,
+           ci_high = att + crit_val * se)
+}
+
+plotar.grafico <- function(df, titulo = NULL){
+  df |> 
+    ggplot(aes(x = factor(egt), colour = controle, y = att)) +
+    geom_pointrange(aes(ymin = ci_low, ymax = ci_high), position = position_dodge(width = .5), fatten = 1) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    geom_vline(xintercept = factor(0), alpha = .05, lwd = 3) +
+    theme_minimal() +
+    labs(x = "Meses ao tratamento", y = "Efeito do tratamento",
+         title = titulo) 
+}
+
+horizon <- 18
+
+
+### POR TRECHO
 
 df.trecho <- sinistros |> 
   left_join(match) |> 
@@ -49,137 +87,175 @@ df.trecho <- sinistros |>
   mutate(value = value |> reorder(value) |> factor() |> as.numeric()) |> 
   pivot_wider(names_from = name, values_from = value) |> 
   mutate(data_implementacao = replace_na(data_implementacao, 0),
-         id_osm = as.numeric(id_osm))
-
-
-preparar.grafico <- function(df, y = "sinistros", clustervars = c("id_osm", "logradouro_limpo"), formula = ~ tipo_via + faixas + limite_velocidade, idname = "id_osm"){
-  att_gt(yname = y,
-         tname = "mes",
-         idname = idname,
-         gname = "data_implementacao",
-         clustervars = clustervars,
-         data = df,
-         xformla = formula) |>
-    aggte(type = "dynamic", na.rm = T) |> 
-    (\(result) tibble(egt = result$egt, 
-                      att = result$att.egt, 
-                      se = result$se.egt, 
-                      crit_val = result$crit.val.egt))(result = _) |> 
-    mutate(ci_low = att - crit_val * se,
-           ci_high = att + crit_val * se)
-}
-
-plotar.grafico <- function(df, titulo = NULL){
-  df |> 
-    ggplot(aes(x = factor(egt), colour = controle, y = att)) +
-    geom_pointrange(aes(ymin = ci_low, ymax = ci_high), position = position_dodge(width = .5), fatten = 1) +
-    geom_hline(yintercept = 0, linetype = "dashed") +
-    geom_vline(xintercept = factor(0), alpha = .05, lwd = 5) +
-    theme_minimal() +
-    labs(x = "Meses ao tratamento", y = "Efeito do tratamento",
-         title = titulo) 
-}
+         id_osm = as.numeric(id_osm)) |> 
+  mutate(sinistros_km             = sinistros * 1000 / comprimento,
+         sinistros_moto_km        = sinistros_moto * 1000 / comprimento,
+         sinistros_moto_golden_km = sinistros_moto_golden * 1000 / comprimento) |> 
+  mutate(sinistros_diff           = sinistros_moto - sinistros,
+         sinistros_diff_km        = sinistros_diff * 1000 / comprimento,
+         sinistros_diff_golden    = sinistros_moto_golden - sinistros,
+         sinistros_diff_golden_km = sinistros_diff_golden * 1000 / comprimento)
 
 
 # TOTAL
 
 bind_rows(
   df.trecho |> 
-    preparar.grafico(formula = ~ 1) |> 
+    fit.did(y = "sinistros", formula = ~ 1) |> 
+    preparar.grafico() |> 
     mutate(controle = FALSE),
   df.trecho |> 
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade) |> 
+    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    preparar.grafico() |> 
     mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= 12) |> 
+  filter(abs(egt) <= horizon) |> 
   plotar.grafico(titulo = "Sinistros totais")
 
-ggsave("output/did/sinistros.pdf", width = 8, height = 6)
+ggsave("output/did/sinistros-total-2.pdf", width = 10, height = 7.5)
 
 
 bind_rows(
   df.trecho |> 
-    mutate(sinistros_km = sinistros * 1000 / comprimento) |> 
-    preparar.grafico(formula = ~ 1, y = "sinistros_km") |> 
+    fit.did(y = "sinistros_km", formula = ~ 1) |> 
+    preparar.grafico() |> 
     mutate(controle = FALSE),
   df.trecho |> 
-    mutate(sinistros_km = sinistros * 1000 / comprimento) |>
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, y = "sinistros_km") |> 
+    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade) |> 
+    preparar.grafico() |> 
     mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= 12) |> 
+  filter(abs(egt) <= horizon) |> 
   plotar.grafico(titulo = "Sinistros por km")
 
-
-ggsave("output/did/sinistros-km.pdf", width = 8, height = 6)
-
-
-# APENAS MOTOS
-
-bind_rows(
-  df.trecho |> 
-    preparar.grafico(formula = ~ 1, y = "sinistros_moto_golden") |> 
-    mutate(controle = FALSE),
-  df.trecho |> 
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade + comprimento, y = "sinistros_moto_golden") |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= 12) |> 
-  plotar.grafico(titulo = "Sinistros totais de moto")
+ggsave("output/did/sinistros-km.pdf", width = 10, height = 7.5)
 
 
-ggsave("output/did/sinistros-moto.pdf", width = 8, height = 6)
-
+# MOTOS
 
 bind_rows(
   df.trecho |> 
-    mutate(sinistros_moto_km = sinistros_moto * 1000 / comprimento) |> 
-    preparar.grafico(formula = ~ 1, y = "sinistros_moto_km") |> 
+    fit.did(y = "sinistros_moto", formula = ~ 1) |> 
+    preparar.grafico() |> 
     mutate(controle = FALSE),
   df.trecho |> 
-    mutate(sinistros_moto_km = sinistros_moto * 1000 / comprimento) |>
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, y = "sinistros_moto_km") |> 
+    fit.did(y = "sinistros_moto", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    preparar.grafico() |> 
     mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= 12) |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto totais")
+
+ggsave("output/did/sinistros-moto-total.pdf", width = 10, height = 7.5)
+
+
+bind_rows(
+  df.trecho |> 
+    fit.did(y = "sinistros_moto_km", control_group = "notyettreated", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = FALSE),
+  df.trecho |> 
+    fit.did(y = "sinistros_moto_km", control_group = "notyettreated", formula = ~ tipo_via + faixas + limite_velocidade) |> 
+    preparar.grafico() |> 
+    mutate(controle = TRUE)) |> 
+  filter(abs(egt) <= horizon) |> 
   plotar.grafico(titulo = "Sinistros de moto por km")
 
+ggsave("output/did/sinistros-moto-km.pdf", width = 10, height = 7.5)
 
-ggsave("output/did/sinistros-moto-km.pdf", width = 8, height = 6)
+
+# GOLDEN
+
+bind_rows(
+  df.trecho |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = FALSE),
+  df.trecho |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade) |> 
+    preparar.grafico() |> 
+    mutate(controle = TRUE)) |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros golden totais")
+
+ggsave("output/did/sinistros-golden-total.pdf", width = 10, height = 7.5)
+
+
+bind_rows(
+  df.trecho |> 
+    fit.did(y = "sinistros_moto_km", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = FALSE),
+  df.trecho |> 
+    fit.did(y = "sinistros_moto_km", formula = ~ tipo_via + faixas + limite_velocidade) |> 
+    preparar.grafico() |> 
+    mutate(controle = TRUE)) |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros golden por km")
+
+ggsave("output/did/sinistros-golden-km.pdf", width = 10, height = 7.5)
+
 
 # DIFERENÇA
 
 bind_rows(
   df.trecho |> 
-    mutate(diff = (sinistros - sinistros_moto) - sinistros_moto) |> #sinistro sem moto - sinistro com moto
-    preparar.grafico(formula = ~ 1, y = "diff") |> 
+    fit.did(y = "sinistros_diff", formula = ~ 1) |> 
+    preparar.grafico() |>
     mutate(controle = FALSE),
   df.trecho |> 
-    mutate(diff = (sinistros - sinistros_moto) - sinistros_moto) |> #sinistro sem moto - sinistro com moto
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade + comprimento, y = "diff") |> 
+    fit.did(y = "sinistros_diff", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    preparar.grafico() |>
     mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= 12) |> 
-  plotar.grafico(titulo = "Diferença entre sinistros sem e com moto")
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Diferença entre sinistros com e sem moto")
 
-
-ggsave("output/did/sinistros-diff.pdf", width = 8, height = 6)
+ggsave("output/did/sinistros-diff-total.pdf", width = 10, height = 7.5)
 
 
 bind_rows(
   df.trecho |> 
-    mutate(diff = (sinistros - sinistros_moto) - sinistros_moto,
-           diff_km = diff * 1000 / comprimento) |> #sinistro sem moto - sinistro com moto
-    preparar.grafico(formula = ~ 1, y = "diff_km") |> 
+    fit.did(y = "sinistros_diff_km", formula = ~ 1) |> 
+    preparar.grafico() |>
     mutate(controle = FALSE),
   df.trecho |> 
-    mutate(diff = (sinistros - sinistros_moto) - sinistros_moto,
-           diff_km = diff * 1000 / comprimento) |> #sinistro sem moto - sinistro com moto
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade + comprimento, y = "diff_km") |> 
+    fit.did(y = "sinistros_diff_km", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    preparar.grafico() |>
     mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= 12) |> 
-  plotar.grafico(titulo = "Diferença entre sinistros sem e com moto por km")
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Diferença entre sinistros com e sem moto por km")
+
+ggsave("output/did/sinistros-diff-km.pdf", width = 10, height = 7.5)
 
 
-ggsave("output/did/sinistros-diff-km.pdf", width = 8, height = 6)
+bind_rows(
+  df.trecho |> 
+    fit.did(y = "sinistros_diff_golden", formula = ~ 1) |> 
+    preparar.grafico() |>
+    mutate(controle = FALSE),
+  df.trecho |> 
+    fit.did(y = "sinistros_diff_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    preparar.grafico() |>
+    mutate(controle = TRUE)) |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Diferença entre sinistros com e sem moto (golden)")
+
+ggsave("output/did/sinistros-diff-golden-total.pdf", width = 10, height = 7.5)
 
 
+bind_rows(
+  df.trecho |> 
+    fit.did(y = "sinistros_diff_golden_km", formula = ~ 1) |> 
+    preparar.grafico() |>
+    mutate(controle = FALSE),
+  df.trecho |> 
+    fit.did(y = "sinistros_diff_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    preparar.grafico() |>
+    mutate(controle = TRUE)) |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Diferença entre sinistros com e sem moto por km (golden)")
 
+ggsave("output/did/sinistros-diff-golden-km.pdf", width = 10, height = 7.5)
+
+
+### POR LOGRADOURO
 
 logradouros <- trechos |>
   left_join(faixa_azul) |>
@@ -215,105 +291,172 @@ df.logradouro <- sinistros |>
   mutate(value = value |> reorder(value) |> factor() |> as.numeric()) |>
   pivot_wider(names_from = name, values_from = value) |>
   mutate(data_implementacao = replace_na(data_implementacao, 0),
-         logradouro = logradouro |> as.factor() |> as.numeric())
+         logradouro = logradouro |> as.factor() |> as.numeric()) |> 
+  mutate(sinistros_km             = sinistros * 1000 / comprimento,
+         sinistros_moto_km        = sinistros_moto * 1000 / comprimento,
+         sinistros_moto_golden_km = sinistros_moto_golden * 1000 / comprimento) |> 
+  mutate(sinistros_diff           = sinistros_moto - sinistros,
+         sinistros_diff_km        = sinistros_diff * 1000 / comprimento,
+         sinistros_diff_golden    = sinistros_moto_golden - sinistros,
+         sinistros_diff_golden_km = sinistros_diff_golden * 1000 / comprimento)
 
 
-
+# TOTAL
 
 bind_rows(
   df.logradouro |> 
-    preparar.grafico(formula = ~ 1, clustervars = c("logradouro"), idname = "logradouro") |> 
+    fit.did(y = "sinistros", idname = "logradouro", formula = ~ 1, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
     mutate(controle = FALSE),
   df.logradouro |> 
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, clustervars = c("logradouro"), idname = "logradouro") |> 
+    fit.did(y = "sinistros", idname = "logradouro", formula = ~ tipo_via + faixas + limite_velocidade + comprimento, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
     mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= 12) |> 
+  filter(abs(egt) <= horizon) |> 
   plotar.grafico(titulo = "Sinistros totais")
 
-ggsave("output/did/logradouro-sinistros.pdf", width = 8, height = 6)
+ggsave("output/did/logradouro-sinistros-total.pdf", width = 10, height = 7.5)
 
 
 bind_rows(
   df.logradouro |> 
-    mutate(sinistros_km = sinistros * 1000 / comprimento) |> 
-    preparar.grafico(formula = ~ 1, y = "sinistros_km", clustervars = c("logradouro"), idname = "logradouro") |> 
+    fit.did(y = "sinistros_km", idname = "logradouro", formula = ~ 1, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
     mutate(controle = FALSE),
   df.logradouro |> 
-    mutate(sinistros_km = sinistros * 1000 / comprimento) |>
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, y = "sinistros_km", clustervars = c("logradouro"), idname = "logradouro") |> 
+    fit.did(y = "sinistros_km", idname = "logradouro", formula = ~ tipo_via + faixas + limite_velocidade + comprimento, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
     mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= 12) |> 
+  filter(abs(egt) <= horizon) |> 
   plotar.grafico(titulo = "Sinistros por km")
 
-
-ggsave("output/did/logradouro-sinistros-km.pdf", width = 8, height = 6)
+ggsave("output/did/logradouro-sinistros-km.pdf", width = 10, height = 7.5)
 
 
 # APENAS MOTOS
 
 bind_rows(
   df.logradouro |> 
-    preparar.grafico(formula = ~ 1, y = "sinistros_moto", clustervars = c("logradouro"), idname = "logradouro") |> 
+    fit.did(y = "sinistros_moto", idname = "logradouro", formula = ~ 1, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
     mutate(controle = FALSE),
   df.logradouro |> 
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, y = "sinistros_moto", clustervars = c("logradouro"), idname = "logradouro") |> 
+    fit.did(y = "sinistros_moto", idname = "logradouro", formula = ~ tipo_via + faixas + limite_velocidade + comprimento, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
     mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= 12) |> 
+  filter(abs(egt) <= horizon) |> 
   plotar.grafico(titulo = "Sinistros totais de moto")
 
-
-ggsave("output/did/logradouro-sinistros-moto.pdf", width = 8, height = 6)
+ggsave("output/did/logradouro-sinistros-moto-total.pdf", width = 10, height = 7.5)
 
 
 bind_rows(
   df.logradouro |> 
-    mutate(sinistros_moto_km = sinistros_moto * 1000 / comprimento) |> 
-    preparar.grafico(formula = ~ 1, y = "sinistros_moto_km", clustervars = c("logradouro"), idname = "logradouro") |> 
+    fit.did(y = "sinistros_moto_km", idname = "logradouro", formula = ~ 1, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
     mutate(controle = FALSE),
   df.logradouro |> 
-    mutate(sinistros_moto_km = sinistros_moto * 1000 / comprimento) |>
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, y = "sinistros_moto_km", clustervars = c("logradouro"), idname = "logradouro") |> 
+    fit.did(y = "sinistros_moto_km", idname = "logradouro", formula = ~ tipo_via + faixas + limite_velocidade + comprimento, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
     mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= 12) |> 
+  filter(abs(egt) <= horizon) |> 
   plotar.grafico(titulo = "Sinistros de moto por km")
 
+ggsave("output/did/logradouro-sinistros-moto-km.pdf", width = 10, height = 7.5)
 
-ggsave("output/did/logradouro-sinistros-moto-km.pdf", width = 8, height = 6)
+
+# GOLDEN
+
+bind_rows(
+  df.logradouro |> 
+    fit.did(y = "sinistros_moto_golden", idname = "logradouro", formula = ~ 1, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
+    mutate(controle = FALSE),
+  df.logradouro |> 
+    fit.did(y = "sinistros_moto_golden", idname = "logradouro", formula = ~ tipo_via + faixas + limite_velocidade + comprimento, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
+    mutate(controle = TRUE)) |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros totais de moto golden")
+
+ggsave("output/did/logradouro-sinistros-moto-golden-total.pdf", width = 10, height = 7.5)
+
+
+bind_rows(
+  df.logradouro |> 
+    fit.did(y = "sinistros_moto_km", idname = "logradouro", formula = ~ 1, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
+    mutate(controle = FALSE),
+  df.logradouro |> 
+    fit.did(y = "sinistros_moto_km", idname = "logradouro", formula = ~ tipo_via + faixas + limite_velocidade + comprimento, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
+    mutate(controle = TRUE)) |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden por km")
+
+ggsave("output/did/logradouro-sinistros-moto-golden-km.pdf", width = 10, height = 7.5)
+
 
 # DIFERENÇA
 
 bind_rows(
   df.logradouro |> 
-    mutate(diff = (sinistros - sinistros_moto) - sinistros_moto) |> #sinistro sem moto - sinistro com moto
-    preparar.grafico(formula = ~ 1, y = "diff", clustervars = c("logradouro"), idname = "logradouro") |> 
+    fit.did(y = "sinistros_diff", idname = "logradouro", formula = ~ 1, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
     mutate(controle = FALSE),
   df.logradouro |> 
-    mutate(diff = (sinistros - sinistros_moto) - sinistros_moto) |> #sinistro sem moto - sinistro com moto
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, y = "diff", clustervars = c("logradouro"), idname = "logradouro") |> 
+    fit.did(y = "sinistros_diff", idname = "logradouro", formula = ~ tipo_via + faixas + limite_velocidade + comprimento, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
     mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= 12) |> 
-  plotar.grafico(titulo = "Diferença entre sinistros sem e com moto")
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Diferença entre sinistros com e sem moto")
 
-
-ggsave("output/did/logradouro-sinistros-diff.pdf", width = 8, height = 6)
+ggsave("output/did/logradouro-sinistros-diff-total.pdf", width = 10, height = 7.5)
 
 
 bind_rows(
   df.logradouro |> 
-    mutate(diff = (sinistros - sinistros_moto) - sinistros_moto,
-           diff_km = diff * 1000 / comprimento) |> #sinistro sem moto - sinistro com moto
-    preparar.grafico(formula = ~ 1, y = "diff_km", clustervars = c("logradouro"), idname = "logradouro") |> 
+    fit.did(y = "sinistros_diff_km", idname = "logradouro", formula = ~ 1, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
     mutate(controle = FALSE),
   df.logradouro |> 
-    mutate(diff = (sinistros - sinistros_moto) - sinistros_moto,
-           diff_km = diff * 1000 / comprimento) |> #sinistro sem moto - sinistro com moto
-    preparar.grafico(formula = ~ tipo_via + faixas + limite_velocidade, y = "diff_km", clustervars = c("logradouro"), idname = "logradouro") |> 
+    fit.did(y = "sinistros_diff_km", idname = "logradouro", formula = ~ tipo_via + faixas + limite_velocidade + comprimento, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
     mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= 12) |> 
-  plotar.grafico(titulo = "Diferença entre sinistros sem e com moto por km")
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Diferença entre sinistros com e sem moto por km")
+
+ggsave("output/did/logradouro-sinistros-diff-km.pdf", width = 10, height = 7.5)
 
 
-ggsave("output/did/logradouro-sinistros-diff-km.pdf", width = 8, height = 6)
+bind_rows(
+  df.logradouro |> 
+    fit.did(y = "sinistros_diff_golden", idname = "logradouro", formula = ~ 1, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
+    mutate(controle = FALSE),
+  df.logradouro |> 
+    fit.did(y = "sinistros_diff_golden", idname = "logradouro", formula = ~ tipo_via + faixas + limite_velocidade + comprimento, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
+    mutate(controle = TRUE)) |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Diferença entre sinistros com e sem moto (golden)")
+
+ggsave("output/did/logradouro-sinistros-diff-golden-total.pdf", width = 10, height = 7.5)
+
+
+bind_rows(
+  df.logradouro |> 
+    fit.did(y = "sinistros_diff_golden_km", idname = "logradouro", formula = ~ 1, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
+    mutate(controle = FALSE),
+  df.logradouro |> 
+    fit.did(y = "sinistros_diff_golden_km", idname = "logradouro", formula = ~ tipo_via + faixas + limite_velocidade + comprimento, clustervars = c("logradouro")) |> 
+    preparar.grafico() |> 
+    mutate(controle = TRUE)) |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Diferença entre sinistros com e sem moto por km (golden)")
+
+ggsave("output/did/logradouro-sinistros-diff-golden-km.pdf", width = 10, height = 7.5)
 
 
 

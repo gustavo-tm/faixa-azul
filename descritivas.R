@@ -56,6 +56,43 @@ osm.token |>
 
 ggsave("output/obitos.pdf", width = 11, height = 7)
 
+
+osm.token |> 
+  right_join(osm.token |> 
+               left_join(faixa_azul) |> 
+               filter(!data_implementacao |> is.na()) |> 
+               distinct(logradouro, data_implementacao)) |> 
+  select(id_osm, logradouro_completo = logradouro, data_implementacao) |> 
+  left_join(match) |> 
+  filter(similaridade > .75 | (match_tipo == TRUE & match_titulo == TRUE)) |> 
+  left_join(sinistros, by = join_by(id_sinistro)) |> 
+  filter(tipo == "SINISTRO FATAL") |> 
+  mutate(motocicleta = motocicletas > 0,
+         logradouro_completo = factor(logradouro_completo) |> fct_reorder(desc(data_implementacao))) |> View()
+  (\(df) ggplot() +
+     geom_rect(aes(xmin = as.Date(-Inf), 
+                   xmax = as.Date(data_implementacao), 
+                   ymin = as.numeric(logradouro_completo) - .15, 
+                   ymax = as.numeric(logradouro_completo) + .15),
+               data = df |> distinct(logradouro_completo, data_implementacao),
+               fill = "grey85") +
+     geom_rect(aes(xmin = as.Date(data_implementacao), 
+                   xmax = as.Date(Inf), 
+                   ymin = as.numeric(logradouro_completo) - .27, 
+                   ymax = as.numeric(logradouro_completo) + .27),
+               data = df |> distinct(logradouro_completo, data_implementacao),
+               fill = "#333F48FF", alpha = .9) +
+     geom_point(aes(x = as.Date(data), y = logradouro_completo, fill = motocicleta, shape = motocicleta), 
+                alpha = .9, stroke = .15, colour = "white", size = 3,
+                data = df) +
+     scale_fill_manual("Veículo da vítima", values = c("TRUE" = "#BA0C2FFF", "FALSE" = "#C6AA76FF"), labels = c("TRUE" = "Motocicleta", "FALSE" = "Outros")) +
+     scale_shape_manual("Veículo da vítima", values = c("TRUE" = 21, "FALSE" = 22), labels = c("TRUE" = "Motocicleta", "FALSE" = "Outros")) +
+     scale_x_date(limits = c(make_date(year = 2021, month = 1), max(df$data))) +
+     labs(y = NULL, x = NULL) +
+     theme_minimal())(df = _)
+
+ggsave("output/obitos_ordenado.pdf", width = 11, height = 7)
+
 # SINISTROS EM CADA HORA DO DIA ----
 
 read_csv("banco_dados/sinistros.csv") |>
