@@ -191,16 +191,14 @@ left_join(
   geom_point(colour = "grey50") +
   theme_minimal() +
   scale_y_continuous(labels = scales::percent) +
-  scale_colour_manual("Quantidade anual \n registrada de", values = c(rgb(.3, .05, .1), rgb(.9, .8, .5)), 
-                      labels = c("Óbitos em sinistros fatais que envolveram motocicleta", "Frota de motocicletas e motonetas")) +
+  scale_colour_manual(NULL, values = c(rgb(.3, .05, .1), rgb(.9, .8, .5)), 
+                      labels = c("Óbitos em sinistros fatais que envolveram motocicleta", "Frota total de motocicletas e motonetas")) +
   theme(legend.position = "top",) +
   labs(y = "Variação percentual (referência: 2016)", x = NULL) +
   guides(colour=guide_legend(nrow=2,byrow=TRUE))
 
 
-ggsave("output/comparacao_panfleto/frota_vs_mortes.pdf", width = 7, height = 5)
-
-
+ggsave("output/comparacao_panfleto/frota_vs_mortes.pdf", width = 6, height = 5)
 
 
 # SINISTROS EM CADA HORA DO DIA ----
