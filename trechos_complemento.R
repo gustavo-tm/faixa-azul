@@ -39,11 +39,13 @@ osm.token <- read_csv("dados_tratados/osm-token.csv", col_types = list("id_osm" 
 
 intersec <- trechos |> 
   filter(tipo_via != "service") |> 
-  select(id_osm) |> 
+  mutate(elevado = is.na(elevado) == FALSE) |> 
+  select(id_osm, elevado) |> 
   left_join(osm.token) |> 
   (\(df) st_join(df, df))() |> 
   st_drop_geometry() |> 
   filter(id_osm.x != id_osm.y,
+         elevado.x == elevado.y,
          logradouro_limpo.x != logradouro_limpo.y) |> 
   group_by(id_osm = id_osm.x) |> 
   summarize(intersec = n()) |> 
