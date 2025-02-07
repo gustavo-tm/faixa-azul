@@ -68,7 +68,7 @@ osm.token |>
   left_join(sinistros, by = join_by(id_sinistro)) |> 
   filter(tipo == "SINISTRO FATAL") |> 
   mutate(motocicleta = motocicletas > 0,
-         logradouro_completo = factor(logradouro_completo) |> fct_reorder(desc(data_implementacao))) |> View()
+         logradouro_completo = factor(logradouro_completo) |> fct_reorder(desc(data_implementacao))) |> 
   (\(df) ggplot() +
      geom_rect(aes(xmin = as.Date(-Inf), 
                    xmax = as.Date(data_implementacao), 
@@ -92,6 +92,87 @@ osm.token |>
      theme_minimal())(df = _)
 
 ggsave("output/obitos_ordenado.pdf", width = 11, height = 7)
+
+# PANFLETO CET
+
+sinistros |> 
+  filter(tipo == "SINISTRO FATAL", year(data) > 2015) |> 
+  left_join(match, by = join_by(id_sinistro)) |> 
+  # mutate(data = make_date(year = year(data), month = month(data))) |> 
+  left_join(faixa_azul |> distinct()) |> 
+  mutate(match_sucesso = is.na(id_osm) == FALSE,
+         faixa_azul = is.na(data_implementacao) == FALSE) |> 
+  group_by(ano = year(data), match_sucesso, faixa_azul) |> 
+  summarize(mortes = sum(quantidade_envolvidos)) |> 
+  mutate(categoria = case_when(faixa_azul == TRUE ~ "Faixa Azul",
+                               match_sucesso == TRUE ~ "Outras Vias",
+                               match_sucesso == FALSE ~ "Via não encontrada",
+                               .default = "ERRO") |> 
+           factor(levels = c("Faixa Azul", "Outras Vias", "Via não encontrada") |> rev())) |> 
+  group_by(ano) |> 
+  mutate(total = ifelse(row_number() == 1, sum(mortes), NA)) |> 
+  ggplot(aes(x = factor(ano))) +
+  geom_col(aes(y = mortes, fill = categoria)) +
+  geom_text(aes(y = total, label = total), vjust = -0.5) +
+  scale_fill_manual(values = c(rgb(.2,.5,.8), rgb(.2,.5,.5), rgb(.05,.1,.3))) + 
+  theme_minimal() +
+  labs(x = NULL, fill = "Local do sinistro", y = "Óbitos em sinistros fatais")
+
+ggsave("output/comparacao_panfleto/obitos_tempo.pdf", width = 8, height = 5)
+
+sinistros |> 
+  filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
+  left_join(match, by = join_by(id_sinistro)) |> 
+  # mutate(data = make_date(year = year(data), month = month(data))) |> 
+  left_join(faixa_azul |> distinct()) |> 
+  mutate(match_sucesso = is.na(id_osm) == FALSE,
+         faixa_azul = is.na(data_implementacao) == FALSE) |> 
+  group_by(ano = year(data), match_sucesso, faixa_azul) |> 
+  summarize(mortes = sum(quantidade_envolvidos)) |> 
+  mutate(categoria = case_when(faixa_azul == TRUE ~ "Faixa Azul",
+                               match_sucesso == TRUE ~ "Outras Vias",
+                               match_sucesso == FALSE ~ "Via não encontrada",
+                               .default = "ERRO") |> 
+           factor(levels = c("Faixa Azul", "Outras Vias", "Via não encontrada") |> rev())) |> 
+  group_by(ano) |> 
+  mutate(total = ifelse(row_number() == 1, sum(mortes), NA)) |> 
+  ggplot(aes(x = factor(ano))) +
+  geom_col(aes(y = mortes, fill = categoria)) +
+  geom_text(aes(y = total, label = total), vjust = -0.5) +
+  scale_fill_manual(values = c(rgb(.2,.5,.8), rgb(.2,.5,.5), rgb(.05,.1,.3))) + 
+  theme_minimal() +
+  labs(x = NULL, fill = "Local do sinistro", y = "Óbitos em sinistros fatais envolvendo motociclistas")
+
+ggsave("output/comparacao_panfleto/obitos_moto_tempo.pdf", width = 8, height = 5)
+
+sinistros |> 
+  filter(tipo == "SINISTRO FATAL", year(data) > 2015) |> 
+  left_join(match, by = join_by(id_sinistro)) |> 
+  semi_join(faixa_azul |> select(id_osm)) |> 
+  group_by(ano = year(data)) |> 
+  summarize(mortes = sum(quantidade_envolvidos)) |> 
+  ggplot(aes(x = factor(ano))) +
+  geom_col(aes(y = mortes), fill = rgb(.05,.1,.3)) +
+  geom_text(aes(y = mortes, label = mortes), vjust = -0.5) +
+  theme_minimal() +
+  labs(x = NULL, fill = "Local do sinistro", y = "Óbitos em sinistros fatais")
+
+ggsave("output/comparacao_panfleto/obitos_tempo_faixa_azul.pdf", width = 8, height = 5)
+
+sinistros |> 
+  filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
+  left_join(match, by = join_by(id_sinistro)) |> 
+  semi_join(faixa_azul |> select(id_osm)) |> 
+  group_by(ano = year(data)) |> 
+  summarize(mortes = sum(quantidade_envolvidos)) |> 
+  ggplot(aes(x = factor(ano))) +
+  geom_col(aes(y = mortes), fill = rgb(.05,.1,.3)) +
+  geom_text(aes(y = mortes, label = mortes), vjust = -0.5) +
+  theme_minimal() +
+  labs(x = NULL, fill = "Local do sinistro", y = "Óbitos em sinistros fatais envolvendo motociclistas")
+
+ggsave("output/comparacao_panfleto/obitos_moto_tempo_faixa_azul.pdf", width = 8, height = 5)
+
 
 # SINISTROS EM CADA HORA DO DIA ----
 
