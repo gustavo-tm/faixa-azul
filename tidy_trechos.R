@@ -17,6 +17,8 @@ osm <- getbb('São Paulo') |>
     "speed_camera"))  |> 
   osmdata_sf()
 
+saveRDS(osm, "dados_brutos/osm.rds")
+
 gg <- osm$osm_lines |> 
   ggplot() +
   geom_sf(lwd = .1) +
@@ -42,11 +44,13 @@ osm <- as_tibble(osm$osm_lines) |>
          geometry) |> 
   mutate(comprimento = st_length(geometry) |> as.numeric())
 
-# Interpolação com mediana 
+# Interpolação 
 logradouro <- osm |> 
   filter(!logradouro |> is.na()) |> 
-  st_drop_geometry() |> 
+  select(-geometry) |> 
   group_by(logradouro) |> 
+  
+  #Pegar o valor que mais se repete naquele logradouro
   summarize(
     across(
       c(everything(), - comprimento),
@@ -56,7 +60,7 @@ logradouro <- osm |>
 trechos <- osm |> 
   # Selecionar apenas as linhas e colunas que devem ser interpoladas
   filter(!logradouro |> is.na()) |> 
-  select(-comprimento) |> st_drop_geometry() |>
+  select(-comprimento, -geometry) |> st_drop_geometry() |>
   
   #Completar apenas células com NA
   pivot_longer(c(everything(), - logradouro,  - id_osm)) |> 
@@ -65,7 +69,7 @@ trechos <- osm |>
   pivot_wider(id_cols = c(id_osm, logradouro), names_from = name, values_from = value) |> 
   
   #Incluir o restante da base de volta
-  left_join(osm |> select(id_osm, comprimento, geom)) |> 
+  left_join(osm |> select(id_osm, comprimento, geometry)) |> 
   (\(df) bind_rows(df, osm |> anti_join(df, by = join_by(id_osm))))()
 
 # Compreender quanto foi preenchido
