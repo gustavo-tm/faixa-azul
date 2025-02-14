@@ -48,6 +48,8 @@ df.trecho <- sinistros |>
          amenidades_km = amenidades * 1000 / comprimento,
          intersec_f = intersec |> as_factor(),
          amenidades_f = amenidades |> as_factor()) |> 
+  
+  #trasformacao da data em valor numerico (na ordem)
   mutate(mes = data) |> 
   pivot_longer(c(mes, data_implementacao)) |> 
   mutate(value = value |> reorder(value) |> factor() |> as.numeric()) |> 
@@ -61,7 +63,6 @@ df.trecho <- sinistros |>
          sinistros_diff_km        = sinistros_diff * 1000 / comprimento,
          sinistros_diff_golden    = sinistros_moto_golden - sinistros,
          sinistros_diff_golden_km = sinistros_diff_golden * 1000 / comprimento)
-
 
 ifood <- read_csv("sala_segura/20-12-24/dado_disponivel.csv")
 
@@ -97,14 +98,14 @@ plotar.grafico <- function(df, titulo = NULL){
     geom_hline(yintercept = 0, linetype = "dashed") +
     geom_vline(xintercept = factor(0), alpha = .05, lwd = 3) +
     theme_minimal() +
-    labs(x = "Meses ao tratamento", y = "Efeito do tratamento",
+    labs(x = "Meses", y = "Efeito do tratamento",
          title = titulo) 
 }
 
 horizon <- 12
 
 
-############ GERAL ----
+############ TESTES NOVOS CONTROLES OSM ----
 
 fit1 <- bind_rows(
   df.trecho |> 
@@ -172,1043 +173,1351 @@ fit |>
 ggsave("output/did_het/golden_km_ifood.png", width = 10, height = 7.5)
 
 
-############ SEM JACU PESSEGO ----
-
-df.reg <- df.trecho |> 
-  filter(logradouro_limpo != "JACU PESSEGO")
-
-fit.alt <- bind_rows(
-  df.reg |>  
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + intersec_km + radar_proximo + amenidades_km) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) 
-fit.alt |> 
-  filter(abs(egt) <= 18) |> 
-  plotar.grafico(titulo = "Sinistros golden por km (sem Jacu Pessego)")
-ggsave("output/did_het/golden_km_sem_jacu-pessego.png", width = 10, height = 7.5)
-
-
 ############ BANDEIRANTES + 23 DE MAIO + JACU PESSEGO vs RESTO ----
 
 avenidas <- c("BANDEIRANTES", "BANDEIRANTES SUL", "JACU PESSEGO", "VINTE E TRES MAIO")
 
+
 ### Apenas ----
 df.reg <- df.trecho |> 
-  filter(logradouro_limpo %in% avenidas)
+  filter(logradouro_limpo %in% avenidas | data_implementacao == 0)
 
-bind_rows(
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Band + 23 + Jacu vs Resto/apenas_total.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Band + 23 + Jacu/apenas-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Band + 23 + Jacu/apenas-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Band + 23 + Jacu vs Resto/apenas_total_km.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Band + 23 + Jacu/apenas-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Band + 23 + Jacu/apenas-todos-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Band + 23 + Jacu vs Resto/apenas_golden.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Band + 23 + Jacu/apenas-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Band + 23 + Jacu/apenas-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Band + 23 + Jacu vs Resto/apenas_golden_km.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-### Menos ----
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Band + 23 + Jacu/apenas-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Band + 23 + Jacu/apenas-golden-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+### Exceto ----
+
 df.reg <- df.trecho |> 
   filter(!(logradouro_limpo %in% avenidas))
 
-bind_rows(
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Band + 23 + Jacu vs Resto/menos_total.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Band + 23 + Jacu/exceto-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Band + 23 + Jacu/exceto-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Band + 23 + Jacu vs Resto/menos_total_km.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Band + 23 + Jacu/exceto-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Band + 23 + Jacu/exceto-todos-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Band + 23 + Jacu vs Resto/menos_golden.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Band + 23 + Jacu/exceto-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Band + 23 + Jacu/exceto-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Band + 23 + Jacu vs Resto/menos_golden_km.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Band + 23 + Jacu/exceto-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Band + 23 + Jacu/exceto-golden-km.png", width = 10, height = 7.5, dpi = 600)
 
 
-### Apenas Tratado ----
+### Sem Jacu Pessego ----
+
 df.reg <- df.trecho |> 
-  filter((logradouro_limpo %in% avenidas) | (!(logradouro_limpo %in% avenidas) & data_implementacao == 0))
+  filter(logradouro_limpo != "JACU PESSEGO")
 
-bind_rows(
+
+fit <- bind_rows(
   df.reg |> 
-    fit.did(y = "sinistros", formula = ~ 1) |> 
+    fit.did(y = "sinistros_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Band + 23 + Jacu vs Resto/apenas_tratado_total.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Band + 23 + Jacu/exceto-jacu-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Band + 23 + Jacu/exceto-jacu-todos-km.png", width = 10, height = 7.5, dpi = 600)
 
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ 1, control_group = "notyettreated") |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + comprimento, control_group = "notyettreated") |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Band + 23 + Jacu vs Resto/apenas_tratado_total_km.pdf", width = 10, height = 7.5)
 
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Band + 23 + Jacu vs Resto/apenas_tratado_golden.pdf", width = 10, height = 7.5)
-
-bind_rows(
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Band + 23 + Jacu vs Resto/apenas_tratado_golden_km.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Band + 23 + Jacu/exceto-jacu-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Band + 23 + Jacu/exceto-jacu-golden-km.png", width = 10, height = 7.5, dpi = 600)
 
 
-############ AVENIDAS > 12m DE IMPLEMENTACAO vs < 12m DE IMPLEMENTACAO ----
-max_mes = interval(as_date(df.trecho$data |> min()), as_date(df.trecho$data |> max())) %/% months(1) + 1
+############ AVENIDAS POR MESES TRATADOS - 12 ----
+max_mes = interval(df.trecho$data |> min() |> as_date(), df.trecho$data |> max() |> as_date()) %/% months(1) + 1
 avenidas <- df.trecho |> 
   filter(data_implementacao < max_mes - 12,
          data_implementacao != 0) |> 
   distinct(logradouro_limpo) |> 
   pull(logradouro_limpo)
 
-### Apenas ----
-df.reg <- df.trecho |> 
-  filter(logradouro_limpo %in% avenidas)
 
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Tratados +12m vs -12m/apenas_total.pdf", width = 10, height = 7.5)
+### Mais que ----
 
-fit <- bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) 
-fit |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Tratados +12m vs -12m/apenas_total_km.pdf", width = 10, height = 7.5)
-
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Tratados +12m vs -12m/apenas_golden.pdf", width = 10, height = 7.5)
-
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Tratados +12m vs -12m/apenas_golden_km.pdf", width = 10, height = 7.5)
-
-
-### Menos ----
-df.reg <- df.trecho |> 
-  filter(!(logradouro_limpo %in% avenidas))
-
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Tratados +12m vs -12m/menos_total.pdf", width = 10, height = 7.5)
-
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Tratados +12m vs -12m/menos_total_km.pdf", width = 10, height = 7.5)
-
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Tratados +12m vs -12m/menos_golden.pdf", width = 10, height = 7.5)
-
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Tratados +12m vs -12m/menos_golden_km.pdf", width = 10, height = 7.5)
-
-
-### Apenas Tratado ----
 df.reg <- df.trecho |> 
   filter(logradouro_limpo %in% avenidas | data_implementacao == 0)
 
-bind_rows(
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Tratados +12m vs -12m/apenas_tratado_total.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Meses tratados/12-apenas-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/12-apenas-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
 
 fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) 
+    mutate(controle = "Sim" |> as_factor())) 
+
 fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Tratados +12m vs -12m/apenas_tratado_total_km.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Meses tratados/12-apenas-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/12-apenas-todos-km.png", width = 10, height = 7.5, dpi = 600)
 
-bind_rows(
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Tratados +12m vs -12m/apenas_tratado_golden.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Meses tratados/12-apenas-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/12-apenas-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
 
 fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) 
+    mutate(controle = "Sim" |> as_factor())) 
+
 fit |> 
-  filter(abs(egt) <= 18) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Tratados +12m vs -12m/apenas_tratado_golden_km.png", width = 10, height = 7.5)
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Meses tratados/12-apenas-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/12-apenas-golden-km.png", width = 10, height = 7.5, dpi = 600)
 
 
-############ <= 2 FAIXAS vs > 2 FAIXAS ----
+### Ate ----
 
-### Ate 2 faixas ----
+df.reg <- df.trecho |> 
+  filter(!(logradouro_limpo %in% avenidas))
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Meses tratados/12-exceto-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/12-exceto-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros_km", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Meses tratados/12-exceto-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/12-exceto-todos-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Meses tratados/12-exceto-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/12-exceto-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Meses tratados/12-exceto-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/12-exceto-golden-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+############ AVENIDAS POR MESES TRATADOS - 15 ----
+max_mes = interval(df.trecho$data |> min() |> as_date(), df.trecho$data |> max() |> as_date()) %/% months(1) + 1
+avenidas <- df.trecho |> 
+  filter(data_implementacao < max_mes - 15,
+         data_implementacao != 0) |> 
+  distinct(logradouro_limpo) |> 
+  pull(logradouro_limpo)
+
+
+### Mais que ----
+
+df.reg <- df.trecho |> 
+  filter(logradouro_limpo %in% avenidas | data_implementacao == 0)
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Meses tratados/15-apenas-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/15-apenas-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros_km", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Meses tratados/15-apenas-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/15-apenas-todos-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Meses tratados/15-apenas-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/15-apenas-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Meses tratados/15-apenas-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/15-apenas-golden-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+### Ate ----
+
+df.reg <- df.trecho |> 
+  filter(!(logradouro_limpo %in% avenidas))
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Meses tratados/15-exceto-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/15-exceto-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros_km", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Meses tratados/15-exceto-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/15-exceto-todos-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Meses tratados/15-exceto-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/15-exceto-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Meses tratados/15-exceto-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Meses tratados/15-exceto-golden-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+############ AVENIDAS POR NÚMERO DE FAIXAS - 2 ----
+
+### Ate ----
+
 df.reg <- df.trecho |> 
   mutate(faixas = as.integer(faixas)) |> 
   filter(faixas <= 2)
 
 df.reg |> filter(data == "2024-12-01") |> count(data_implementacao)
 
-bind_rows(
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Numero de faixas/ate_2_total.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Numero de faixas/2-ate-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/2-ate-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Numero de faixas/ate_2_total_km.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Numero de faixas/2-ate-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/2-ate-todos-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Numero de faixas/ate_2_golden.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Numero de faixas/2-ate-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/2-ate-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Numero de faixas/ate_2_golden_km.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Numero de faixas/2-ate-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/2-ate-golden-km.png", width = 10, height = 7.5, dpi = 600)
 
 
-### Ate 3 faixas ----
+### Mais que ----
+
+df.reg <- df.trecho |> 
+  mutate(faixas = as.integer(faixas)) |> 
+  filter(faixas > 2)
+
+df.reg |> filter(data == "2024-12-01") |> count(data_implementacao)
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Numero de faixas/2-maisQue-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/2-maisQue-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros_km", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Numero de faixas/2-maisQue-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/2-maisQue-todos-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Numero de faixas/2-maisQue-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/2-maisQue-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Não" |> as_factor()),
+  df.reg |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
+    preparar.grafico() |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Numero de faixas/2-maisQue-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/2-maisQue-golden-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+############ AVENIDAS POR NÚMERO DE FAIXAS - 3 ----
+
+### Ate ----
+
 df.reg <- df.trecho |> 
   mutate(faixas = as.integer(faixas)) |> 
   filter(faixas <= 3)
 
 df.reg |> filter(data == "2024-12-01") |> count(data_implementacao)
 
-bind_rows(
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Numero de faixas/ate_3_total.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Numero de faixas/3-ate-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/3-ate-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Numero de faixas/ate_3_total_km.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Numero de faixas/3-ate-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/3-ate-todos-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Numero de faixas/ate_3_golden.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Numero de faixas/3-ate-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/3-ate-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Numero de faixas/ate_3_golden_km.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Numero de faixas/3-ate-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/3-ate-golden-km.png", width = 10, height = 7.5, dpi = 600)
 
 
-### Mais que 2 faixas ----
-df.reg <- df.trecho |> 
-  mutate(faixas = as.integer(faixas)) |> 
-  filter(faixas > 2)
+### Mais que ----
 
-df.reg |> filter(data == "2024-10-01") |> count(data_implementacao)
-
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Numero de faixas/maisQue_2_total.pdf", width = 10, height = 7.5)
-
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Numero de faixas/maisQue_2_total_km.pdf", width = 10, height = 7.5)
-
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Numero de faixas/maisQue_2_golden.pdf", width = 10, height = 7.5)
-
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Numero de faixas/maisQue_2_golden_km.pdf", width = 10, height = 7.5)
-
-
-### Mais que 3 faixas ----
 df.reg <- df.trecho |> 
   mutate(faixas = as.integer(faixas)) |> 
   filter(faixas > 3)
 
 df.reg |> filter(data == "2024-12-01") |> count(data_implementacao)
 
-bind_rows(
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Numero de faixas/maisQue_3_total.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Numero de faixas/3-maisQue-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/3-maisQue-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
 
 fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE))
+    mutate(controle = "Sim" |> as_factor())) 
+
 fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Numero de faixas/maisQue_3_total_km.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Numero de faixas/3-maisQue-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/3-maisQue-todos-km.png", width = 10, height = 7.5, dpi = 600)
 
-bind_rows(
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Numero de faixas/maisQue_3_golden.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Numero de faixas/3-maisQue-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/3-maisQue-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
 
 fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE))
-fit |>
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Numero de faixas/maisQue_3_golden_km.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Numero de faixas/3-maisQue-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Numero de faixas/3-maisQue-golden-km.png", width = 10, height = 7.5, dpi = 600)
 
 
 ############ TIPO DE VIA ----
 
 ### Primary ----
+
 df.reg <- df.trecho |> 
   filter(tipo_via == "primary")
 
-df.reg |> filter(data == "2024-10-01") |> count(data_implementacao)
+df.reg |> filter(data == "2024-12-01") |> count(data_implementacao)
 
-bind_rows(
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros", formula = ~ faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros", formula = ~ faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Tipo de via/primary_total.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Tipo de via/primary-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Tipo de via/primary-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_km", formula = ~ faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Tipo de via/primary_total_km.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Tipo de via/primary-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Tipo de via/primary-todos-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Tipo de via/primary_golden.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Tipo de via/primary-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Tipo de via/primary-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Tipo de via/primary_golden_km.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Tipo de via/primary-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Tipo de via/primary-golden-km.png", width = 10, height = 7.5, dpi = 600)
+
 
 ### Secondary ----
-df.reg <- df.trecho |> 
-  filter(tipo_via == "secondary")
 
-df.reg |> filter(data == "2024-10-01") |> count(data_implementacao)
+# df.reg <- df.trecho |> 
+#   filter(tipo_via == "secondary")
+# 
+# df.reg |> filter(data == "2024-12-01") |> count(data_implementacao)
+# 
+# fit <- bind_rows(
+#   df.reg |> 
+#     fit.did(y = "sinistros", formula = ~ 1) |> 
+#     preparar.grafico() |> 
+#     mutate(controle = "Não" |> as_factor()),
+#   df.reg |> 
+#     fit.did(y = "sinistros", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
+#     preparar.grafico() |> 
+#     mutate(controle = "Sim" |> as_factor())) 
+# 
+# fit |> 
+#   filter(abs(egt) <= horizon) |> 
+#   plotar.grafico(titulo = "Todos os sinistros - total")
+# ggsave("output/did_het/trecho/Tipo de via/secondary-todos-total.pdf", width = 10, height = 7.5)
+# ggsave("output/did_het/trecho/Tipo de via/secondary-todos-total.png", width = 10, height = 7.5, dpi = 600)
+# 
+# 
+# fit <- bind_rows(
+#   df.reg |> 
+#     fit.did(y = "sinistros_km", formula = ~ 1) |> 
+#     preparar.grafico() |> 
+#     mutate(controle = "Não" |> as_factor()),
+#   df.reg |> 
+#     fit.did(y = "sinistros_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
+#     preparar.grafico() |> 
+#     mutate(controle = "Sim" |> as_factor())) 
+# 
+# fit |> 
+#   filter(abs(egt) <= horizon) |> 
+#   plotar.grafico(titulo = "Todos os sinistros - por km")
+# ggsave("output/did_het/trecho/Tipo de via/secondary-todos-km.pdf", width = 10, height = 7.5)
+# ggsave("output/did_het/trecho/Tipo de via/secondary-todos-km.png", width = 10, height = 7.5, dpi = 600)
+# 
+# 
+# fit <- bind_rows(
+#   df.reg |> 
+#     fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
+#     preparar.grafico() |> 
+#     mutate(controle = "Não" |> as_factor()),
+#   df.reg |> 
+#     fit.did(y = "sinistros_moto_golden", formula = ~ tipo_via + faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
+#     preparar.grafico() |> 
+#     mutate(controle = "Sim" |> as_factor())) 
+# 
+# fit |> 
+#   filter(abs(egt) <= horizon) |> 
+#   plotar.grafico(titulo = "Sinistros de moto golden - total")
+# ggsave("output/did_het/trecho/Tipo de via/secondary-golden-total.pdf", width = 10, height = 7.5)
+# ggsave("output/did_het/trecho/Tipo de via/secondary-golden-total.png", width = 10, height = 7.5, dpi = 600)
+# 
+# 
+# fit <- bind_rows(
+#   df.reg |> 
+#     fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
+#     preparar.grafico() |> 
+#     mutate(controle = "Não" |> as_factor()),
+#   df.reg |> 
+#     fit.did(y = "sinistros_moto_golden_km", formula = ~ tipo_via + faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
+#     preparar.grafico() |> 
+#     mutate(controle = "Sim" |> as_factor())) 
+# 
+# fit |> 
+#   filter(abs(egt) <= horizon) |> 
+#   plotar.grafico(titulo = "Sinistros de moto golden - por km")
+# ggsave("output/did_het/trecho/Tipo de via/secondary-golden-km.pdf", width = 10, height = 7.5)
+# ggsave("output/did_het/trecho/Tipo de via/secondary-golden-km.png", width = 10, height = 7.5, dpi = 600)
 
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros", formula = ~ faixas + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Tipo de via/secondary_total.pdf", width = 10, height = 7.5)
-
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ faixas + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Tipo de via/secondary_total_km.pdf", width = 10, height = 7.5)
-
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ faixas + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Tipo de via/secondary_golden.pdf", width = 10, height = 7.5)
-
-bind_rows(
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
-    preparar.grafico() |> 
-    mutate(controle = FALSE),
-  df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ faixas + limite_velocidade + comprimento) |> 
-    preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Tipo de via/secondary_golden_km.pdf", width = 10, height = 7.5)
 
 ### Trunk ----
+
 df.reg <- df.trecho |> 
   filter(tipo_via == "trunk")
 
 df.reg |> filter(data == "2024-12-01") |> count(data_implementacao)
 
-bind_rows(
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros", formula = ~ faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros", formula = ~ faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Tipo de via/trunk_total.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Tipo de via/trunk-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Tipo de via/trunk-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
 
 fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_km", formula = ~ faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) 
+    mutate(controle = "Sim" |> as_factor())) 
+
 fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Tipo de via/trunk_total_km.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Tipo de via/trunk-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Tipo de via/trunk-todos-km.png", width = 10, height = 7.5, dpi = 600)
 
-bind_rows(
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Tipo de via/trunk_golden.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Tipo de via/trunk-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Tipo de via/trunk-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
 
 fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ faixas + limite_velocidade + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) 
+    mutate(controle = "Sim" |> as_factor())) 
+
 fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Tipo de via/trunk_golden_km.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Tipo de via/trunk-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Tipo de via/trunk-golden-km.png", width = 10, height = 7.5, dpi = 600)
 
 
-############ VELOCIDADE MAXIMA ----
+############ VELOCIDADE MAXIMA - 40km/h ----
 
-### <= 40km/h ----
+### Ate ----
+
 df.reg <- df.trecho |> 
   mutate(limite_velocidade = as.integer(limite_velocidade)) |> 
   filter(limite_velocidade <= 40)
 
-df.reg |> filter(data == "2024-10-01") |> count(data_implementacao)
+df.reg |> filter(data == "2024-12-01") |> count(data_implementacao)
 
-bind_rows(
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros", formula = ~ faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Velocidade maxima/ate_40_total.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Velocidade maxima/40-ate-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/40-ate-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros_km", formula = ~ faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Velocidade maxima/ate_40_total_km.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Velocidade maxima/40-ate-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/40-ate-todos-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Velocidade maxima/ate_40_golden.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Velocidade maxima/40-ate-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/40-ate-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Velocidade maxima/ate_40_golden_km.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Velocidade maxima/40-ate-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/40-ate-golden-km.png", width = 10, height = 7.5, dpi = 600)
 
 
-### > 40km/h ----
+### Mais que ----
+
 df.reg <- df.trecho |> 
   mutate(limite_velocidade = as.integer(limite_velocidade)) |> 
   filter(limite_velocidade > 40)
 
-df.reg |> filter(data == "2024-10-01") |> count(data_implementacao)
+df.reg |> filter(data == "2024-12-01") |> count(data_implementacao)
 
-bind_rows(
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros", formula = ~ faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Velocidade maxima/maisQue_40_total.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Velocidade maxima/40-maisQue-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/40-maisQue-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros_km", formula = ~ faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Velocidade maxima/maisQue_40_total_km.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Velocidade maxima/40-maisQue-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/40-maisQue-todos-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Velocidade maxima/maisQue_40_golden.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Velocidade maxima/40-maisQue-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/40-maisQue-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Velocidade maxima/maisQue_40_golden_km.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Velocidade maxima/40-maisQue-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/40-maisQue-golden-km.png", width = 10, height = 7.5, dpi = 600)
 
 
-### <= 50km/h ----
+############ VELOCIDADE MAXIMA - 50km/h ----
+
+### Ate ----
+
 df.reg <- df.trecho |> 
   mutate(limite_velocidade = as.integer(limite_velocidade)) |> 
   filter(limite_velocidade <= 50)
 
-df.reg |> filter(data == "2024-10-01") |> count(data_implementacao)
+df.reg |> filter(data == "2024-12-01") |> count(data_implementacao)
 
-bind_rows(
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros", formula = ~ faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Velocidade maxima/ate_50_total.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Velocidade maxima/50-ate-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/50-ate-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros_km", formula = ~ faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Velocidade maxima/ate_50_total_km.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Velocidade maxima/50-ate-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/50-ate-todos-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Velocidade maxima/ate_50_golden.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Velocidade maxima/50-ate-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/50-ate-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Velocidade maxima/ate_50_golden_km.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Velocidade maxima/50-ate-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/50-ate-golden-km.png", width = 10, height = 7.5, dpi = 600)
 
 
-### > 50km/h ----
+### Mais que ----
+
 df.reg <- df.trecho |> 
   mutate(limite_velocidade = as.integer(limite_velocidade)) |> 
   filter(limite_velocidade > 50)
 
-df.reg |> filter(data == "2024-10-01") |> count(data_implementacao)
+df.reg |> filter(data == "2024-12-01") |> count(data_implementacao)
 
-bind_rows(
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros", formula = ~ faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais")
-ggsave("output/did_het/Velocidade maxima/maisQue_50_total.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - total")
+ggsave("output/did_het/trecho/Velocidade maxima/50-maisQue-todos-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/50-maisQue-todos-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_km", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros_km", formula = ~ faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros totais por km")
-ggsave("output/did_het/Velocidade maxima/maisQue_50_total_km.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Todos os sinistros - por km")
+ggsave("output/did_het/trecho/Velocidade maxima/50-maisQue-todos-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/50-maisQue-todos-km.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden", formula = ~ faixas + limite_velocidade + comprimento + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
-  filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden")
-ggsave("output/did_het/Velocidade maxima/maisQue_50_golden.pdf", width = 10, height = 7.5)
+    mutate(controle = "Sim" |> as_factor())) 
 
-bind_rows(
+fit |> 
+  filter(abs(egt) <= horizon) |> 
+  plotar.grafico(titulo = "Sinistros de moto golden - total")
+ggsave("output/did_het/trecho/Velocidade maxima/50-maisQue-golden-total.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/50-maisQue-golden-total.png", width = 10, height = 7.5, dpi = 600)
+
+
+fit <- bind_rows(
   df.reg |> 
     fit.did(y = "sinistros_moto_golden_km", formula = ~ 1) |> 
     preparar.grafico() |> 
-    mutate(controle = FALSE),
+    mutate(controle = "Não" |> as_factor()),
   df.reg |> 
-    fit.did(y = "sinistros_moto_golden_km", formula = ~ faixas + tipo_via + comprimento) |> 
+    fit.did(y = "sinistros_moto_golden_km", formula = ~ faixas + limite_velocidade + radar_proximo + amenidades_km + intersec_km) |> 
     preparar.grafico() |> 
-    mutate(controle = TRUE)) |> 
+    mutate(controle = "Sim" |> as_factor())) 
+
+fit |> 
   filter(abs(egt) <= horizon) |> 
-  plotar.grafico(titulo = "Sinistros golden por km")
-ggsave("output/did_het/Velocidade maxima/maisQue_50_golden_km.pdf", width = 10, height = 7.5)
+  plotar.grafico(titulo = "Sinistros de moto golden - por km")
+ggsave("output/did_het/trecho/Velocidade maxima/50-maisQue-golden-km.pdf", width = 10, height = 7.5)
+ggsave("output/did_het/trecho/Velocidade maxima/50-maisQue-golden-km.png", width = 10, height = 7.5, dpi = 600)
 
