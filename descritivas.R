@@ -53,8 +53,8 @@ osm.token |>
      scale_x_date(limits = c(make_date(year = 2021, month = 1), max(df$data))) +
      labs(y = NULL, x = NULL) +
      theme_minimal())(df = _)
-
 ggsave("output/obitos.pdf", width = 11, height = 7)
+ggsave("output/obitos.png", width = 11, height = 7, dpi = 600)
 
 
 osm.token |> 
@@ -92,8 +92,9 @@ osm.token |>
      theme_minimal())(df = _)
 
 ggsave("output/obitos_ordenado.pdf", width = 11, height = 7)
+ggsave("output/obitos_ordenado.png", width = 11, height = 6, dpi = 400)
 
-# PANFLETO CET
+# PANFLETO CET ----
 
 sinistros |> 
   filter(tipo == "SINISTRO FATAL", year(data) > 2015) |> 
@@ -115,10 +116,11 @@ sinistros |>
   geom_text(aes(y = total, label = total), vjust = -0.5) +
   scale_fill_manual(values = c(rgb(.2,.5,.8), rgb(.2,.5,.5), rgb(.05,.1,.3))) + 
   theme_minimal() +
-  labs(x = NULL, fill = "Local do sinistro", y = "Óbitos em sinistros fatais")
-
+  labs(x = NULL, fill = "Local do sinistro", y = "Óbitos",
+       title = "Óbitos totais por tipo de via")
 ggsave("output/comparacao_panfleto/obitos_tempo.pdf", width = 8, height = 5)
 
+
 sinistros |> 
   filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
   left_join(match, by = join_by(id_sinistro)) |> 
@@ -139,9 +141,40 @@ sinistros |>
   geom_text(aes(y = total, label = total), vjust = -0.5) +
   scale_fill_manual(values = c(rgb(.2,.5,.8), rgb(.2,.5,.5), rgb(.05,.1,.3))) + 
   theme_minimal() +
-  labs(x = NULL, fill = "Local do sinistro", y = "Óbitos em sinistros fatais envolvendo motociclistas")
+  labs(x = NULL, fill = "Local do sinistro", y = "Óbitos",
+       title = "Óbitos em sinistros com moto por tipo de via")
+ggsave("output/comparacao_panfleto/obitos_tempo_moto.pdf", width = 8, height = 5)
 
-ggsave("output/comparacao_panfleto/obitos_moto_tempo.pdf", width = 8, height = 5)
+
+sinistros |> 
+  filter(tipo == "SINISTRO FATAL", year(data) > 2015) |> 
+  left_join(match, by = join_by(id_sinistro)) |> 
+  group_by(ano = year(data)) |> 
+  summarize(mortes = sum(quantidade_envolvidos)) |> 
+  ggplot(aes(x = factor(ano))) +
+  geom_col(aes(y = mortes), fill = rgb(.05,.1,.3)) +
+  geom_text(aes(y = mortes, label = mortes), vjust = -0.5) +
+  theme_minimal() +
+  labs(x = NULL, y = "Óbitos",
+       title = "Óbitos totais - todas as vias")
+ggsave("output/comparacao_panfleto/obitos_tempo_trecho_todos.pdf", width = 8, height = 5)
+ggsave("output/comparacao_panfleto/obitos_tempo_trecho_todos.png", width = 8, height = 7, dpi = 400)
+
+
+sinistros |> 
+  filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
+  left_join(match, by = join_by(id_sinistro)) |> 
+  group_by(ano = year(data)) |> 
+  summarize(mortes = sum(quantidade_envolvidos)) |> 
+  ggplot(aes(x = factor(ano))) +
+  geom_col(aes(y = mortes), fill = rgb(.05,.1,.3)) +
+  geom_text(aes(y = mortes, label = mortes), vjust = -0.5) +
+  theme_minimal() +
+  labs(x = NULL, y = "Óbitos",
+       title = "Óbitos em sinistros com moto - todas as vias")
+ggsave("output/comparacao_panfleto/obitos_tempo_trecho_todos_moto.pdf", width = 8, height = 5)
+ggsave("output/comparacao_panfleto/obitos_tempo_trecho_todos_moto.png", width = 8, height = 7, dpi = 400)
+
 
 sinistros |> 
   filter(tipo == "SINISTRO FATAL", year(data) > 2015) |> 
@@ -153,9 +186,11 @@ sinistros |>
   geom_col(aes(y = mortes), fill = rgb(.05,.1,.3)) +
   geom_text(aes(y = mortes, label = mortes), vjust = -0.5) +
   theme_minimal() +
-  labs(x = NULL, fill = "Local do sinistro", y = "Óbitos em sinistros fatais")
+  labs(x = NULL, y = "Óbitos",
+       title = "Óbitos totais - trechos com Faixa Azul")
+ggsave("output/comparacao_panfleto/obitos_tempo_trecho_faixa_azul.pdf", width = 8, height = 5)
+ggsave("output/comparacao_panfleto/obitos_tempo_trecho_faixa_azul.png", width = 8, height = 7, dpi = 400)
 
-ggsave("output/comparacao_panfleto/obitos_tempo_faixa_azul.pdf", width = 8, height = 5)
 
 sinistros |> 
   filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
@@ -167,12 +202,57 @@ sinistros |>
   geom_col(aes(y = mortes), fill = rgb(.05,.1,.3)) +
   geom_text(aes(y = mortes, label = mortes), vjust = -0.5) +
   theme_minimal() +
-  labs(x = NULL, fill = "Local do sinistro", y = "Óbitos em sinistros fatais envolvendo motociclistas")
+  labs(x = NULL, y = "Óbitos",
+       title = "Óbitos em sinistros com moto - trechos que receberam Faixa Azul")
+ggsave("output/comparacao_panfleto/obitos_tempo_trecho_faixa_azul_moto.pdf", width = 8, height = 5)
+ggsave("output/comparacao_panfleto/obitos_tempo_trecho_faixa_azul_moto.png", width = 8, height = 7, dpi = 400)
 
-ggsave("output/comparacao_panfleto/obitos_moto_tempo_faixa_azul.pdf", width = 8, height = 5)
+
+sinistros |> 
+  filter(tipo == "SINISTRO FATAL", year(data) > 2015) |> 
+  left_join(match, by = join_by(id_sinistro)) |>
+  left_join(faixa_azul |> distinct()) |> 
+  group_by(logradouro.y) |>
+  mutate(tratado = any(!is.na(data_implementacao))) |> 
+  filter(tratado) |> 
+  ungroup() |> 
+  group_by(ano = year(data)) |> 
+  summarize(obitos = sum(quantidade_envolvidos)) |> 
+  ggplot(aes(x = factor(ano))) +
+  geom_col(aes(y = obitos), fill = rgb(.05,.1,.3)) +
+  geom_text(aes(y = obitos, label = obitos), vjust = -0.5) +
+  labs(x = NULL, y = "Óbitos",
+       title = "Óbitos totais - vias que receberam Faixa Azul") +
+  ylim(c(0, 80)) +
+  theme_minimal()
+ggsave("output/comparacao_panfleto/obitos_tempo_via_faixa_azul.pdf", width = 8, height = 5)
+ggsave("output/comparacao_panfleto/obitos_tempo_via_faixa_azul.png", width = 8, height = 7, dpi = 400)
+
+
+sinistros |> 
+  filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
+  left_join(match, by = join_by(id_sinistro)) |>
+  left_join(faixa_azul |> distinct()) |> 
+  group_by(logradouro.y) |>
+  mutate(tratado = any(!is.na(data_implementacao))) |> 
+  filter(tratado) |> 
+  ungroup() |> 
+  group_by(ano = year(data)) |> 
+  summarize(obitos = sum(quantidade_envolvidos)) |> 
+  ggplot(aes(x = factor(ano))) +
+  geom_col(aes(y = obitos), fill = rgb(.05,.1,.3)) +
+  geom_text(aes(y = obitos, label = obitos), vjust = -0.5) +
+  labs(x = NULL, y = "Óbitos",
+       title = "Óbitos em sinistros com moto - vias que receberam Faixa Azul") +
+  ylim(c(0, 50)) +
+  theme_minimal()
+ggsave("output/comparacao_panfleto/obitos_tempo_via_faixa_azul_moto.pdf", width = 8, height = 5)
+ggsave("output/comparacao_panfleto/obitos_tempo_via_faixa_azul_moto.png", width = 8, height = 7, dpi = 400)
+
+
+# TAMANHO DA FROTA ----
 
 frota <- read_csv("dados_tratados/frota_sp.csv")
-
 
 left_join(
   sinistros |> 
@@ -185,18 +265,17 @@ left_join(
     summarize(motocicletas = sum(quantidade))) |> 
   pivot_longer(mortes:motocicletas) |> 
   group_by(name) |> 
-  mutate(num_indice = (value / first(value))-1) |> 
+  mutate(num_indice = (value / first(value)) * 100) |> 
   ggplot(aes(x = factor(ano), y = num_indice)) +
   geom_line(aes(group = name, colour = name)) +
   geom_point(colour = "grey50") +
   theme_minimal() +
-  scale_y_continuous(labels = scales::percent) +
+  # scale_y_continuous(labels = scales::percent) +
   scale_colour_manual(NULL, values = c(rgb(.3, .05, .1), rgb(.9, .8, .5)), 
                       labels = c("Óbitos em sinistros fatais que envolveram motocicleta", "Frota total de motocicletas e motonetas")) +
   theme(legend.position = "top",) +
-  labs(y = "Variação percentual (referência: 2016)", x = NULL) +
+  labs(y = "Variação (2016 = 100)", x = NULL) +
   guides(colour=guide_legend(nrow=2,byrow=TRUE))
-
 
 ggsave("output/comparacao_panfleto/frota_vs_mortes.pdf", width = 6, height = 5)
 
@@ -225,7 +304,6 @@ ggsave("output/horarios-sinistros.pdf", width = 10, height =4)
 
 # TAMANHO VIAS ----
 
-
 osm.token |> 
   right_join(osm.token |> 
                left_join(faixa_azul) |> 
@@ -253,8 +331,8 @@ osm.token |>
   scale_fill_manual("", values = c("Trecho comum" = "#A6A6A6", "Trecho de faixa azul" = "#4472C4")) +
   theme_minimal() +
   theme(legend.position = "inside", legend.position.inside = c(.7,.2))
-
 ggsave("output/tamanho-trechos.pdf", width = 7, height = 6)
+ggsave("output/tamanho-trechos.png", width = 9, height = 5, dpi = 400)
 
 
 # RADIAL ANO MES ----
@@ -274,7 +352,56 @@ sinistros |>
 ggsave("output/sinistros-meses.pdf", width = 8, height = 8)
 
 
+# TRECHOS/LOGRADOUROS TRATADOS POR PERIODO ----
 
+trechos <- st_read("banco_dados/trechos.gpkg") |> 
+  st_drop_geometry() |> 
+  as_tibble() |> 
+  filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
+  left_join(read_csv("dados_tratados/osm-token.csv", col_types = list(id_osm = "c")) |> 
+              select(id_osm, logradouro_limpo) |> 
+              mutate(len = str_length(logradouro_limpo)) |> 
+              group_by(id_osm) |> 
+              arrange(-len) |> 
+              summarize(logradouro_limpo = nth(logradouro_limpo, 1), .groups = "drop")) |> 
+  mutate(id_osm = as.numeric(id_osm)) |> 
+  select(id_osm, logradouro, logradouro_limpo, tipo_via, faixas, limite_velocidade, mao_unica, superficie, comprimento)
+
+faixa_azul |> 
+  distinct() |> 
+  group_by(data_implementacao) |> 
+  summarize(trechos = n()) |> 
+  complete(data_implementacao = seq(min(data_implementacao), max(data_implementacao), by = "1 month"), fill = list(trechos = 0)) |> 
+  mutate(trechos_total = cumsum(trechos),
+         trechos_label = if_else(trechos == 0, "", as.character(trechos_total))) |> 
+  ggplot() +
+  geom_col(aes(data_implementacao, trechos_total), fill = rgb(.05,.1,.3)) +
+  geom_text(aes(data_implementacao, trechos_total, label = trechos_label), vjust = -0.5, hjust = 0.8) +
+  labs(x = NULL, y = "Número de trechos",
+       title = "Trechos implementados por período") +
+  theme_minimal()
+ggsave("output/trechos_implementados.pdf", width = 10, height = 7.5)
+ggsave("output/trechos_implementados.png", width = 7, height = 6, dpi = 400)
+
+trechos |>
+  left_join(faixa_azul) |> 
+  group_by(logradouro_limpo, data_implementacao) |>
+  summarize(trechos = n()) |> 
+  filter(!is.na(data_implementacao)) |> 
+  group_by(data_implementacao) |> 
+  summarize(logradouros = n()) |> 
+  complete(data_implementacao = seq(min(data_implementacao), max(data_implementacao), by = "1 month"), fill = list(logradouros = 0)) |> 
+  mutate(logradouros_total = cumsum(logradouros),
+         logradouros_label = if_else(logradouros == 0, "", as.character(logradouros_total))) |> 
+  ggplot() +
+  geom_col(aes(data_implementacao, logradouros_total), fill = rgb(.05,.1,.3)) +
+  geom_text(aes(data_implementacao, logradouros_total, label = logradouros_label), vjust = -0.5, hjust = 0.8) +
+  labs(x = NULL, y = "Número de vias",
+       title = "Vias tratadas por período") +
+  theme_minimal()
+ggsave("output/logradouros_implementados.pdf", width = 10, height = 7.5)
+ggsave("output/logradouros_implementados.png", width = 7, height = 6, dpi = 400)
+  
 
 
 
