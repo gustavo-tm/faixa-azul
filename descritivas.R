@@ -460,18 +460,11 @@ ggsave("output/qualidade_match.pdf", width = 7, height = 4)
 
 rm(tabela)
 
-# MAPA SINISTROS
+# MAPA SINISTROS ----
 
 distrito <- st_read("dados_tratados/distrito/SIRGAS_SHP_distrito.shp") |> 
   st_set_crs("epsg:31983") |> 
   summarize(geometry = st_union(geometry) |> st_simplify(dTolerance = 100))
-
-trechos.mapa <- trechos |> 
-  filter(!tipo_via %in% c("service", "unclassified")) |> 
-  st_transform("epsg:31983") |> 
-  st_intersection(distrito)
-
-
 
 gg <- sinistros |> 
   filter(tipo != "NOTIFICACAO", !is.na(longitude), !is.na(latitude)) |> 
@@ -482,7 +475,10 @@ gg <- sinistros |>
   ggplot() +
   geom_sf(data = distrito,
           aes(geometry = geometry), colour = NA, fill = "grey98") +
-  geom_sf(data = trechos.mapa |> 
+  geom_sf(data = trechos |> 
+            filter(!tipo_via %in% c("service", "unclassified")) |> 
+            st_transform("epsg:31983") |> 
+            st_intersection(distrito) |> 
             filter(tipo_via %in% c("trunk", "primary", "secondary")),
           aes(geometry = st_simplify(geom, dTolerance = 10)), colour = "#3c3744", lwd = .3, alpha = .7) +
   geom_hex(aes(x = X, y = Y), alpha = .7, bins = 40) +
@@ -494,4 +490,88 @@ gg <- sinistros |>
 ggsave("output/mapa_sinistros.pdf", gg, width = 10, height = 15)
 
 
+# COMPLETUDE DADOS IFOOD ----
 
+dado_disponivel <- read_csv("sala_segura/20-12-24/dado_disponivel.csv", col_types = c("id_osm" = "c"))
+
+tabela <- trechos |> 
+  as_tibble() |> 
+  filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
+  select(id_osm, comprimento) |> 
+  left_join(faixa_azul) |> 
+  mutate(faixa_azul = !is.na(data_implementacao)) |> 
+  select(-data_implementacao)
+
+tabela |> 
+  left_join(dado_disponivel |> 
+              group_by(id_osm) |> 
+              summarize(meses_disponiveis = sum(dado))) |> 
+  mutate(meses_disponiveis = replace_na(meses_disponiveis, 0)) |> 
+  group_by(meses_disponiveis) |> 
+  summarize(n = n()) |> 
+  arrange(-meses_disponiveis) |> 
+  mutate(percentual = ((n) / sum(n)) |> round(3) |> scales::percent()) |> 
+  ggplot(aes(y = factor(meses_disponiveis), x = n)) +
+  geom_col() +
+  geom_text(aes(label = percentual), nudge_x = 1000) +
+  theme_minimal() +
+  labs(x = "Número de trechos", y = "Número de meses em que há dados disponíveis")
+
+ggsave("output/ifood/completude_ifood.pdf", width = 5, height = 5)
+
+
+tabela |> 
+  left_join(dado_disponivel |> 
+              group_by(id_osm) |> 
+              summarize(meses_disponiveis = sum(dado))) |> 
+  mutate(meses_disponiveis = replace_na(meses_disponiveis, 0)) |> 
+  group_by(meses_disponiveis) |> 
+  summarize(n = sum(comprimento)) |> 
+  arrange(-meses_disponiveis) |> 
+  mutate(percentual = ((n) / sum(n)) |> round(3) |> scales::percent()) |> 
+  ggplot(aes(y = factor(meses_disponiveis), x = n)) +
+  geom_col() +
+  geom_text(aes(label = percentual), nudge_x = 150000) +
+  theme_minimal() +
+  scale_x_continuous(labels = scales::number) +
+  labs(x = "Comprimento agregado de trechos (metros)", y = "Número de meses em que há dados disponíveis")
+
+ggsave("output/ifood/completude_ifood_comprimento.pdf", width = 5, height = 5)
+
+
+tabela |> 
+  left_join(dado_disponivel |> 
+              group_by(id_osm) |> 
+              summarize(meses_disponiveis = sum(dado))) |> 
+  mutate(meses_disponiveis = replace_na(meses_disponiveis, 0)) |> 
+  filter(faixa_azul == TRUE) |> 
+  group_by(meses_disponiveis) |> 
+  summarize(n = n()) |> 
+  arrange(-meses_disponiveis) |> 
+  mutate(percentual = ((n) / sum(n)) |> round(3) |> scales::percent()) |> 
+  ggplot(aes(y = factor(meses_disponiveis), x = n)) +
+  geom_col(fill = "darkblue") +
+  geom_text(aes(label = percentual), nudge_x = 25) +
+  theme_minimal() +
+  labs(x = "Número de trechos de faixa azul", y = "Número de meses em que há dados disponíveis")
+
+ggsave("output/ifood/completude_ifood_faixa_azul.pdf", width = 5, height = 5)
+
+tabela |> 
+  left_join(dado_disponivel |> 
+              group_by(id_osm) |> 
+              summarize(meses_disponiveis = sum(dado))) |> 
+  mutate(meses_disponiveis = replace_na(meses_disponiveis, 0)) |> 
+  filter(faixa_azul == TRUE) |> 
+  group_by(meses_disponiveis) |> 
+  summarize(n = sum(comprimento)) |> 
+  arrange(-meses_disponiveis) |> 
+  mutate(percentual = ((n) / sum(n)) |> round(3) |> scales::percent()) |> 
+  ggplot(aes(y = factor(meses_disponiveis), x = n)) +
+  geom_col(fill = "darkblue") +
+  geom_text(aes(label = percentual), nudge_x = 7000) +
+  theme_minimal() +
+  scale_x_continuous(labels = scales::number) +
+  labs(x = "Comprimento agregado de trechos de faixa azul (metros)", y = "Número de meses em que há dados disponíveis")
+
+ggsave("output/ifood/completude_ifood_faixa_azul_comprimento.pdf", width = 5, height = 5)
