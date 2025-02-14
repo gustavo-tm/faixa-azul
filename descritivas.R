@@ -403,9 +403,59 @@ ggsave("output/logradouros_implementados.pdf", width = 10, height = 7.5)
 ggsave("output/logradouros_implementados.png", width = 7, height = 6, dpi = 400)
   
 
+# QUALIDADE DO MATCH ----
 
+tabela <- sinistros |> 
+  filter(tipo != "NOTIFICACAO", year(data) > 2018) |> 
+  select(id_sinistro, data, logradouro, numero, latitude, longitude, tipo) |> 
+  mutate(numero_zero = numero == 0,
+         across(c(logradouro:longitude), ~ is.na(.x) | .x == "NAO DISPONIVEL"),
+         apresenta_lognum = logradouro == FALSE & numero == FALSE,
+         apresenta_latlong = latitude == FALSE & longitude == FALSE,
+         completude = case_when(apresenta_latlong & apresenta_lognum & !numero_zero ~ "Completo",
+                                apresenta_latlong & apresenta_lognum & numero_zero ~ "Completo, mas número zero",
+                                apresenta_latlong & !apresenta_lognum ~ "Apenas latitude e longitude",
+                                !apresenta_latlong & apresenta_lognum ~ "Apenas logradouro e número",
+                                !apresenta_latlong & !apresenta_lognum & logradouro == FALSE ~ "Apenas logradouro",
+                                !apresenta_latlong & !apresenta_lognum & numero == FALSE & numero_zero ~ "Apenas número zero",
+                                !apresenta_latlong & !apresenta_lognum & numero == FALSE & !numero_zero ~ "Apenas número",
+                                .default = "Nenhuma informação") |> 
+           factor(levels = c("Completo", "Completo, mas número zero", "Apenas logradouro e número", "Apenas número zero") |> rev())) |>
+  select(id_sinistro, data, completude, tipo) |> 
+  left_join(match) |> 
+  mutate(qualidade_match = case_when(similaridade == 1 & distancia_geografica < 100 & match_tipo & match_titulo ~ "Perfeito",
+                                     similaridade > .9 & distancia_geografica < 200 & match_tipo & match_titulo ~ "Excelente",
+                                     similaridade > .8 & distancia_geografica < 300 & (match_tipo | match_titulo) ~ "Bom",
+                                     is.na(id_osm) ~ "Não encontrou match",
+                                     .default = "Ruim") |> 
+           factor(levels = c("Perfeito", "Excelente", "Bom", "Ruim", "Não encontrou match") |> rev()))
 
+tabela |> 
+  group_by(completude) |> 
+  summarize(n = n()) |> 
+  mutate(percent = n / sum(n)) |> 
+  ggplot(aes(y = completude)) +
+  geom_col(aes(x = n)) +
+  geom_text(aes(x = n, label = percent |> round(3) |> scales::percent()), nudge_x = 10000) +
+  scale_x_continuous(labels = scales::number) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(x = "Quantidade de sinistros", y = "Qualidade da informação na base")
 
+ggsave("output/qualidade_georref_infosiga.pdf", width = 7, height = 4)
 
+tabela |> 
+  group_by(qualidade_match) |> 
+  summarize(n = n()) |> 
+  mutate(percent = n / sum(n)) |> 
+  ggplot(aes(y = qualidade_match)) +
+  geom_col(aes(x = n)) +
+  geom_text(aes(x = n, label = percent |> round(3) |> scales::percent()), nudge_x = 10000) +
+  scale_x_continuous(labels = scales::number) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(x = "Quantidade de sinistros", y = "Qualidade do match")
 
+ggsave("output/qualidade_match.pdf", width = 7, height = 4)
 
+rm(tabela)
