@@ -459,3 +459,39 @@ tabela |>
 ggsave("output/qualidade_match.pdf", width = 7, height = 4)
 
 rm(tabela)
+
+# MAPA SINISTROS
+
+distrito <- st_read("dados_tratados/distrito/SIRGAS_SHP_distrito.shp") |> 
+  st_set_crs("epsg:31983") |> 
+  summarize(geometry = st_union(geometry) |> st_simplify(dTolerance = 100))
+
+trechos.mapa <- trechos |> 
+  filter(!tipo_via %in% c("service", "unclassified")) |> 
+  st_transform("epsg:31983") |> 
+  st_intersection(distrito)
+
+
+
+gg <- sinistros |> 
+  filter(tipo != "NOTIFICACAO", !is.na(longitude), !is.na(latitude)) |> 
+  st_as_sf(coords = c("longitude", "latitude"), crs = "EPSG:4326") |> 
+  st_transform(crs = "epsg:31983") |>
+  st_intersection(distrito) |>
+  st_coordinates() |> 
+  ggplot() +
+  geom_sf(data = distrito,
+          aes(geometry = geometry), colour = NA, fill = "grey98") +
+  geom_sf(data = trechos.mapa |> 
+            filter(tipo_via %in% c("trunk", "primary", "secondary")),
+          aes(geometry = st_simplify(geom, dTolerance = 10)), colour = "#3c3744", lwd = .3, alpha = .7) +
+  geom_hex(aes(x = X, y = Y), alpha = .7, bins = 40) +
+  geom_sf(data = distrito,
+          aes(geometry = geometry), colour = "grey25", fill = NA, alpha = .7) +
+  scale_fill_gradient("Número de sinistros", low = "grey98", high = "darkred") +
+  theme_void()
+  
+ggsave("output/mapa_sinistros.pdf", gg, width = 10, height = 15)
+
+
+
