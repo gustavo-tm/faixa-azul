@@ -13,7 +13,8 @@ calcular_radares <- function(trechos){
     select(id_osm_radar = osm_id,
            limite_velocidade = maxspeed,
            limite_velocidade_pesados = "maxspeed:hgv",
-           geometry)
+           geometry) |> 
+    st_set_geometry("geometry")
   
   # st_write(radares, "dados_tratados/radares.gpkg")
   # radares <- read_sf("dados_tratados/radares.gpkg")
@@ -27,7 +28,8 @@ calcular_radares <- function(trechos){
     distinct(id_osm) |> 
     mutate(radar_proximo = TRUE) |> 
     right_join(trechos |> st_drop_geometry() |> select(id_osm)) |> 
-    mutate(radar_proximo = replace_na(radar_proximo, 0))
+    mutate(radar_proximo = replace_na(radar_proximo, 0)) |> 
+    select(id_osm, radar_proximo)
   
   return(radar_proximo)
 }
@@ -45,7 +47,7 @@ calcular_interseccao <- function(trechos, osm_token){
     select(id_osm, elevado) |> 
     
     #Join geográfico da base de vias com ela mesma
-    left_join(osm.token) |> 
+    left_join(osm_token) |> 
     (\(df) st_join(df, df))() |> 
     st_drop_geometry() |> 
     
@@ -57,7 +59,9 @@ calcular_interseccao <- function(trechos, osm_token){
     summarize(intersec = n()) |> 
     select(id_osm, intersec) |>  
     right_join(trechos |> filter(tipo_via != "service") |> select(id_osm)) |> 
-    mutate(intersec = replace_na(intersec, 0))
+    mutate(intersec = replace_na(intersec, 0)) |> 
+    st_drop_geometry() |> 
+    select(id_osm, intersec)
   
   return(intersec)
 }
@@ -68,7 +72,6 @@ calcular_amenidades <- function(trechos){
     opq(bbox = _) |> 
     add_osm_feature(key = 'amenity')  |> 
     osmdata_sf() |> 
-    st_crop() |> 
   (\(amenidades) bind_rows(
     as_tibble(amenidades$osm_points) |> filter(!is.na(amenity)),
     as_tibble(amenidades$osm_polygons) |> filter(!is.na(amenity)),
@@ -109,7 +112,8 @@ calcular_amenidades <- function(trechos){
                  st_drop_geometry() |> 
                  filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
                  select(id_osm)) |> 
-    mutate(amenidades = replace_na(amenidades, 0))
+    mutate(amenidades = replace_na(amenidades, 0)) |>
+    select(id_osm, amenidades)
   
   return(amenidade_proxima)
 }
@@ -119,9 +123,9 @@ tidy_complemento_trecho <- function(trechos, radar, intereseccao, amenidades){
   complemento <- trechos |> 
     st_drop_geometry() |> 
     select(id_osm) |> 
-    left_join(intersec) |> 
-    left_join(radar_proximo) |> 
-    left_join(amenidade_proxima)
+    left_join(intereseccao) |> 
+    left_join(radar) |> 
+    left_join(amenidades)
   
   # write_csv(complemento, "banco_dados/trechos_complemento.csv")
 }

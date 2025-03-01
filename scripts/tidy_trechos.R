@@ -10,12 +10,12 @@ library(sf)
 # available_features()
 
 download_osm <- function(){
+  assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
   osm <- getbb('São Paulo') |> 
     opq(bbox = _) |> 
     add_osm_feature(key = 'highway', value = c(
       "motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "service",
-      "motorway_link", "trunk_link", "primary_link", "secondary_link", "motorway_junction",
-      "speed_camera"))  |> 
+      "motorway_link", "trunk_link", "primary_link", "secondary_link", "motorway_junction"))  |> 
     osmdata_sf()
   
   # saveRDS(osm, "dados_brutos/osm.rds")
@@ -79,7 +79,8 @@ tidy_trechos <- function(osm){
     
     #Incluir o restante da base de volta
     left_join(osm |> select(id_osm, comprimento, geometry)) |> 
-    (\(df) bind_rows(df, osm |> anti_join(df, by = join_by(id_osm))))()
+    (\(df) bind_rows(df, osm |> anti_join(df, by = join_by(id_osm))))() |> 
+    st_set_geometry("geometry")
   
   # Compreender quanto foi preenchido
   # left_join(

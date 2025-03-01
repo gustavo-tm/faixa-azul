@@ -9,7 +9,7 @@ library(targets)
 
 # Set target options:
 tar_option_set(
-  packages = c("tidyverse", "sf", "osmdata") # Packages that your targets need for their tasks.
+  packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt"), # Packages that your targets need for their tasks.
   # format = "qs", # Optionally set the default storage format. qs is fast.
   #
   # Pipelines that take a long time to run may benefit from
@@ -21,7 +21,7 @@ tar_option_set(
   # which run as local R processes. Each worker launches when there is work
   # to do and exits if 60 seconds pass with no tasks to run.
   #
-  #   controller = crew::crew_controller_local(workers = 2, seconds_idle = 60)
+    controller = crew::crew_controller_local(workers = 6)
   #
   # Alternatively, if you want workers to run on a high-performance computing
   # cluster, select a controller from the {crew.cluster} package.
@@ -50,7 +50,10 @@ tar_source("scripts/tidy_trechos.R")
 tar_source("scripts/trechos_complemento.R")
 tar_source("scripts/tidy_faixa_azul.R")
 tar_source("scripts/match.R")
+tar_source("scripts/did.R")
 # tar_source("other_functions.R") # Source other scripts as needed.
+
+assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
 
 # Replace the target list below with your own:
 list(
@@ -74,9 +77,9 @@ list(
     command = calcular_amenidades(dado_trechos)),
   tar_target(
     name = dado_interseccao,
-    command = calcular_interseccao(dado_trechos, osm_token)),
+    command = calcular_interseccao(dado_trechos, dado_token_osm)),
   tar_target(
-    name = dado_trecho_complemento,
+    name = dado_trechos_complemento,
     command = tidy_complemento_trecho(dado_trechos, dado_radar, dado_interseccao, dado_amenidades)),
   
   # FAIXA AZUL
@@ -84,7 +87,7 @@ list(
     name = dado_faixa_azul,
     command = tidy_faixa_azul(dado_trechos)),
   
-  #MATCH
+  #MATCH 
   tar_target(
     name = dado_token_infosiga,
     command = tokenizar_infosiga(dado_sinistros)),
@@ -93,24 +96,60 @@ list(
     command = tokenizar_osm(dado_trechos)),
   tar_target(
     name = dado_match,
-    command = match_dados(dado_sinistros, dado_token_infosiga, dado_trechos, dado_token_osm))
+    command = match_dados(dado_sinistros, dado_token_infosiga, dado_trechos, dado_token_osm)),
+  
+  #DID
+  tar_target(
+    name = dado_did_trecho_mes,
+    command = dado_trecho_mes(dado_sinistros, dado_match, dado_trechos)),
+  tar_target(
+    name = dado_did_total,
+    command = prepara_dado_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, dado_faixa_azul, 
+                               filtrar_por = NULL)),
+  tar_target(
+    name = dado_did_moto,
+    command = prepara_dado_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, dado_faixa_azul, 
+                               filtrar_por = motocicleta_envolvida)),
+  tar_target(
+    name = dado_did_golden,
+    command = prepara_dado_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, dado_faixa_azul, 
+                               filtrar_por = golden_match)),
+  tar_target(
+    name = dado_did_moto_golden,
+    command = prepara_dado_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, dado_faixa_azul,
+                               filtrar_por = c(motocicleta_envolvida, golden_match))),
+  tar_target(
+    name = dado_cohort,
+    command = definir_cohort(dado_did_total, dado_faixa_azul)),
+  tar_target(
+    name = analise_did1,
+    command = rodar_did(
+      df = dado_did_moto_golden,
+      cohorts = dado_cohort,
+      titulo = "Sinistros envolvendo motociclistas com match padrão ouro",
+      por_km = TRUE)),
+  tar_target(
+    name = analise_did2,
+    command = rodar_did(
+      df = dado_did_moto_golden,
+      cohorts = dado_cohort,
+      titulo = "Sinistros envolvendo motociclistas com match padrão ouro",
+      por_km = FALSE)),
+  tar_target(
+    name = analise_did3,
+    command = rodar_did(
+      df = dado_did_golden,
+      cohorts = dado_cohort,
+      titulo = "Sinistros com match padrão ouro",
+      por_km = TRUE)),
+  tar_target(
+    name = analise_did4,
+    command = rodar_did(
+      df = dado_did_golden,
+      cohorts = dado_cohort,
+      titulo = "Sinistros com match padrão ouro",
+      por_km = FALSE))
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

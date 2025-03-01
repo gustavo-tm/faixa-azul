@@ -16,7 +16,7 @@ limpar <- function(coluna){
     (\(col) str_glue(" {col} "))(col = _) |> 
     as.character()
 } 
-padronizar <- function(coluna){
+padronizar <- function(coluna, titulo, preposicao, tipo, numero){
   coluna |> 
     limpar() |> 
     # Standardisation
@@ -33,9 +33,19 @@ padronizar <- function(coluna){
 tokenizar <- function(df, id){
   id <- sym(id)
   
+  preposicao <- read_csv("dados_tratados/logradouros/preposicao.csv") |> 
+    mutate(across(everything(), ~ limpar(.x)))
+  numero <- read_csv("dados_tratados/logradouros/numero.csv") |> 
+    mutate(across(everything(), ~ limpar(.x)))
+  tipo <- read_csv("dados_tratados/logradouros/tipo.csv") |> 
+    mutate(across(everything(), ~ limpar(.x)))
+  titulo <- read_csv("dados_tratados/logradouros/titulo.csv") |> 
+    mutate(across(everything(), ~ limpar(.x)))
+  
   df |> 
     #Encontrar tokens e criar uma string de logradouro sem os tokens
     mutate(logradouro_limpo = logradouro |> 
+             padronizar(titulo, preposicao, tipo, numero) |> 
              str_replace_all(string = _, setNames(rep(" ", length(titulo$titulo_ext)), titulo$titulo_ext)) |> 
              str_replace_all(string = _, setNames(rep(" ", length(tipo$tipo)), tipo$tipo)) |> 
              limpar()) |> 
@@ -51,14 +61,7 @@ tokenizar <- function(df, id){
               titulo = titulo |> str_split(" ") |> unlist() |> unique() |> paste(collapse = " ") |> limpar())
 }
 
-preposicao <- read_csv("dados_tratados/logradouros/preposicao.csv") |> 
-  mutate(across(everything(), ~ limpar(.x)))
-numero <- read_csv("dados_tratados/logradouros/numero.csv") |> 
-  mutate(across(everything(), ~ limpar(.x)))
-tipo <- read_csv("dados_tratados/logradouros/tipo.csv") |> 
-  mutate(across(everything(), ~ limpar(.x)))
-titulo <- read_csv("dados_tratados/logradouros/titulo.csv") |> 
-  mutate(across(everything(), ~ limpar(.x)))
+
 
 
 tokenizar_infosiga <- function(sinistros){
@@ -66,7 +69,6 @@ tokenizar_infosiga <- function(sinistros){
   infosiga.token <- sinistros |> 
     filter(tipo != "NOTIFICACAO", logradouro != "NAO DISPONIVEL") |> 
     select(id_sinistro, logradouro) |> 
-    mutate(logradouro = padronizar(logradouro)) |> 
     tokenizar(id = "id_sinistro")
   
   return(infosiga.token)
@@ -84,7 +86,6 @@ tokenizar_osm <- function(trechos){
     pivot_longer(starts_with("logradouro")) |>
     drop_na() |> 
     rename(logradouro = value) |>
-    mutate(logradouro = padronizar(logradouro)) |> 
     tokenizar(id = "id_osm")
   
   return(osm.token)
@@ -103,14 +104,16 @@ match_dados <- function(sinistros, sinistros_token, trechos, trechos_token){
   sinistros <- sinistros |> 
     filter(tipo != "NOTIFICACAO", logradouro != "NAO DISPONIVEL")
   
+  # INDEXING: juntando todos os candidatos no raio de 300 metros
   join <- sinistros |> 
     filter(!is.na(longitude), !is.na(latitude)) |> 
     st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |> 
     st_transform("epsg:31983") |> 
-    mutate(geometry = st_buffer(geometry, 250)) |>
+    mutate(geometry = st_buffer(geometry, 300)) |>
     select(id_sinistro, geometry) |> 
     st_join(trechos |> select(id_osm, geometry) |> st_transform("epsg:31983"))
   
+  # Match pelo nome mais próximo
   match_nome <- join |> 
     st_drop_geometry() |> 
     left_join(sinistros_token, by = join_by(id_sinistro)) |> 
@@ -123,6 +126,7 @@ match_dados <- function(sinistros, sinistros_token, trechos, trechos_token){
     filter(similaridade == max(similaridade)) |> 
     mutate(distancia_nome = stringdist(logradouro_limpo.x, logradouro_limpo.y))
   
+  # Seleção do trecho mais próximo geograficamente quando há empate de proximidade de nome
   match_grafico <- match_nome |> 
     select(id_sinistro, id_osm) |> 
     left_join(sinistros |> 
@@ -132,7 +136,7 @@ match_dados <- function(sinistros, sinistros_token, trechos, trechos_token){
                 select(id_sinistro, geometria_ponto = geometry)) |> 
     left_join(trechos |> 
                 st_transform("epsg:31983") |>
-                select(id_osm, geometria_trecho = geom)) |> 
+                select(id_osm, geometria_trecho = geometry)) |> 
     filter(!st_is_empty(geometria_ponto), !st_is_empty(geometria_trecho)) |>
     
     # Encontrar o vizinho mais próximo e depois calcular a distância é significativamente mais rápido do que calcular todas as distâncias e depois pegar a menor, 
@@ -140,14 +144,21 @@ match_dados <- function(sinistros, sinistros_token, trechos, trechos_token){
     group_by(id_sinistro) |> 
     filter(row_number() == st_nearest_feature(nth(geometria_ponto, 1), geometria_trecho)) |> 
     mutate(distancia = st_distance(geometria_ponto, geometria_trecho, by_element = TRUE) |> as.numeric()) |> 
+    st_drop_geometry() |> 
     ungroup()
   
+
   match <- match_grafico |> 
-    st_drop_geometry() |> 
     select(id_sinistro, id_osm, distancia_geografica = distancia) |> 
     left_join(match_nome) |> 
-    select(id_sinistro, id_osm, logradouro = logradouro_limpo.y, similaridade, distancia_geografica, distancia_nome, match_tipo, match_titulo)
-  
+    select(id_sinistro, id_osm, logradouro = logradouro_limpo.y, similaridade, distancia_geografica, distancia_nome, match_tipo, match_titulo) |> 
+    
+    # Verificação de haver apenas um match por sinistro
+    group_by(id_sinistro) |> 
+    filter(match_tipo + match_titulo == max(match_tipo + match_titulo), #Selecionar o que tem maior match de título e tipo
+           match_titulo == max(match_titulo), #Se um tiver match e título, e o outro match no tipo, manter apenas match no título
+           row_number() == 1) #Garantir que sobra apenas uma linha no matter what
+    
   return(match)
   
   # match |> 

@@ -1,3 +1,65 @@
 name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
-tidy_sinistros|function|aee851cd75c1ae5b
 dados_sinistros|stem|beb41672cc025713|9b879429a4c0ae63|f4f63db8eb82f4ea|-533101610||t20147.5726462401s|s6234930b|6234930|rds|local|vector|||5.55||
+preposicao|object|6536096f564bac6c|||||||||||||||
+tipo|object|d154151c6ca90c0a|||||||||||||||
+numero|object|844a142d42b8fb5c|||||||||||||||
+titulo|object|40e0bf3851794925|||||||||||||||
+dado_osm|stem|b980e4f845766e2f|aaf9d484cc38786f|c8c02eca62c7c3a4|1660670857||t20147.6586403349s|s31838098b|31838098|rds|local|vector|||2734.703|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2|
+dado_sinistros|stem|beb41672cc025713|9b879429a4c0ae63|f4f63db8eb82f4ea|1977916615||t20147.6648734766s|s6234930b|6234930|rds|local|vector|||7.859|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+dado_trechos|stem|8010826f80e162f3|e918b5f920ab8d46|c07307fce6f2e57f|997544507||t20147.6666818271s|s31880561b|31880561|rds|local|vector|||152.25|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+dado_faixa_azul|stem|47b536f75e873c3d|f92202c4633685cc|121aa82df492b0cb|-1803019463||t20147.6667097995s|s3329b|3329|rds|local|vector|||0.968|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+dado_token_infosiga|stem|9933fff890ca2ae8|1fc934ea9fa7b57c|c5fa179fa5a69c05|805661047||t20147.6682195629s|s3330028b|3330028|rds|local|vector|||287.938|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+dado_token_osm|stem|ff0d6232b8825c36|6d52c844f5070652|917ae6bf6799cdd3|-1588809096||t20147.6872665842s|s3725831b|3725831|rds|local|vector|||357.594|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+run_did|function|d89c3cacdb66a87d|||||||||||||||
+dado_radar|stem|768f0da351117042|9deeb95e156831ed|3049c1f79465f625|-2078235472||t20147.7519243287s|s614021b|614021|rds|local|vector|||30.016|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+dado_interseccao|stem|5a704c06619451b7|b10f95f014105ec3|05588f43b9f31526|-1336837285||t20147.7519302727s|s585205b|585205|rds|local|vector|||30.906|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+dado_amenidades|stem|4f9328e32437072a|bd19fe0523875bec|f559cca01f6a2609|-121141636||t20147.7573931122s|s92371b|92371|rds|local|vector|||503.984|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+dado_trechos_complemento|stem|4c683d1bc781ef83|abc46bb0cbf88ed6|feae6cd92d46b684|-1968360811||t20147.7574246286s|s765489b|765489|rds|local|vector|||0.953|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+dado_match|stem|43be4ca73fc5c7d8|59d0a984ab0cdde0|c8dfddf7ef89a0ee|747176591||t20147.8259540224s|s4285745b|4285745|rds|local|vector|||6426.375|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2. 1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 1 of x matches multiple rows in y.36mℹ39m Row 58078 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.|
+analise_did|stem|49b504a63c4f58e8|671542ad49ab06da|b5706efe502faee3|-1484778811||t20147.8259813406s|s48b|48|rds|local|vector|||0.297|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+dado_did_trecho_mes|stem|4a7bef002b39f707|fa4656d1999c0a34|ab95830916b38bd0|854387777||t20147.926257183s|s3285173b|3285173|rds|local|vector|||6.031|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+dado_did_golden|stem|11feab94367b1554|619cf541b6a30549|f9948031b35ffdee|-1268888282||t20147.9418994776s|s4746691b|4746691|rds|local|vector|||32.641|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+dado_did_total|stem|2a20d6fba39f8bf2|8d1c04265447bedd|f9948031b35ffdee|-1593835226||t20147.942016836s|s4774668b|4774668|rds|local|vector|||33.657|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+dado_did_moto|stem|e7e6bd109bc794c4|dc0c33cb275ef8f2|f9948031b35ffdee|-966616451||t20147.9421430402s|s4749060b|4749060|rds|local|vector|||32.36|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+dado_did_moto_golden|stem|77cec22c22409feb|27235aa7e4e6af16|f9948031b35ffdee|-827959512||t20147.9422664551s|s4724186b|4724186|rds|local|vector|||32.391|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+dado_cohort|stem|da32aa966009468f|54b49393cec2120c|325172f980f3313f|772038555||t20147.9422666403s|s269b|269|rds|local|vector|||0.484|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2|
+analise_did1|stem||450cd7172232e046|9ed3a3b5643befb1|-84648019||t20147.9464669671s||0|rds|local|vector|||358.39|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2. Be aware that there are some small groups in your dataset.  Check groups 63.. Not returning pretest Wald statistic due to singular covariance matrix. dropped 6160 rows from original data due to missing data. Be aware that there are some small groups in your dataset.  Check groups 63.|argument controle is missing, with no default
+prepara_dado_did|function|9431be5648365f39|||||||||||||||
+calcular_amenidades|function|f0a239287b604e40|||||||||||||||
+tidy_complemento_trecho|function|156977f0aa46e9ed|||||||||||||||
+tidy_sinistros|function|aee851cd75c1ae5b|||||||||||||||
+limpar|function|40c2a3b526f64268|||||||||||||||
+tidy_faixa_azul|function|a9dcb8b160213cfd|||||||||||||||
+.Random.seed|object|575528dc0f24bd29|||||||||||||||
+tidy_trechos|function|615ce4e6786e1218|||||||||||||||
+dado_trecho_mes|function|ee87e1a697524c9e|||||||||||||||
+download_osm|function|27f429f2b0c059b3|||||||||||||||
+calcular_radares|function|ae1a4b0872d7f70d|||||||||||||||
+rodar_did|function|37c375705350d66d|||||||||||||||
+calcular_interseccao|function|17f841c3d15d30e9|||||||||||||||
+match_dados|function|e64c42374a656346|||||||||||||||
+definir_cohort|function|60ac84032b9b5bc2|||||||||||||||
+padronizar|function|b21b399378d20536|||||||||||||||
+tokenizar|function|ed395560c2d529a0|||||||||||||||
+tokenizar_infosiga|function|8ff99659fc76f7a4|||||||||||||||
+tokenizar_osm|function|720f5c55be929654|||||||||||||||
+analise_did4|stem||742707e0d7cc9b92|96585c05d3b20c1d|-512356878||t20147.9544489309s||0|rds|local|vector|||463.078|package osmdata was built under R version 4.4.2. package fuzzyjoin was built under R version 4.4.2. package did was built under R version 4.4.2. Be aware that there are some small groups in your dataset.  Check groups 63.. Not returning pretest Wald statistic due to singular covariance matrix. dropped 6160 rows from original data due to missing data. Be aware that there are some small groups in your dataset.  Check groups 63.|no applicable method for grid.draw applied to an object of class labels
+prepara_dado_did|function|65fc3916bd6ec7f4
+calcular_amenidades|function|f0a239287b604e40
+tidy_complemento_trecho|function|156977f0aa46e9ed
+tidy_sinistros|function|aee851cd75c1ae5b
+limpar|function|40c2a3b526f64268
+tidy_faixa_azul|function|a9dcb8b160213cfd
+.Random.seed|object|bed79635ae546da3
+tidy_trechos|function|615ce4e6786e1218
+dado_trecho_mes|function|ee87e1a697524c9e
+download_osm|function|27f429f2b0c059b3
+calcular_radares|function|ae1a4b0872d7f70d
+rodar_did|function|b0edf55555e26b8b
+calcular_interseccao|function|17f841c3d15d30e9
+match_dados|function|e64c42374a656346
+definir_cohort|function|60ac84032b9b5bc2
+padronizar|function|b21b399378d20536
+tokenizar|function|ed395560c2d529a0
+tokenizar_infosiga|function|8ff99659fc76f7a4
+tokenizar_osm|function|720f5c55be929654
