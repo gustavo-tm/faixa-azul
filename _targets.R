@@ -89,7 +89,7 @@ list(
   
   tar_target(
     name = dado_logradouros,
-    command = agrupar_logradouros(dado_id_logradouros, dado_trechos)),
+    command = tidy_logradouros(dado_id_logradouros, dado_trechos)),
   
   # FAIXA AZUL
   tar_target(

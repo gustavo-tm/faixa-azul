@@ -113,6 +113,7 @@ agrupar_logradouros <- function(trechos, token_osm){
     select(id_osm) |> 
     
     # Join geográfico da base de vias com ela mesma
+    st_buffer(10) |> 
     (\(df) st_join(df, df))() |> 
     st_drop_geometry() |> 
     
@@ -128,9 +129,9 @@ agrupar_logradouros <- function(trechos, token_osm){
     adjacencyList2Matrix(square = TRUE) |> 
     graph_from_adjacency_matrix()
   
-  grafico |> 
-    visIgraph(idToLabel = FALSE) |> 
-    htmltools::save_html("grafico.html")
+  # grafico |> 
+  #   visIgraph(idToLabel = FALSE) |> 
+  #   htmltools::save_html("grafico.html")
   
   id_logradouros <- grafico |> 
     components() |> 
@@ -150,12 +151,32 @@ agrupar_logradouros <- function(trechos, token_osm){
 }
 
 
-tidy_logradouros <- function(id_logradouros, trechos){
-  return()
+tidy_logradouros <- function(id_logradouros, trechos, trechos_complemento, faixa_azul){
+  
+  logradouros <- id_logradouros |> 
+    unnest(trechos) |> 
+    left_join(trechos |> st_drop_geometry(), by = join_by(trechos == id_osm)) |> 
+    left_join(trechos_complemento, by = join_by(trechos == id_osm)) |> 
+    left_join(faixa_azul, by = join_by(trechos == id_osm)) |> 
+    rename(nome = logradouro.x) |> 
+    group_by(id_logradouro) |> 
+    summarize(
+      across(
+        c(nome, data_implementacao),
+        ~ .x |> sort() |> first()),
+      across(
+        c(faixas, limite_velocidade),
+        ~ .x |> as.numeric() |> mean(na.rm = TRUE)),
+      across(
+        c(amenidades, intersec, comprimento),
+        ~ .x |> as.numeric() |> sum(na.rm = TRUE)),
+      across(
+        c(mao_unica, superficie, tipo_via),
+        ~ fct_infreq(.x) |> levels() |> first()),
+      radar_proximo = max(radar_proximo),
+      trechos = n())
+  return(logradouros)
 }
-
-
-
 
 
 
