@@ -2,7 +2,7 @@ library(tidyverse)
 library(sf)
 library(units)
 library(mapview)
-library(ggsankey)
+# library(ggsankey)
 library(paletteer)
 
 trechos <- st_read("banco_dados/trechos.gpkg") |> 
