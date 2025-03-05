@@ -82,6 +82,15 @@ list(
     name = dado_trechos_complemento,
     command = tidy_complemento_trecho(dado_trechos, dado_radar, dado_interseccao, dado_amenidades)),
   
+  # LOGRADOUROS
+  tar_target(
+    name = dado_id_logradouros,
+    command = agrupar_logradouros(dado_trechos, dado_token_osm)),
+  
+  tar_target(
+    name = dado_logradouros,
+    command = agrupar_logradouros(dado_id_logradouros, dado_trechos)),
+  
   # FAIXA AZUL
   tar_target(
     name = dado_faixa_azul,

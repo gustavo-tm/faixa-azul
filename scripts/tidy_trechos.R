@@ -2,6 +2,8 @@ library(tidyverse)
 library(osmdata)
 library(sf)
 # library(mapview)
+library(igraph)
+library(circlize)
 
 # https://cran.r-project.org/web/packages/osmdata/vignettes/osmdata.html
 # https://rspatialdata.github.io/osm.html
@@ -102,4 +104,58 @@ tidy_trechos <- function(osm){
   # trechos |> 
   #   st_write("banco_dados/trechos.gpkg")
 }
+
+
+agrupar_logradouros <- function(trechos, token_osm){
+  conexoes <- trechos |> 
+    filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
+    arrange(logradouro) |> 
+    select(id_osm) |> 
+    
+    # Join geográfico da base de vias com ela mesma
+    (\(df) st_join(df, df))() |> 
+    st_drop_geometry() |> 
+    
+    # Identificar todas as vias que se conectam, mas tem o mesmo nome
+    left_join(token_osm |> select(id_osm, log.x = logradouro_limpo), 
+              by = join_by(id_osm.x == id_osm)) |> 
+    left_join(token_osm |> select(id_osm, log.y = logradouro_limpo), 
+              by = join_by(id_osm.y == id_osm)) |> 
+    filter(log.x == log.y)
+  
+  grafico <- conexoes |> 
+    select(id_osm.x, id_osm.y) |> 
+    adjacencyList2Matrix(square = TRUE) |> 
+    graph_from_adjacency_matrix()
+  
+  grafico |> 
+    visIgraph(idToLabel = FALSE) |> 
+    htmltools::save_html("grafico.html")
+  
+  id_logradouros <- grafico |> 
+    components() |> 
+    membership() |> 
+    (\(df) tibble(id_osm = names(df), id_logradouro = df))() |> 
+    left_join(token_osm |> 
+                group_by(id_osm) |> 
+                filter(row_number() == 1) |> 
+                select(id_osm, logradouro_limpo)) |> 
+    group_by(id_logradouro = factor(id_logradouro)) |> 
+    summarize(trechos = id_osm |> 
+                as.character() |> 
+                list(),
+              logradouro = first(logradouro_limpo))
+  
+  return(id_logradouros)
+}
+
+
+tidy_logradouros <- function(id_logradouros, trechos){
+  return()
+}
+
+
+
+
+
 
