@@ -17,7 +17,9 @@ download_osm <- function(){
     opq(bbox = _) |> 
     add_osm_feature(key = 'highway', value = c(
       "motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "service",
-      "motorway_link", "trunk_link", "primary_link", "secondary_link", "motorway_junction"))  |> 
+      "motorway_link", "trunk_link", "primary_link", "secondary_link", "motorway_junction"))  |>
+    # add_osm_feature(key = 'highway', value = c(
+    #   "trunk", "primary", "secondary"))  |>
     osmdata_sf()
   
   # saveRDS(osm, "dados_brutos/osm.rds")
@@ -29,12 +31,16 @@ download_osm <- function(){
   # 
   # ggsave("output/vias_osm.pdf", gg, width = 30, height = 40)
   
-  osm <- as_tibble(osm$osm_lines) |> 
+  osm <- as_tibble(osm$osm_lines) |>
+    # separate_wider_delim(alt_name, ";", names_sep = "_", too_few = "align_start") |> 
     select(id_osm = osm_id,
            logradouro = name,
            logradouro_alt1 = alt_name,
            logradouro_alt2 = alt_name1,
            logradouro_alt3 = alt_name_1,
+           # logradouro_alt1 = alt_name_1,
+           # logradouro_alt2 = alt_name_2,
+           # logradouro_alt3 = alt_name_3,
            logradouro_ref = ref,
            tipo_via = highway,
            faixas = lanes,
