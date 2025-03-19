@@ -5,57 +5,128 @@ library(mapview)
 # library(ggsankey)
 library(paletteer)
 
-trechos <- st_read("banco_dados/trechos.gpkg") |> 
-  mutate(id_osm = as.numeric(id_osm))
-sinistros <- read_csv("banco_dados/sinistros.csv")
-faixa_azul <- read_csv("banco_dados/faixa_azul.csv")
-match <- read_csv("banco_dados/match.csv")
-osm.token <- read_csv("dados_tratados/osm-token.csv") |> 
-  mutate(len = str_length(logradouro_limpo)) |> 
-  group_by(id_osm) |> 
-  arrange(-len) |> 
-  filter(row_number() == 1) |> 
-  ungroup() |> 
-  arrange(id_osm)
+# trechos <- tar_read(dado_trechos)
+# logradouros <- tar_read(dado_logradouros)
+# logradouros_id <- tar_read(dado_id_logradouros)
+# sinistros <- tar_read(dado_sinistros)
+# faixa_azul <- tar_read(dado_faixa_azul)
+# match <- tar_read(dado_match)
+# osm.token <- tar_read(dado_token_osm) |> 
+#   mutate(len = str_length(logradouro_limpo)) |> 
+#   group_by(id_osm) |> 
+#   arrange(-len) |> 
+#   filter(row_number() == 1) |> 
+#   ungroup() |> 
+#   arrange(id_osm)
 
-# OBITOS E FAIXA AZUL ----
 
-osm.token |> 
-  right_join(osm.token |> 
-              left_join(faixa_azul) |> 
-              filter(!data_implementacao |> is.na()) |> 
-              distinct(logradouro, data_implementacao)) |> 
-  select(id_osm, logradouro_completo = logradouro, data_implementacao) |> 
-  left_join(match) |> 
-  filter(similaridade > .75 | (match_tipo == TRUE & match_titulo == TRUE)) |> 
-  left_join(sinistros, by = join_by(id_sinistro)) |> 
-  filter(tipo == "SINISTRO FATAL") |> 
-  mutate(motocicleta = motocicletas > 0,
-         logradouro_completo = factor(logradouro_completo) |> fct_rev()) |>
-  (\(df) ggplot() +
-     geom_rect(aes(xmin = as.Date(-Inf), 
-                   xmax = as.Date(data_implementacao), 
-                   ymin = as.numeric(logradouro_completo) - .15, 
-                   ymax = as.numeric(logradouro_completo) + .15),
-               data = df |> distinct(logradouro_completo, data_implementacao),
-               fill = "grey85") +
-     geom_rect(aes(xmin = as.Date(data_implementacao), 
-                   xmax = as.Date(Inf), 
-                   ymin = as.numeric(logradouro_completo) - .27, 
-                   ymax = as.numeric(logradouro_completo) + .27),
-               data = df |> distinct(logradouro_completo, data_implementacao),
-               fill = "#333F48FF", alpha = .9) +
-     geom_point(aes(x = as.Date(data), y = logradouro_completo, fill = motocicleta, shape = motocicleta), 
-                alpha = .9, stroke = .15, colour = "white", size = 3,
-                data = df) +
-     scale_fill_manual("Veículo da vítima", values = c("TRUE" = "#BA0C2FFF", "FALSE" = "#C6AA76FF"), labels = c("TRUE" = "Motocicleta", "FALSE" = "Outros")) +
-     scale_shape_manual("Veículo da vítima", values = c("TRUE" = 21, "FALSE" = 22), labels = c("TRUE" = "Motocicleta", "FALSE" = "Outros")) +
-     scale_x_date(limits = c(make_date(year = 2021, month = 1), max(df$data))) +
-     labs(y = NULL, x = NULL) +
-     theme_minimal())(df = _)
-ggsave("output/obitos.pdf", width = 11, height = 7)
-ggsave("output/obitos.png", width = 11, height = 7, dpi = 600)
 
+plot_datas_FA <- function(logradouros, logradouros_id, match, sinistros){
+  
+  max_data <- max(sinistros$data)
+  
+  gg <- logradouros |> 
+    filter(!is.na(data_implementacao)) |> 
+    group_by(nome) |> 
+    filter(row_number(data_implementacao) == 1) |> 
+    ungroup() |> 
+    mutate(nome = factor(nome) |> fct_reorder(desc(data_implementacao))) |> 
+    ggplot(aes(y = nome)) +
+    geom_rect(aes(xmin = as.Date(-Inf), 
+                  xmax = data_implementacao, 
+                  ymin = as.numeric(nome) - .15, 
+                  ymax = as.numeric(nome) + .15),
+              fill = "grey90") +
+    geom_rect(aes(xmin = data_implementacao, 
+                  xmax = as.Date(Inf), 
+                  ymin = as.numeric(nome) - .25, 
+                  ymax = as.numeric(nome) + .25),
+              fill = "#333F48FF", alpha = .75) +
+    scale_x_date(limits = c(make_date(year = 2021, month = 6), max_data)) +
+    labs(y = NULL, x = NULL) +
+    theme_minimal()
+  ggsave("output/plot_datas_FA.pdf", gg, width = 11, height = 7)
+  
+  ggg <- gg +
+    geom_point(aes(x = data, fill = motocicleta, shape = motocicleta),
+               position = position_jitter(width = 0, height = .1),
+               alpha = .9, stroke = .15, colour = "white", size = 2.5,
+               data = logradouros_id |> 
+                 semi_join(logradouros |> 
+                             filter(!is.na(data_implementacao)) |> 
+                             select(id_logradouro)) |> 
+                 unnest(trechos) |> 
+                 rename(id_osm = trechos, nome = logradouro) |> 
+                 inner_join(match |> select(id_sinistro, id_osm)) |> 
+                 left_join(sinistros |> 
+                             select(id_sinistro, data, tipo, motocicletas)) |> 
+                 mutate(motocicleta = replace_na(motocicletas, 0) > 0) |> 
+                 arrange(motocicleta) |> 
+                 filter(tipo == "SINISTRO FATAL")) +
+    # geom_jitter() +
+    scale_fill_manual("Veículo da vítima", values = c("TRUE" = "#BA0C2FFF", "FALSE" = "#C6AA76FF"), labels = c("TRUE" = "Motocicleta", "FALSE" = "Outros")) +
+    scale_shape_manual("Veículo da vítima", values = c("TRUE" = 21, "FALSE" = 22), labels = c("TRUE" = "Motocicleta", "FALSE" = "Outros"))
+  
+  ggsave("output/plot_datas_FA_obitos.pdf", ggg, width = 11, height = 7)
+  
+}
+
+# TAMANHO VIAS ----
+
+plot_tamanho_FA <- function(){
+  gg <- logradouros_id |> 
+    semi_join(logradouros |> 
+                filter(!is.na(data_implementacao)) |> 
+                select(logradouro = nome)) |> 
+    unnest(trechos) |> 
+    rename(id_osm = trechos) |> 
+    left_join(faixa_azul |> select(id_osm) |> mutate(FA = TRUE)) |> 
+    left_join(trechos |> select(id_osm, comprimento)) |> 
+    mutate(FA = replace_na(FA, FALSE)) |> 
+    group_by(logradouro, FA) |>
+    summarize(comprimento = sum(comprimento) / 1000) |> 
+    mutate(ordem = sum(comprimento)) |> 
+    ggplot(aes(x = comprimento, y = reorder(logradouro,ordem))) +
+    geom_col(aes(fill = FA), colour = "black", lwd = .1) +
+    scale_fill_manual("", values = c("FALSE" = "#A6A6A6", "TRUE" = "#4472C4"),
+                      labels = c("TRUE" = "Com faixa azul", "FALSE" = "Sem faixa azul")) +
+    labs(x = "Comprimento da via (km)", y = NULL) +
+    theme_minimal()
+  ggsave("output/plot_tamanho_FA.pdf", gg, width = 7, height = 6)
+  
+} 
+
+logradouros_id |> 
+  semi_join(logradouros |> 
+              filter(!is.na(data_implementacao)) |> 
+              select(logradouro = nome)) |> 
+  unnest(trechos) |> 
+  rename(id_osm = trechos) |> 
+  filter(logradouro == " CAXINGUI ") |> 
+  left_join(faixa_azul |> select(id_osm) |> mutate(FA = TRUE)) |> 
+  left_join(trechos |> select(id_osm, comprimento)) |> 
+  mutate(FA = replace_na(FA, FALSE)) |> 
+  group_by(logradouro, FA) |>
+  summarize(comprimento = sum(comprimento) / 1000) |> 
+  mutate(ordem = sum(comprimento)) |> 
+  ggplot(aes(x = comprimento, y = reorder(logradouro,ordem))) +
+  geom_col(aes(fill = FA), colour = "black", lwd = .1) +
+  scale_fill_manual("", values = c("FALSE" = "#A6A6A6", "TRUE" = "#4472C4"),
+                    labels = c("TRUE" = "Com faixa azul", "FALSE" = "Sem faixa azul")) +
+  labs(x = "Comprimento da via (km)", y = NULL) +
+  theme_minimal()
+
+logradouros_id |> 
+  semi_join(logradouros |> 
+              filter(!is.na(data_implementacao)) |> 
+              select(logradouro = nome)) |> 
+  unnest(trechos) |> 
+  rename(id_osm = trechos) |> 
+  filter(logradouro == " CAXINGUI ") |> 
+  select(id_osm) |> 
+  left_join(trechos) |> 
+  View()
+  
 
 osm.token |> 
   right_join(osm.token |> 
@@ -63,36 +134,30 @@ osm.token |>
                filter(!data_implementacao |> is.na()) |> 
                distinct(logradouro, data_implementacao)) |> 
   select(id_osm, logradouro_completo = logradouro, data_implementacao) |> 
-  left_join(match) |> 
-  filter(similaridade > .75 | (match_tipo == TRUE & match_titulo == TRUE)) |> 
-  left_join(sinistros, by = join_by(id_sinistro)) |> 
-  filter(tipo == "SINISTRO FATAL") |> 
-  mutate(motocicleta = motocicletas > 0,
-         logradouro_completo = factor(logradouro_completo) |> fct_reorder(desc(data_implementacao))) |> 
-  (\(df) ggplot() +
-     geom_rect(aes(xmin = as.Date(-Inf), 
-                   xmax = as.Date(data_implementacao), 
-                   ymin = as.numeric(logradouro_completo) - .15, 
-                   ymax = as.numeric(logradouro_completo) + .15),
-               data = df |> distinct(logradouro_completo, data_implementacao),
-               fill = "grey85") +
-     geom_rect(aes(xmin = as.Date(data_implementacao), 
-                   xmax = as.Date(Inf), 
-                   ymin = as.numeric(logradouro_completo) - .27, 
-                   ymax = as.numeric(logradouro_completo) + .27),
-               data = df |> distinct(logradouro_completo, data_implementacao),
-               fill = "#333F48FF", alpha = .9) +
-     geom_point(aes(x = as.Date(data), y = logradouro_completo, fill = motocicleta, shape = motocicleta), 
-                alpha = .9, stroke = .15, colour = "white", size = 3,
-                data = df) +
-     scale_fill_manual("Veículo da vítima", values = c("TRUE" = "#BA0C2FFF", "FALSE" = "#C6AA76FF"), labels = c("TRUE" = "Motocicleta", "FALSE" = "Outros")) +
-     scale_shape_manual("Veículo da vítima", values = c("TRUE" = 21, "FALSE" = 22), labels = c("TRUE" = "Motocicleta", "FALSE" = "Outros")) +
-     scale_x_date(limits = c(make_date(year = 2021, month = 1), max(df$data))) +
-     labs(y = NULL, x = NULL) +
-     theme_minimal())(df = _)
+  left_join(faixa_azul |> 
+              mutate(faixa_azul = "faixa_azul") |> 
+              select(id_osm, faixa_azul)) |> 
+  left_join(trechos |> select(id_osm, geometry = geom)) |> 
+  mutate(faixa_azul = replace_na(faixa_azul, "sem_faixa"),
+         tamanho = st_length(geometry)) |> 
+  st_drop_geometry() |> 
+  group_by(logradouro_completo, faixa_azul) |> 
+  summarize(tamanho = tamanho |> sum()) |> 
+  group_by(logradouro_completo) |> 
+  mutate(order = sum(tamanho), 
+         faixa_azul = factor(faixa_azul, 
+                             levels = c("sem_faixa", "faixa_azul"),
+                             labels = c("Trecho comum", "Trecho de faixa azul"))) |> 
+  ggplot(aes(x = tamanho, y = reorder(logradouro_completo, order), fill = faixa_azul)) +
+  geom_col(colour = "black", lwd = .1) +
+  scale_x_units("Tamanho da via", unit = "km") +
+  labs(y = NULL) +
+  scale_fill_manual("", values = c("Trecho comum" = "#A6A6A6", "Trecho de faixa azul" = "#4472C4")) +
+  theme_minimal() +
+  theme(legend.position = "inside", legend.position.inside = c(.7,.2))
+ggsave("output/tamanho-trechos.pdf", width = 7, height = 6)
+ggsave("output/tamanho-trechos.png", width = 9, height = 5, dpi = 400)
 
-ggsave("output/obitos_ordenado.pdf", width = 11, height = 7)
-ggsave("output/obitos_ordenado.png", width = 11, height = 6, dpi = 400)
 
 # PANFLETO CET ----
 
@@ -302,37 +367,7 @@ read_csv("banco_dados/sinistros.csv") |>
 
 ggsave("output/horarios-sinistros.pdf", width = 10, height =4)
 
-# TAMANHO VIAS ----
 
-osm.token |> 
-  right_join(osm.token |> 
-               left_join(faixa_azul) |> 
-               filter(!data_implementacao |> is.na()) |> 
-               distinct(logradouro, data_implementacao)) |> 
-  select(id_osm, logradouro_completo = logradouro, data_implementacao) |> 
-  left_join(faixa_azul |> 
-              mutate(faixa_azul = "faixa_azul") |> 
-              select(id_osm, faixa_azul)) |> 
-  left_join(trechos |> select(id_osm, geometry = geom)) |> 
-  mutate(faixa_azul = replace_na(faixa_azul, "sem_faixa"),
-         tamanho = st_length(geometry)) |> 
-  st_drop_geometry() |> 
-  group_by(logradouro_completo, faixa_azul) |> 
-  summarize(tamanho = tamanho |> sum()) |> 
-  group_by(logradouro_completo) |> 
-  mutate(order = sum(tamanho), 
-         faixa_azul = factor(faixa_azul, 
-                             levels = c("sem_faixa", "faixa_azul"),
-                             labels = c("Trecho comum", "Trecho de faixa azul"))) |> 
-  ggplot(aes(x = tamanho, y = reorder(logradouro_completo, order), fill = faixa_azul)) +
-  geom_col(colour = "black", lwd = .1) +
-  scale_x_units("Tamanho da via", unit = "km") +
-  labs(y = NULL) +
-  scale_fill_manual("", values = c("Trecho comum" = "#A6A6A6", "Trecho de faixa azul" = "#4472C4")) +
-  theme_minimal() +
-  theme(legend.position = "inside", legend.position.inside = c(.7,.2))
-ggsave("output/tamanho-trechos.pdf", width = 7, height = 6)
-ggsave("output/tamanho-trechos.png", width = 9, height = 5, dpi = 400)
 
 
 # RADIAL ANO MES ----

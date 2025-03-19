@@ -7,6 +7,11 @@ workers <- 8
 # para garantir que osmdata vai funcionar
 assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
 
+# PARA DEBUGAR
+# tar_meta(fields = error, complete_only = TRUE)
+# tar_progress()
+# tar_visnetwork()
+# tar_delete()
 
 tar_option_set(
   packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "circlize", "igraph"), 
@@ -73,9 +78,30 @@ list(
   tar_target(
     name = dado_token_osm,
     command = tokenizar_osm(dado_trechos)),
+  
+  tar_target(
+    name = dado_sinistros_chunks,
+    command = match_dados_split(dado_sinistros, n = workers)),
+  # tar_target(
+  #   name = dado_match_chunks,
+  #   command = match_dados(dado_sinistros_chunks, 
+  #                         sinistros_token = dado_token_infosiga, 
+  #                         trechos = dado_trechos, 
+  #                         trechos_token = dado_token_osm),
+  #   pattern = map(dado_sinistros_chunks),
+  #   iteration = "list"),
+  tar_target(
+    name = dado_match_chunks,
+    command = match_dados(dado_sinistros_chunks, 
+                          sinistros_token = dado_token_infosiga, 
+                          trechos = dado_trechos, 
+                          trechos_token = dado_token_osm),
+    pattern = NULL,
+    iteration = "group"),
+  
   tar_target(
     name = dado_match,
-    command = match_dados(dado_sinistros, dado_token_infosiga, dado_trechos, dado_token_osm)),
+    command = bind_rows(dado_match_chunks)),
   
   # 6. DID ----
   # 6.1 agrega

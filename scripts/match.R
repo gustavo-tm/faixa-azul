@@ -92,16 +92,24 @@ tokenizar_osm <- function(trechos){
 }
 
 
+match_dados_split <- function(sinistros, n){
+  sinistros |> 
+    filter(tipo != "NOTIFICACAO", logradouro != "NAO DISPONIVEL") |> 
+    #Resto da divisão por n vai trazer n grupos de tamanhos iguais 
+    mutate(grupo = row_number() %% n) |> 
+    group_by(grupo) |> 
+    targets::tar_group()
+}
+
+
 # 
 # osm.token |> write_csv("dados_tratados/osm-token.csv")
 # infosiga.token |> write_csv("dados_tratados/infosiga-token.csv")
 
 match_dados <- function(sinistros, sinistros_token, trechos, trechos_token){
   
-  trechos <- trechos |> 
-    mutate(geometry = st_simplify(geometry, dTolerance = 20))
-  
   sinistros <- sinistros |> 
+    as_tibble() |> 
     filter(tipo != "NOTIFICACAO", logradouro != "NAO DISPONIVEL")
   
   # INDEXING: juntando todos os candidatos no raio de 300 metros
