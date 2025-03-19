@@ -23,7 +23,7 @@ tar_option_set(
   # which run as local R processes. Each worker launches when there is work
   # to do and exits if 60 seconds pass with no tasks to run.
   #
-    controller = crew::crew_controller_local(workers = 6)
+    # controller = crew::crew_controller_local(workers = 6)
   #
   # Alternatively, if you want workers to run on a high-performance computing
   # cluster, select a controller from the {crew.cluster} package.
@@ -53,6 +53,7 @@ tar_source("scripts/trechos_complemento.R")
 tar_source("scripts/tidy_faixa_azul.R")
 tar_source("scripts/match.R")
 tar_source("scripts/did.R")
+tar_source("scripts/did_het.R")
 # tar_source("other_functions.R") # Source other scripts as needed.
 
 assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
@@ -93,7 +94,6 @@ list(
   tar_target(
     name = dado_id_logradouros,
     command = agrupar_logradouros(dado_trechos, dado_token_osm)),
-  
   tar_target(
     name = dado_logradouros,
     command = tidy_logradouros(dado_id_logradouros, dado_trechos, dado_trechos_complemento, dado_faixa_azul)),
@@ -112,7 +112,6 @@ list(
   
   # 6. DID ----
   # 6.1 agrega
-  
   tar_target(
     name = dado_did_trecho_mes,
     command = dado_trecho_mes(dado_sinistros, dado_match, dado_trechos)),
@@ -120,29 +119,28 @@ list(
   tar_target(
     name = dado_did_logradouro_mes,
     command = dado_logradouro_mes(dado_sinistros, dado_match, dado_id_logradouros)),
-  
+
   # 6.2 prepara
   # 6.2.1. trecho
   tar_target(
-    name = dado_did_trecho_total,
-    command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, dado_faixa_azul, 
+    name = dado_did_trecho_todos,
+    command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, dado_faixa_azul,
                                  filtrar_por = NULL)),
   tar_target(
     name = dado_did_trecho_moto,
-    command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, dado_faixa_azul, 
+    command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, dado_faixa_azul,
                                  filtrar_por = motocicleta_envolvida)),
   tar_target(
-    name = dado_did_trecho_golden,
-    command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, dado_faixa_azul, 
+    name = dado_did_trecho_todos_golden,
+    command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, dado_faixa_azul,
                                  filtrar_por = golden_match)),
   tar_target(
     name = dado_did_trecho_moto_golden,
     command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, dado_faixa_azul,
                                  filtrar_por = c(motocicleta_envolvida, golden_match))),
   # 6.2.2. logradouro
-  
   tar_target(
-    name = dado_did_logradouro_total,
+    name = dado_did_logradouro_todos,
     command = prepara_logradouro_did(dado_did_logradouro_mes, dado_logradouros,
                                  filtrar_por = NULL)),
   tar_target(
@@ -150,7 +148,7 @@ list(
     command = prepara_logradouro_did(dado_did_logradouro_mes, dado_logradouros,
                                  filtrar_por = motocicleta_envolvida)),
   tar_target(
-    name = dado_did_logradouro_golden,
+    name = dado_did_logradouro_todos_golden,
     command = prepara_logradouro_did(dado_did_logradouro_mes, dado_logradouros,
                                  filtrar_por = golden_match)),
   tar_target(
@@ -160,65 +158,329 @@ list(
   # 6.2.3. cohort
   tar_target(
     name = dado_cohort_trecho,
-    command = definir_cohort(dado_did_trecho_total, 
-                             faixa_azul = dado_faixa_azul, 
+    command = definir_cohort(dado_did_trecho_todos,
+                             faixa_azul = dado_faixa_azul,
                              trechos = dado_trechos,
                              logradouros = dado_logradouros,
                              por_logradouro = FALSE)),
-  
   tar_target(
     name = dado_cohort_logradouro,
-    command = definir_cohort(dado_did_logradouro_total, 
+    command = definir_cohort(dado_did_logradouro_todos,
                              logradouros = dado_logradouros,
                              por_logradouro = TRUE)),
-  
+
   # 6.3. roda
   
-  # EXEMPLO! Para cada regressão pode ser utilizada a estrutura a seguir
-  # É possível fazer de forma mais inteligente talvez se usar dynamic branching, mas não entrei a fundo nisso:
-  # https://books.ropensci.org/targets/dynamic.html
   tar_target(
-    
-    #nome que vai aparecer no tar_visnetword() e salvar na pasta _target/
-    #é puramente estético, talvez seja bom inventar algum sistema mais organizado
-    name = analise_did1,
-    
-    #o command rodar_did() ta no script did.R
-    command = rodar_did(
-      
-      #df é a base de dados utilizada no did. 
-      #Tem uma para cada categoria: dado_did_A_B
-      #opções A = trecho, logradouro
-      #opções B = total, moto, golden, moto_golden
-      #você pode fazer um pipe aqui mesmo e modificar a base, filtrar ou algo do tipo mas se for mudar muito acho melhor criar outra base
-      df = dado_did_trecho_moto_golden,
-      
-      #base de dados apoio para trazer informações sobre cohorts, como data e número de unidades tratadas
+    name = did_todos_total,
+    command = fit_did(
+      df = dado_did_trecho_todos,
       cohorts = dado_cohort_trecho,
-      
-      #título da tabela e do gráfico, assim como o nome do arquivo que será salvo em output/did/*
-      titulo = "Sinistros por trecho envolvendo motociclistas com match padrão ouro",
-      
-      #parâmetro para decidir se a regressão é rodada por km ou em número absoluto
-      #quando por km, calcula tanto os sinistros por km como as outras variáveis de controle
-      #automaticamente atualiza título e nome do arquivo
-      por_km = TRUE)),
-
-  tar_target(
-    name = analise_did2,
-    command = rodar_did(
-      df = dado_did_trecho_golden,
-      cohorts = dado_cohort_trecho,
-      titulo = "Sinistros por trecho com match padrão ouro",
+      titulo = "Todos os sinistros",
+      filename = "trecho/todos",
       por_km = FALSE)),
   
   tar_target(
-    name = analise_did3,
-    command = rodar_did(
-      df = dado_did_logradouro_golden,
-      cohorts = dado_cohort_logradouro,
-      titulo = "Sinistros por logradouro com match padrão ouro",
-      por_km = TRUE))
+    name = did_todos_km,
+    command = fit_did(
+      df = dado_did_trecho_todos,
+      cohorts = dado_cohort_trecho,
+      titulo = "Todos os sinistros",
+      filename = "trecho/todos",
+      por_km = TRUE)),
+  
+  tar_target(
+    name = did_moto_total,
+    command = fit_did(
+      df = dado_did_trecho_moto,
+      cohorts = dado_cohort_trecho,
+      titulo = "Sinistros de moto",
+      filename = "trecho/moto",
+      por_km = FALSE)),
+  
+  tar_target(
+    name = did_moto_km,
+    command = fit_did(
+      df = dado_did_trecho_moto,
+      cohorts = dado_cohort_trecho,
+      titulo = "Sinistros de moto",
+      filename = "trecho/moto",
+      por_km = TRUE)),
+  
+  tar_target(
+    name = did_todos_golden_total,
+    command = fit_did(
+      df = dado_did_trecho_todos_golden,
+      cohorts = dado_cohort_trecho,
+      titulo = "Todos os sinistros, golden",
+      filename = "trecho/todos-golden",
+      por_km = FALSE)),
+  
+  tar_target(
+    name = did_todos_golden_km,
+    command = fit_did(
+      df = dado_did_trecho_todos_golden,
+      cohorts = dado_cohort_trecho,
+      titulo = "Todos os sinistros, golden",
+      filename = "trecho/todos-golden",
+      por_km = TRUE)),
+  
+  tar_target(
+    name = did_moto_golden_total,
+    command = fit_did(
+      df = dado_did_trecho_moto_golden,
+      cohorts = dado_cohort_trecho,
+      titulo = "Sinistros de moto, golden",
+      filename = "trecho/moto-golden",
+      por_km = FALSE)),
+  
+  tar_target(
+    name = did_moto_golden_km,
+    command = fit_did(
+      df = dado_did_trecho_moto_golden,
+      cohorts = dado_cohort_trecho,
+      titulo = "Sinistros de moto, golden",
+      filename = "trecho/moto-golden",
+      por_km = TRUE)),
+  
+  
+  # 6.3.1 efeitos heterogeneos
+  tar_target(
+    name = did_2201_todos_golden,
+    command = did_by_group(
+      df = dado_did_trecho_todos_golden,
+      cohorts = dado_cohort_trecho,
+      group = 37,
+      titulo = "Todos os sinistros, golden, 2022-01",
+      filename = "trecho/Grupo/202201-todos-golden")),
+  
+  tar_target(
+    name = did_2201_moto_golden,
+    command = did_by_group(
+      df = dado_did_trecho_moto_golden,
+      cohorts = dado_cohort_trecho,
+      group = 37,
+      titulo = "Sinistros de moto, golden, 2022-01",
+      filename = "trecho/Grupo/202201-moto-golden")),
+  
+  tar_target(
+    name = did_2210_todos_golden,
+    command = did_by_group(
+      df = dado_did_trecho_todos_golden,
+      cohorts = dado_cohort_trecho,
+      group = 37,
+      titulo = "Todos os sinistros, golden, 2022-10",
+      filename = "trecho/Grupo/202210-todos-golden")),
+
+  tar_target(
+    name = did_2210_moto_golden,
+    command = did_by_group(
+      df = dado_did_trecho_moto_golden,
+      cohorts = dado_cohort_trecho,
+      group = 37,
+      titulo = "Sinistros de moto, golden, 2022-10",
+      filename = "trecho/Grupo/202210-moto-golden")),
+  
+  
+  tar_target(
+    name = did_gravidade_leve_todos_golden,
+    command = did_yname(
+      df = dado_did_trecho_todos_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistro_leve",
+      titulo = "Todos os sinistros, golden, sinistros leves",
+      filename = "trecho/Gravidade/leve-todos-golden")),
+
+  tar_target(
+    name = did_gravidade_leve_moto_golden,
+    command = did_yname(
+      df = dado_did_trecho_moto_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistro_leve",
+      titulo = "Sinistros de moto, golden, sinistros leves",
+      filename = "trecho/Gravidade/leve-moto-golden")),
+
+  tar_target(
+    name = did_gravidade_grave_todos_golden,
+    command = did_yname(
+      df = dado_did_trecho_todos_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistro_grave",
+      titulo = "Todos os sinistros, golden, sinistros graves",
+      filename = "trecho/Gravidade/grave-todos-golden")),
+
+  tar_target(
+    name = did_gravidade_grave_moto_golden,
+    command = did_yname(
+      df = dado_did_trecho_moto_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistro_grave",
+      titulo = "Sinistros de moto, golden, sinistros graves",
+      filename = "trecho/Gravidade/grave-moto-golden")),
+
+  tar_target(
+    name = did_gravidade_fatal_todos_golden,
+    command = did_yname(
+      df = dado_did_trecho_todos_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistro_fatal",
+      titulo = "Todos os sinistros, golden, sinistros fatais",
+      filename = "trecho/Gravidade/fatal-todos-golden")),
+
+  tar_target(
+    name = did_gravidade_fatal_moto_golden,
+    command = did_yname(
+      df = dado_did_trecho_moto_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistro_fatal",
+      titulo = "Sinistros de moto, golden, sinistros fatais",
+      filename = "trecho/Gravidade/fatal-moto-golden")),
+
+
+  tar_target(
+    name = did_acidente_colisao_todos_golden,
+    command = did_yname(
+      df = dado_did_trecho_todos_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "acidente_colisao",
+      titulo = "Todos os sinistros, golden, apenas colisao",
+      filename = "trecho/Acidente/colisao-todos-golden")),
+
+  tar_target(
+    name = did_acidente_colisao_moto_golden,
+    command = did_yname(
+      df = dado_did_trecho_moto_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "acidente_colisao",
+      titulo = "Sinistros de moto, golden, apenas colisao",
+      filename = "trecho/Acidente/colisao-moto-golden")),
+
+  tar_target(
+    name = did_acidente_choque_todos_golden,
+    command = did_yname(
+      df = dado_did_trecho_todos_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "acidente_choque",
+      titulo = "Todos os sinistros, golden, apenas choque",
+      filename = "trecho/Acidente/choque-todos-golden")),
+
+  tar_target(
+    name = did_acidente_choque_moto_golden,
+    command = did_yname(
+      df = dado_did_trecho_moto_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "acidente_choque",
+      titulo = "Sinistros de moto, golden, apenas choque",
+      filename = "trecho/Acidente/choque-moto-golden")),
+
+  tar_target(
+    name = did_acidente_atropelamento_todos_golden,
+    command = did_yname(
+      df = dado_did_trecho_todos_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "acidente_atropelamento",
+      titulo = "Todos os sinistros, golden, apenas atropelamento",
+      filename = "trecho/Acidente/atropelamento-todos-golden")),
+
+  tar_target(
+    name = did_acidente_atropelamento_moto_golden,
+    command = did_yname(
+      df = dado_did_trecho_moto_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "acidente_atropelamento",
+      titulo = "Sinistros de moto, golden, apenas atropelamento",
+      filename = "trecho/Acidente/atropelamento-moto-golden")),
+
+  tar_target(
+    name = did_acidente_outros_todos_golden,
+    command = did_yname(
+      df = dado_did_trecho_todos_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "acidente_outros",
+      titulo = "Todos os sinistros, golden, apenas outros",
+      filename = "trecho/Acidente/outros-todos-golden")),
+
+  tar_target(
+    name = did_acidente_outros_moto_golden,
+    command = did_yname(
+      df = dado_did_trecho_moto_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "acidente_outros",
+      titulo = "Sinistros de moto, golden, apenas outros",
+      filename = "trecho/Acidente/outros-moto-golden"))
+
+  # tar_target(
+  #   name = did_gravidade_leve_moto_golden_km,
+  #   command = did_gravidade_leve(
+  #     df = dado_did_trecho_moto_golden,
+  #     cohorts = dado_cohort_trecho,
+  #     titulo = "Sinistros de moto golden por trecho",
+  #     filename = "trecho/Gravidade/leve-golden",
+  #     por_km = TRUE)),
+  #
+  # tar_target(
+  #   name = did_gravidade_grave_moto_golden_km,
+  #   command = did_gravidade_grave(
+  #     df = dado_did_trecho_moto_golden,
+  #     cohorts = dado_cohort_trecho,
+  #     titulo = "Sinistros de moto golden por trecho",
+  #     filename = "trecho/Gravidade/grave-golden",
+  #     por_km = TRUE)),
+  #
+  # tar_target(
+  #   name = did_gravidade_fatal_moto_golden_km,
+  #   command = did_gravidade_fatal(
+  #     df = dado_did_trecho_moto_golden,
+  #     cohorts = dado_cohort_trecho,
+  #     titulo = "Sinistros de moto golden por trecho",
+  #     filename = "trecho/Gravidade/fatal-golden",
+  #     por_km = TRUE))
+
+  # # EXEMPLO! Para cada regressão pode ser utilizada a estrutura a seguir
+  # # É possível fazer de forma mais inteligente talvez se usar dynamic branching, mas não entrei a fundo nisso:
+  # # https://books.ropensci.org/targets/dynamic.html
+  # tar_target(
+  # 
+  #   #nome que vai aparecer no tar_visnetword() e salvar na pasta _target/
+  #   #é puramente estético, talvez seja bom inventar algum sistema mais organizado
+  #   name = analise_did1,
+  # 
+  #   #o command rodar_did() ta no script did.R
+  #   command = rodar_did(
+  # 
+  #     #df é a base de dados utilizada no did.
+  #     #Tem uma para cada categoria: dado_did_A_B
+  #     #opções A = trecho, logradouro
+  #     #opções B = total, moto, golden, moto_golden
+  #     #você pode fazer um pipe aqui mesmo e modificar a base, filtrar ou algo do tipo mas se for mudar muito acho melhor criar outra base
+  #     df = dado_did_trecho_moto_golden,
+  # 
+  #     #base de dados apoio para trazer informações sobre cohorts, como data e número de unidades tratadas
+  #     cohorts = dado_cohort_trecho,
+  # 
+  #     #título da tabela e do gráfico, assim como o nome do arquivo que será salvo em output/did/*
+  #     titulo = "Sinistros por trecho envolvendo motociclistas com match padrão ouro",
+  # 
+  #     #parâmetro para decidir se a regressão é rodada por km ou em número absoluto
+  #     #quando por km, calcula tanto os sinistros por km como as outras variáveis de controle
+  #     #automaticamente atualiza título e nome do arquivo
+  #     por_km = TRUE)),
+  # 
+  # tar_target(
+  #   name = analise_did2,
+  #   command = rodar_did(
+  #     df = dado_did_trecho_golden,
+  #     cohorts = dado_cohort_trecho,
+  #     titulo = "Sinistros por trecho com match padrão ouro",
+  #     por_km = FALSE)),
+  # 
+  # tar_target(
+  #   name = analise_did3,
+  #   command = rodar_did(
+  #     df = dado_did_logradouro_golden,
+  #     cohorts = dado_cohort_logradouro,
+  #     titulo = "Sinistros por logradouro com match padrão ouro",
+  #     por_km = TRUE))
   
 
 
