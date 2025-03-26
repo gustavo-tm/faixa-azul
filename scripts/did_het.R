@@ -112,7 +112,8 @@ fit_did_het <- function(df, titulo, filename, cohorts, por_km = FALSE, yname = "
     ggsave(filename = filename |> paste0("-plot.png"), 
            path = "output/did_het/",
            plot = _,
-           width = 10, height = 7.5, dpi = 300)
+           width = 10, height = 7.5, dpi = 300,
+           create.dir = TRUE)
 }
 
 

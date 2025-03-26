@@ -113,6 +113,11 @@ tidy_trechos <- function(osm){
 
 
 agrupar_logradouros <- function(trechos, token_osm){
+  
+  token_osm <- token_osm |> 
+    group_by(id_osm) |> 
+    filter(row_number() == 1)
+  
   conexoes <- trechos |> 
     filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
     arrange(logradouro) |> 

@@ -8,7 +8,7 @@ workers <- 8
 assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
 
 # PARA DEBUGAR
-# tar_meta(fields = error, complete_only = TRUE)
+# tar_meta(fields = error, complete_only = TRUE) |> View()
 # tar_progress()
 # tar_visnetwork()
 # tar_delete()
@@ -27,6 +27,7 @@ tar_source("scripts/tidy_trechos.R")
 tar_source("scripts/trechos_complemento.R")
 tar_source("scripts/tidy_faixa_azul.R")
 tar_source("scripts/match.R")
+tar_source("scripts/descritivas.R")
 tar_source("scripts/did.R")
 tar_source("scripts/did_het.R")
 
@@ -82,14 +83,7 @@ list(
   tar_target(
     name = dado_sinistros_chunks,
     command = match_dados_split(dado_sinistros, n = workers)),
-  # tar_target(
-  #   name = dado_match_chunks,
-  #   command = match_dados(dado_sinistros_chunks, 
-  #                         sinistros_token = dado_token_infosiga, 
-  #                         trechos = dado_trechos, 
-  #                         trechos_token = dado_token_osm),
-  #   pattern = map(dado_sinistros_chunks),
-  #   iteration = "list"),
+
   tar_target(
     name = dado_match_chunks,
     command = match_dados(dado_sinistros_chunks, 
@@ -103,8 +97,20 @@ list(
     name = dado_match,
     command = bind_rows(dado_match_chunks)),
   
-  # 6. DID ----
-  # 6.1 agrega
+  # 6. DESCRITIVAS ----
+  tar_target(
+    name = descritiva_datas_FA,
+    command = plot_datas_FA(dado_logradouros, dado_id_logradouros, dado_match, dado_sinistros)),
+  tar_target(
+    name = descritiva_obitos_tempo,
+    command = plot_obitos_tempo(dado_sinistros, dado_match, dado_faixa_azul, dado_logradouros, dado_id_logradouros)),
+  tar_target(
+    name = descritiva_tamanho_FA,
+    command = plot_tamanho_FA(dado_id_logradouros, dado_logradouros, dado_faixa_azul, dado_trechos)),
+  
+  
+  # 7. DID ----
+  # 7.1 agrega
   tar_target(
     name = dado_did_trecho_mes,
     command = dado_trecho_mes(dado_sinistros, dado_match, dado_trechos)),
@@ -113,8 +119,8 @@ list(
     name = dado_did_logradouro_mes,
     command = dado_logradouro_mes(dado_sinistros, dado_match, dado_id_logradouros)),
 
-  # 6.2 prepara
-  # 6.2.1. trecho
+  # 7.2 prepara
+  # 7.2.1. trecho
   tar_target(
     name = dado_did_trecho_todos,
     command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, dado_faixa_azul,
@@ -131,7 +137,7 @@ list(
     name = dado_did_trecho_moto_golden,
     command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, dado_faixa_azul,
                                  filtrar_por = c(motocicleta_envolvida, golden_match))),
-  # 6.2.2. logradouro
+  # 7.2.2. logradouro
   tar_target(
     name = dado_did_logradouro_todos,
     command = prepara_logradouro_did(dado_did_logradouro_mes, dado_logradouros,
@@ -148,7 +154,7 @@ list(
     name = dado_did_logradouro_moto_golden,
     command = prepara_logradouro_did(dado_did_logradouro_mes, dado_logradouros,
                                  filtrar_por = c(motocicleta_envolvida, golden_match))),
-  # 6.2.3. cohort
+  # 7.2.3. cohort
   tar_target(
     name = dado_cohort_trecho,
     command = definir_cohort(dado_did_trecho_todos,
@@ -162,7 +168,7 @@ list(
                              logradouros = dado_logradouros,
                              por_logradouro = TRUE)),
 
-  # 6.3. roda
+  # 7.3. roda
   
   tar_target(
     name = did_todos_total,
@@ -237,7 +243,7 @@ list(
       por_km = TRUE)),
   
   
-  # 6.3.1 efeitos heterogeneos
+  # 7.3.1 efeitos heterogeneos
   tar_target(
     name = did_2201_todos_golden,
     command = did_by_group(
