@@ -55,7 +55,7 @@ tokenizar <- function(df, id){
     
     #Corrigir quando aparecem 2 tokens no mesmo campo
     #"ACESSO AVENIDA" apareceria em duas linhas diferentes, mas deveria ser um token só
-    group_by(!!id, logradouro) |> 
+    group_by(!!id, logradouro, alias) |> 
     summarize(logradouro_limpo = nth(logradouro_limpo, 1),
               tipo = tipo |> str_split(" ") |> unlist() |> unique() |> paste(collapse = " ") |> limpar(),
               titulo = titulo |> str_split(" ") |> unlist() |> unique() |> paste(collapse = " ") |> limpar())
@@ -69,10 +69,14 @@ tokenizar_infosiga <- function(sinistros){
   infosiga.token <- sinistros |> 
     filter(tipo != "NOTIFICACAO", logradouro != "NAO DISPONIVEL") |> 
     select(id_sinistro, logradouro) |> 
+    mutate(alias = "logradouro") |> 
     tokenizar(id = "id_sinistro")
   
   return(infosiga.token)
 }
+
+trechos <- tar_read(dado_trechos)
+
 
 tokenizar_osm <- function(trechos){
   osm.token <- trechos |>  
@@ -85,7 +89,7 @@ tokenizar_osm <- function(trechos){
     separate_wider_delim(logradouro_alt1, delim = ";", too_few = "align_start", names_sep = "_") |>
     pivot_longer(starts_with("logradouro")) |>
     drop_na() |> 
-    rename(logradouro = value) |>
+    rename(logradouro = value, alias = name) |>
     tokenizar(id = "id_osm")
   
   return(osm.token)
@@ -166,7 +170,13 @@ match_dados <- function(sinistros, sinistros_token, trechos, trechos_token){
     filter(match_tipo + match_titulo == max(match_tipo + match_titulo), #Selecionar o que tem maior match de título e tipo
            match_titulo == max(match_titulo), #Se um tiver match e título, e o outro match no tipo, manter apenas match no título
            row_number() == 1) #Garantir que sobra apenas uma linha no matter what
-    
+  
+  match <- match |> 
+    left_join(sinistros |> 
+                mutate(numero_zero = as.numeric(numero) == 0) |> 
+                select(id_sinistro, numero_zero))
+  
+  
   return(match)
   
   # match |> 

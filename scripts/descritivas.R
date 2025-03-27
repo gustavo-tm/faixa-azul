@@ -388,47 +388,78 @@ plot_hora_sinistro <- function(sinistros){
 # ggsave("output/sinistros-meses.pdf", width = 8, height = 8)
 # 
 # 
-# # TRECHOS/LOGRADOUROS TRATADOS POR PERIODO ----
+# TRECHOS/LOGRADOUROS TRATADOS POR PERIODO ----
 # 
-# trechos <- st_read("banco_dados/trechos.gpkg") |> 
-#   st_drop_geometry() |> 
-#   as_tibble() |> 
-#   filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
-#   left_join(read_csv("dados_tratados/osm-token.csv", col_types = list(id_osm = "c")) |> 
-#               select(id_osm, logradouro_limpo) |> 
-#               mutate(len = str_length(logradouro_limpo)) |> 
-#               group_by(id_osm) |> 
-#               arrange(-len) |> 
-#               summarize(logradouro_limpo = nth(logradouro_limpo, 1), .groups = "drop")) |> 
-#   mutate(id_osm = as.numeric(id_osm)) |> 
+# trechos <- st_read("banco_dados/trechos.gpkg") |>
+#   st_drop_geometry() |>
+#   as_tibble() |>
+#   filter(tipo_via %in% c("trunk", "primary", "secondary")) |>
+#   left_join(read_csv("dados_tratados/osm-token.csv", col_types = list(id_osm = "c")) |>
+#               select(id_osm, logradouro_limpo) |>
+#               mutate(len = str_length(logradouro_limpo)) |>
+#               group_by(id_osm) |>
+#               arrange(-len) |>
+#               summarize(logradouro_limpo = nth(logradouro_limpo, 1), .groups = "drop")) |>
+#   mutate(id_osm = as.numeric(id_osm)) |>
 #   select(id_osm, logradouro, logradouro_limpo, tipo_via, faixas, limite_velocidade, mao_unica, superficie, comprimento)
+
+# faixa_azul <- tar_read(dado_faixa_azul)
+# trechos <- tar_read(dado_trechos)
 # 
-# faixa_azul |> 
-#   distinct() |> 
-#   group_by(data_implementacao) |> 
-#   summarize(trechos = n()) |> 
-#   complete(data_implementacao = seq(min(data_implementacao), max(data_implementacao), by = "1 month"), fill = list(trechos = 0)) |> 
+# faixa_azul |>
+#   left_join(trechos |> st_drop_geometry() |> select(id_osm, comprimento)) |> 
+#   group_by(data_implementacao) |>
+#   summarize(trechos = n(),
+#             comprimento = sum(comprimento)) |>
+#   complete(data_implementacao = seq(min(data_implementacao), max(data_implementacao), by = "1 month"), fill = list(trechos = 0, comprimento = 0)) |>
 #   mutate(trechos_total = cumsum(trechos),
-#          trechos_label = if_else(trechos == 0, "", as.character(trechos_total))) |> 
-#   ggplot() +
-#   geom_col(aes(data_implementacao, trechos_total), fill = rgb(.05,.1,.3)) +
-#   geom_text(aes(data_implementacao, trechos_total, label = trechos_label), vjust = -0.5, hjust = 0.8) +
+#          trechos_label = if_else(trechos == 0, "", as.character(trechos_total)),
+#          comprimento_total = cumsum(comprimento)) |>
+#   ggplot(aes(x= data_implementacao)) +
+#   geom_col(aes(y = trechos_total), fill = rgb(.05,.1,.3)) +
+#   geom_text(aes(y = trechos_total, label = trechos_label), vjust = -0.5, hjust = 0.8) +
 #   labs(x = NULL, y = "Número de trechos",
 #        title = "Trechos implementados por período") +
 #   theme_minimal()
+# 
+# 
+# 
+# faixa_azul |>
+#   left_join(trechos |> st_drop_geometry() |> select(id_osm, logradouro, comprimento)) |> 
+#   mutate(logradouro = factor(logradouro) |> fct_reorder(desc(data_implementacao))) |> 
+#   group_by(data_implementacao, logradouro) |>
+#   summarize(trechos = sum(comprimento)) |> ungroup() |> 
+#   complete(data_implementacao = seq(min(data_implementacao), max(data_implementacao), by = "1 month"), logradouro, fill = list(trechos = 0)) |> 
+#   group_by(logradouro) |> 
+#   mutate(trechos_total = cumsum(trechos),
+#          trechos_label = if_else(trechos == 0, "", as.character(trechos_total))) |>
+#   ggplot(aes(x= data_implementacao)) +
+#   geom_col(aes(y = trechos_total, fill = logradouro), colour = "white", lwd = .1) +
+#   # geom_col(aes(y = trechos_total), fill = rgb(.05,.1,.3)) +
+#   # geom_text(aes(y = trechos_total, label = trechos_label), vjust = -0.5, hjust = 0.8) +
+#   labs(x = NULL, y = "Número de trechos",
+#        title = "Trechos implementados por período") +
+#   theme_minimal() +
+#   scale_fill_viridis_d(direction = -1) +
+#   theme(legend.position = "bottom")
+# 
+# 
+# 
+# token_osm <- tar_read(dado_token_osm)
+# 
 # ggsave("output/trechos_implementados.pdf", width = 10, height = 7.5)
 # ggsave("output/trechos_implementados.png", width = 7, height = 6, dpi = 400)
 # 
 # trechos |>
-#   left_join(faixa_azul) |> 
+#   left_join(faixa_azul) |>
 #   group_by(logradouro_limpo, data_implementacao) |>
-#   summarize(trechos = n()) |> 
-#   filter(!is.na(data_implementacao)) |> 
-#   group_by(data_implementacao) |> 
-#   summarize(logradouros = n()) |> 
-#   complete(data_implementacao = seq(min(data_implementacao), max(data_implementacao), by = "1 month"), fill = list(logradouros = 0)) |> 
+#   summarize(trechos = n()) |>
+#   filter(!is.na(data_implementacao)) |>
+#   group_by(data_implementacao) |>
+#   summarize(logradouros = n()) |>
+#   complete(data_implementacao = seq(min(data_implementacao), max(data_implementacao), by = "1 month"), fill = list(logradouros = 0)) |>
 #   mutate(logradouros_total = cumsum(logradouros),
-#          logradouros_label = if_else(logradouros == 0, "", as.character(logradouros_total))) |> 
+#          logradouros_label = if_else(logradouros == 0, "", as.character(logradouros_total))) |>
 #   ggplot() +
 #   geom_col(aes(data_implementacao, logradouros_total), fill = rgb(.05,.1,.3)) +
 #   geom_text(aes(data_implementacao, logradouros_total, label = logradouros_label), vjust = -0.5, hjust = 0.8) +
@@ -441,61 +472,54 @@ plot_hora_sinistro <- function(sinistros){
 # 
 # # QUALIDADE DO MATCH ----
 # 
-# tabela <- sinistros |> 
-#   filter(tipo != "NOTIFICACAO", year(data) > 2018) |> 
-#   select(id_sinistro, data, logradouro, numero, latitude, longitude, tipo) |> 
-#   mutate(numero_zero = numero == 0,
-#          across(c(logradouro:longitude), ~ is.na(.x) | .x == "NAO DISPONIVEL"),
-#          apresenta_lognum = logradouro == FALSE & numero == FALSE,
-#          apresenta_latlong = latitude == FALSE & longitude == FALSE,
-#          completude = case_when(apresenta_latlong & apresenta_lognum & !numero_zero ~ "Completo",
-#                                 apresenta_latlong & apresenta_lognum & numero_zero ~ "Completo, mas número zero",
-#                                 apresenta_latlong & !apresenta_lognum ~ "Apenas latitude e longitude",
-#                                 !apresenta_latlong & apresenta_lognum ~ "Apenas logradouro e número",
-#                                 !apresenta_latlong & !apresenta_lognum & logradouro == FALSE ~ "Apenas logradouro",
-#                                 !apresenta_latlong & !apresenta_lognum & numero == FALSE & numero_zero ~ "Apenas número zero",
-#                                 !apresenta_latlong & !apresenta_lognum & numero == FALSE & !numero_zero ~ "Apenas número",
-#                                 .default = "Nenhuma informação") |> 
-#            factor(levels = c("Completo", "Completo, mas número zero", "Apenas logradouro e número", "Apenas número zero") |> rev())) |>
-#   select(id_sinistro, data, completude, tipo) |> 
-#   left_join(match) |> 
-#   mutate(qualidade_match = case_when(similaridade == 1 & distancia_geografica < 100 & match_tipo & match_titulo ~ "Perfeito",
-#                                      similaridade > .9 & distancia_geografica < 200 & match_tipo & match_titulo ~ "Excelente",
-#                                      similaridade > .8 & distancia_geografica < 300 & (match_tipo | match_titulo) ~ "Bom",
-#                                      is.na(id_osm) ~ "Não encontrou match",
-#                                      .default = "Ruim") |> 
-#            factor(levels = c("Perfeito", "Excelente", "Bom", "Ruim", "Não encontrou match") |> rev()))
-# 
-# tabela |> 
-#   group_by(completude) |> 
-#   summarize(n = n()) |> 
-#   mutate(percent = n / sum(n)) |> 
-#   ggplot(aes(y = completude)) +
-#   geom_col(aes(x = n)) +
-#   geom_text(aes(x = n, label = percent |> round(3) |> scales::percent()), nudge_x = 10000) +
-#   scale_x_continuous(labels = scales::number) +
-#   theme_minimal() +
-#   theme(legend.position = "none") +
-#   labs(x = "Quantidade de sinistros", y = "Qualidade da informação na base")
-# 
-# ggsave("output/qualidade_georref_infosiga.pdf", width = 7, height = 4)
-# 
-# tabela |> 
-#   group_by(qualidade_match) |> 
-#   summarize(n = n()) |> 
-#   mutate(percent = n / sum(n)) |> 
-#   ggplot(aes(y = qualidade_match)) +
-#   geom_col(aes(x = n)) +
-#   geom_text(aes(x = n, label = percent |> round(3) |> scales::percent()), nudge_x = 10000) +
-#   scale_x_continuous(labels = scales::number) +
-#   theme_minimal() +
-#   theme(legend.position = "none") +
-#   labs(x = "Quantidade de sinistros", y = "Qualidade do match")
-# 
-# ggsave("output/qualidade_match.pdf", width = 7, height = 4)
-# 
-# rm(tabela)
-# 
+
+
+plot_qualidade_match <- function(sinistros, match){
+  
+  
+  tabela <- sinistros |>
+    filter(tipo != "NOTIFICACAO", year(data) > 2018) |>
+    select(id_sinistro, data, logradouro, numero, latitude, longitude, tipo) |>
+    mutate(numero_zero = as.numeric(numero) == 0) |>
+    select(id_sinistro, data, numero_zero) |>
+    left_join(match) |>
+    mutate(qualidade_match = case_when(similaridade == 1 & distancia_geografica < 50 & match_tipo & match_titulo & numero_zero == FALSE ~ "Perfeito",
+                                       similaridade > .85 & distancia_geografica < 150 & (match_tipo | match_titulo) & numero_zero == FALSE ~ "Excelente",
+                                       similaridade > .7 & distancia_geografica < 250 ~ "Aceitável",
+                                       is.na(id_osm) ~ "Não encontrou match",
+                                       .default = "Ruim") |>
+             factor(levels = c("Perfeito", "Excelente", "Aceitável", "Ruim", "Não encontrou match") |> rev()))
+  
+  gg <- tabela |>
+    group_by(qualidade_match) |>
+    summarize(n = n()) |>
+    mutate(percent = n / sum(n)) |>
+    ggplot(aes(y = qualidade_match)) +
+    geom_col(aes(x = n)) +
+    geom_text(aes(x = n, label = percent |> round(3) |> scales::percent()), nudge_x = 7500) +
+    scale_x_continuous(labels = scales::number, expand = expansion(mult = c(0.05, 0.075))) +
+    theme_minimal() +
+    theme(legend.position = "none",
+          plot.caption = element_text(hjust = 0),
+          plot.margin = margin(10,30,10,10)) +
+    labs(x = "Quantidade de sinistros", y = "Qualidade do match", 
+         # caption = paste(c("DEFINIÇÕES", 
+         #                   "Perfeito: nome exato (similaridade de 100%), distância < 50m, mesmo tipo e título, número não é zero",
+         #                   "Excelente: similaridade no nome > 85%, distância < 150m, tipo ou título iguais, número não é zero",
+         #                   "Aceitável: similaridade no nome > 70%, distância < 250m",
+         #                   "Ruim: restante"), 
+         #                 collapse = "\n")
+    )
+  
+  
+  ggsave("output/qualidade_match.pdf", gg, width = 6, height = 6)
+}
+
+
+
+
+
+
 # # MAPA SINISTROS ----
 # 
 # distrito <- st_read("dados_tratados/distrito/SIRGAS_SHP_distrito.shp") |> 

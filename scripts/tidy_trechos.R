@@ -112,9 +112,12 @@ tidy_trechos <- function(osm){
 }
 
 
+
 agrupar_logradouros <- function(trechos, token_osm){
   
+  # Escolher apenas o nome principal da via
   token_osm <- token_osm |> 
+    arrange(alias) |> 
     group_by(id_osm) |> 
     filter(row_number() == 1)
   
@@ -148,10 +151,7 @@ agrupar_logradouros <- function(trechos, token_osm){
     components() |> 
     membership() |> 
     (\(df) tibble(id_osm = names(df), id_logradouro = df))() |> 
-    left_join(token_osm |> 
-                group_by(id_osm) |> 
-                filter(row_number() == 1) |> 
-                select(id_osm, logradouro_limpo)) |> 
+    left_join(token_osm) |> 
     group_by(id_logradouro = factor(id_logradouro)) |> 
     summarize(trechos = id_osm |> 
                 as.character() |> 
