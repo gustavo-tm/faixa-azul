@@ -161,7 +161,7 @@ plot_tamanho_FA <- function(logradouros_id, logradouros, faixa_azul, trechos){
 # PANFLETO CET ----
 
 plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logradouros){
-  sinistros |> 
+  gg <- sinistros |> 
     filter(tipo == "SINISTRO FATAL", year(data) > 2015) |> 
     left_join(match, by = join_by(id_sinistro)) |> 
     left_join(faixa_azul |> distinct()) |> 
@@ -183,9 +183,9 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     theme_minimal() +
     labs(x = NULL, fill = "Local do sinistro", y = "Óbitos",
          title = "Óbitos totais por tipo de via")
-  ggsave("output/plot_obitos_tempo_total.pdf", width = 8, height = 5)
+  ggsave("output/plot_obitos_tempo_total.pdf", gg, width = 8, height = 5)
   
-  sinistros |> 
+  gg <- sinistros |> 
     filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
     left_join(match, by = join_by(id_sinistro)) |> 
     left_join(faixa_azul |> distinct()) |> 
@@ -207,9 +207,9 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     theme_minimal() +
     labs(x = NULL, fill = "Local do sinistro", y = "Óbitos",
          title = "Óbitos em sinistros com moto por tipo de via")
-  ggsave("output/plot_obitos_tempo_moto.pdf", width = 8, height = 5)
+  ggsave("output/plot_obitos_tempo_moto.pdf", gg, width = 8, height = 5)
   
-  sinistros |> 
+  gg <- sinistros |> 
     filter(tipo == "SINISTRO FATAL", year(data) > 2015) |> 
     left_join(match, by = join_by(id_sinistro)) |> 
     semi_join(faixa_azul |> select(id_osm)) |> 
@@ -221,10 +221,10 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     theme_minimal() +
     labs(x = NULL, y = "Óbitos",
          title = "Óbitos totais - trechos com Faixa Azul")
-  ggsave("output/plot_obitos_tempo_FA.pdf", width = 8, height = 5)
+  ggsave("output/plot_obitos_tempo_FA.pdf", gg, width = 8, height = 5)
   
   
-  sinistros |> 
+  gg <- sinistros |> 
     filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
     left_join(match, by = join_by(id_sinistro)) |> 
     semi_join(faixa_azul |> select(id_osm)) |> 
@@ -236,9 +236,9 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     theme_minimal() +
     labs(x = NULL, y = "Óbitos",
          title = "Óbitos em sinistros com moto - trechos que receberam Faixa Azul")
-  ggsave("output/plot_obitos_tempo_FA_moto.pdf", width = 8, height = 5)
+  ggsave("output/plot_obitos_tempo_FA_moto.pdf", gg, width = 8, height = 5)
   
-  sinistros |> 
+  gg <- sinistros |> 
     filter(tipo == "SINISTRO FATAL", year(data) > 2015) |> 
     left_join(match, by = join_by(id_sinistro)) |>
     semi_join(logradouros |> 
@@ -254,9 +254,9 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     labs(x = NULL, y = "Óbitos",
          title = "Óbitos totais - vias que receberam Faixa Azul") +
     theme_minimal()
-  ggsave("output/plot_obitos_tempo_FA_logradouro.pdf", width = 8, height = 5)
+  ggsave("output/plot_obitos_tempo_FA_logradouro.pdf", gg, width = 8, height = 5)
   
-  sinistros |> 
+  gg <- sinistros |> 
     filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
     left_join(match, by = join_by(id_sinistro)) |>
     semi_join(logradouros |> 
@@ -272,7 +272,7 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     labs(x = NULL, y = "Óbitos",
          title = "Óbitos totais - vias que receberam Faixa Azul") +
     theme_minimal()
-  ggsave("output/plot_obitos_tempo_FA_logradouro_moto.pdf", width = 8, height = 5)
+  ggsave("output/plot_obitos_tempo_FA_logradouro_moto.pdf", gg, width = 8, height = 5)
   
   
 }
@@ -318,23 +318,23 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
 # frota <- read_csv("dados_tratados/frota_sp.csv")
 # 
 # left_join(
-#   sinistros |> 
-#     filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
-#     group_by(ano = year(data)) |> 
+#   sinistros |>
+#     filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |>
+#     group_by(ano = year(data)) |>
 #     summarize(mortes = sum(quantidade_envolvidos)),
-#   frota |> 
-#     filter(mes == 12, tipo_veiculo %in% c("motocicleta", "motoneta")) |> 
-#     group_by(ano) |> 
-#     summarize(motocicletas = sum(quantidade))) |> 
-#   pivot_longer(mortes:motocicletas) |> 
-#   group_by(name) |> 
-#   mutate(num_indice = (value / first(value)) * 100) |> 
+#   frota |>
+#     filter(mes == 12, tipo_veiculo %in% c("motocicleta", "motoneta")) |>
+#     group_by(ano) |>
+#     summarize(motocicletas = sum(quantidade))) |>
+#   pivot_longer(mortes:motocicletas) |>
+#   group_by(name) |>
+#   mutate(num_indice = (value / first(value)) * 100) |>
 #   ggplot(aes(x = factor(ano), y = num_indice)) +
 #   geom_line(aes(group = name, colour = name)) +
 #   geom_point(colour = "grey50") +
 #   theme_minimal() +
 #   # scale_y_continuous(labels = scales::percent) +
-#   scale_colour_manual(NULL, values = c(rgb(.3, .05, .1), rgb(.9, .8, .5)), 
+#   scale_colour_manual(NULL, values = c(rgb(.3, .05, .1), rgb(.9, .8, .5)),
 #                       labels = c("Óbitos em sinistros fatais que envolveram motocicleta", "Frota total de motocicletas e motonetas")) +
 #   theme(legend.position = "top",) +
 #   labs(y = "Variação (2016 = 100)", x = NULL) +
@@ -343,27 +343,30 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
 # ggsave("output/comparacao_panfleto/frota_vs_mortes.pdf", width = 6, height = 5)
 # 
 # 
-# # SINISTROS EM CADA HORA DO DIA ----
-# 
-# read_csv("banco_dados/sinistros.csv") |>
-#   filter(year(data) > 2018, year(data) <= 2023) |> 
-#   mutate(mes = fct_collapse(month(data) |> factor(),
-#                             "Jan-Mar" = 1:3,
-#                             "Abr-Jun" = 4:6,
-#                             "Jul-Set" = 7:9,
-#                             "Out-Dez" = 10:12,
-#                             other_level = "teste")) |> 
-#   group_by(hora = hour(data), dia = day(data), mes) |> 
-#   summarize(sinistros = n()) |> 
-#   ggplot(aes(x = dia, y = hora, fill = sinistros)) +
-#   geom_tile() +
-#   facet_grid(cols = vars(mes)) +
-#   theme_minimal() +
-#   scale_fill_viridis_c() +
-#   scale_y_continuous("Horário", breaks = 0:11*2) +
-#   scale_x_continuous("Dia do mês", breaks = NULL)
-# 
-# ggsave("output/horarios-sinistros.pdf", width = 10, height =4)
+# SINISTROS EM CADA HORA DO DIA ----
+
+plot_hora_sinistro <- function(sinistros){
+  gg <- sinistros |>
+    filter(year(data) > 2018, year(data) <= 2023) |>
+    mutate(mes = fct_collapse(month(data) |> factor(),
+                              "Jan-Mar" = 1:3,
+                              "Abr-Jun" = 4:6,
+                              "Jul-Set" = 7:9,
+                              "Out-Dez" = 10:12,
+                              other_level = "teste")) |>
+    group_by(hora, dia = day(data), mes) |>
+    summarize(sinistros = n()) |>
+    ggplot(aes(x = dia, y = hora, fill = sinistros)) +
+    geom_tile() +
+    facet_grid(cols = vars(mes)) +
+    theme_minimal() +
+    scale_fill_viridis_c() +
+    scale_y_continuous("Horário", breaks = 0:11*2) +
+    scale_x_continuous("Dia do mês", breaks = NULL)
+  
+  ggsave("output/horarios-sinistros.pdf", gg, width = 10, height =4)
+}
+
 # 
 # 
 # 

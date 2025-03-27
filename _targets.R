@@ -107,6 +107,9 @@ list(
   tar_target(
     name = descritiva_tamanho_FA,
     command = plot_tamanho_FA(dado_id_logradouros, dado_logradouros, dado_faixa_azul, dado_trechos)),
+  tar_target(
+    name = descritiva_hora_sinistro,
+    command = plot_hora_sinistro(dado_sinistros)),
   
   
   # 7. DID ----
