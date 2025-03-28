@@ -70,20 +70,13 @@ did_gravidade_leve_moto_golden|stem|22f6a3e2ace9ab38|1193d6504b32e4f7|239acbb12e
 did_gravidade_grave_todos_golden|stem|7c00e9c02a97d296|73064cf75d1b1cc8|f892ef4e8a93bb06|-561376861||t20173.631920856s|s114b|114|rds|local|vector|||2864.281|Be aware that there are some small groups in your dataset.  Check groups 63.. Not returning pretest Wald statistic due to singular covariance matrix. Simultaneous critical value is arguably too large to be realible. This usually happens when number of observations per group is small andor there is no much variation in outcomes.. dropped 119866 rows from original data due to missing data. Be aware that there are some small groups in your dataset.  Check groups 63,73.. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not conve|
 did_acidente_choque_moto_golden|stem|f98dd92e325b8f38|d51fbf874a116039|239acbb12e9a6eed|114230345||t20173.6418498776s|s111b|111|rds|local|vector|||2245.25|Be aware that there are some small groups in your dataset.  Check groups 63.. Not returning pretest Wald statistic due to singular covariance matrix. Simultaneous critical value is arguably too large to be realible. This usually happens when number of observations per group is small andor there is no much variation in outcomes.. dropped 119866 rows from original data due to missing data. Be aware that there are some small groups in your dataset.  Check groups 63,73.. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not conve|
 did_gravidade_grave_moto_golden|stem|4f1ec69153e2101d|5da44b35718603ac|239acbb12e9a6eed|-618234007||t20173.643009035s|s113b|113|rds|local|vector|||2089.344|Be aware that there are some small groups in your dataset.  Check groups 63.. Not returning pretest Wald statistic due to singular covariance matrix. Simultaneous critical value is arguably too large to be realible. This usually happens when number of observations per group is small andor there is no much variation in outcomes.. dropped 119866 rows from original data due to missing data. Be aware that there are some small groups in your dataset.  Check groups 63,73.. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not converge. glm.fit fitted probabilities numerically 0 or 1 occurred. glm.fit algorithm did not conve|
-descritiva_hora_sinistro|stem|ec5d1a3c817005b5|73509ebd72c52bf1|f6f803461bfc55e6|1569173501||t20174.8490217755s|s82b|82|rds|local|vector|||3.781|1m22mRemoved 96 rows containing missing values or values outside the scale rangegeom_tile.|
 dado_token_infosiga|stem|ad878fdde6e4c7b6|1fc934ea9fa7b57c|7273e3def9c0466d|805661047||t20174.8590829323s|s4506938b|4506938|rds|local|vector|||308.078||
 dado_token_osm|stem|02cee0860a23e03d|6d52c844f5070652|f26741e371923e78|-1588809096||t20174.8597127243s|s5078104b|5078104|rds|local|vector|||362.062||
 dado_interseccao|stem|ae30aef61e1df773|b10f95f014105ec3|0617984a4da107a6|-1336837285||t20174.8602679702s|s585355b|585355|rds|local|vector|||32.016||
 dado_trechos_complemento|stem|01eb98cdc96f609b|abc46bb0cbf88ed6|e273aa5b559885c0|-1968360811||t20174.8603276265s|s765601b|765601|rds|local|vector|||0.812||
-dado_id_logradouros|stem|de85dea56992b257|89b8720e1718e53d|996da7a562a4801e|2067594147||t20174.8670891287s|s169553b|169553|rds|local|vector|||633.688||
-dado_logradouros|stem|9d79bf2f6aeaa9c0|e2d25b393c7d0f09|4bac54f6b4a8a60e|751837765||t20174.8671643486s|s93208b|93208|rds|local|vector|||3.375||
-descritiva_tamanho_FA|stem|e59bf3494465e3b1|53866b7f0c676f6f|411647bcc8d7eb27|218788181||t20174.8672078797s|s79b|79|rds|local|vector|||1.094||
 dado_match_chunks|stem|618d4b6f1e814f1a|39fdb0b9ba60606d|c05eb460cd6c7bfb|-697987259||t20174.953781482s|s4407389b|4407389|rds|local|group|||6917.86|1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 7 of x matches multiple rows in y.36mℹ39m Row 111547 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.|
 dado_match|stem|618d4b6f1e814f1a|bb45580cf25d2769|4c67aaae51cbcf47|747176591||t20174.9538161683s|s4407389b|4407389|rds|local|vector|||0.562||
 dado_did_trecho_mes|stem|80a766b69bfd4368|fa4656d1999c0a34|fb4b9a55fb78f1c5|854387777||t20174.9540752343s|s6070712b|6070712|rds|local|vector|||11.39||
-dado_did_logradouro_mes|stem|e728db49ce9e7538|5afc872bf2fd7bd4|02932b58b06b31e5|1789043580||t20174.9541295503s|s1629997b|1629997|rds|local|vector|||12.672||
-descritiva_datas_FA|stem|c8cb74dfbd5ca132|e1c4df07a0496d84|043a27fad32f1cc5|-1476594544||t20174.9541582167s|s84b|84|rds|local|vector|||5.843|1m22mRemoved 454 rows containing missing values or values outside the scale rangegeom_point.|
-descritiva_obitos_tempo|stem|55d240eab3366ad4|71b757aeb4b1ec09|30a58bc5f0275247|-1643841388||t20174.9541694262s|s100b|100|rds|local|vector|||7.578|1m22mRemoved 20 rows containing missing values or values outside the scale rangegeom_text.. 1m22mRemoved 19 rows containing missing values or values outside the scale rangegeom_text.|
 dado_did_logradouro_todos_golden|stem|b3acbc6681ab5ecf|acc4ff5310a7e263|c3a0636ff1ae3d1f|1235702406||t20174.9549685683s|s419079b|419079|rds|local|vector|||40.109||
 dado_did_logradouro_moto|stem|fbe9d240918fb00d|ce9db10041f63245|c3a0636ff1ae3d1f|1663110970||t20174.9552468408s|s429409b|429409|rds|local|vector|||52.953||
 dado_did_logradouro_todos|stem|29cd5415f0df7668|4c888008f73a0ba7|c3a0636ff1ae3d1f|-1067615157||t20174.9552518536s|s491097b|491097|rds|local|vector|||55.922||
@@ -93,74 +86,49 @@ dado_did_trecho_moto_golden|stem|1553961463ceac5c|a7e1d5d9cf75bd7d|dbc1cc6c8069f
 dado_did_trecho_moto|stem|8b3dca2e1784e4ed|4b8453cf878fb12e|dbc1cc6c8069fb54|-1055107700||t20174.9558870742s|s1459406b|1459406|rds|local|vector|||121.047||
 dado_did_trecho_todos_golden|stem|9eea1d0593d265fb|35596bd126eaea80|dbc1cc6c8069fb54|940203496||t20174.9559838019s|s1453612b|1453612|rds|local|vector|||146.703||
 dado_did_trecho_todos|stem|a19599ea99cf758d|05b11f4485cb9801|dbc1cc6c8069fb54|-347038374||t20174.9561505051s|s1670437b|1670437|rds|local|vector|||152.813||
-dado_cohort_trecho|stem|7a42a9f603b38fe9|011c770fd3d47bb0|164bac20c4c5e002|-1026376492||t20174.9563197307s|s372b|372|rds|local|vector|||2.797||
-trechos|object|31717936fd810641|||||||||||||||
-tidy_faixa_azul|function|61df77465bfe63f4|||||||||||||||
-definir_cohort|function|57c5219c8a46b9f5|||||||||||||||
-tidy_logradouros|function|1fb919fa5050a506|||||||||||||||
-dado_trecho_mes|function|f76b014a91dd29db|||||||||||||||
-.Random.seed|object|bef0bd13eec6d4d7|||||||||||||||
-gerar_tabela_cohort|function|c43661af439bc449|||||||||||||||
-workers|object|cc74994856042732|||||||||||||||
-prepara_trecho_did|function|3589ece6a9c39e92|||||||||||||||
-plot_hora_sinistro|function|6b264b981c28f197|||||||||||||||
-limpar|function|40c2a3b526f64268|||||||||||||||
-tidy_complemento_trecho|function|156977f0aa46e9ed|||||||||||||||
-gerar_tabela_cohort_het|function|698cc582e6a6fd30|||||||||||||||
-plot_tamanho_FA|function|6d6bddb0576d1d6b|||||||||||||||
-calcular_amenidades|function|f0a239287b604e40|||||||||||||||
-prepara_logradouro_did|function|0fded5bb62208c42|||||||||||||||
-agrupar_logradouros|function|e6d7c1dd214c2722|||||||||||||||
-calcular_radares|function|ae1a4b0872d7f70d|||||||||||||||
-preparar_grafico_did|function|7ebe37f2e28563f0|||||||||||||||
-preparar_grafico_did_het|function|7ebe37f2e28563f0|||||||||||||||
-tidy_trechos|function|615ce4e6786e1218|||||||||||||||
-match_dados|function|2bdd42618472d257|||||||||||||||
-tidy_sinistros|function|02ae9a126847e484|||||||||||||||
-download_osm|function|27f429f2b0c059b3|||||||||||||||
-calcular_interseccao|function|17f841c3d15d30e9|||||||||||||||
-plot_qualidade_match|function|e2c2ce9451290835|||||||||||||||
-match_dados_split|function|af75f651a24093b2|||||||||||||||
-plot_datas_FA|function|8a09a6aeec91b63f|||||||||||||||
-dado_logradouro_mes|function|f9b9b7e50c662151|||||||||||||||
-plot_obitos_tempo|function|a3bd20fd36b7010f|||||||||||||||
-padronizar|function|b21b399378d20536|||||||||||||||
-fit_did|function|84db2153da90d2c3|||||||||||||||
-fit_did_het|function|8f1817d65b742a75|||||||||||||||
-tokenizar|function|819c05ecc6de5a4b|||||||||||||||
-did_yname|function|361d3b3087c843b7|||||||||||||||
-did_by_group|function|ace6deda8ca84a92|||||||||||||||
-tokenizar_osm|function|54a035142a9779ab|||||||||||||||
-tokenizar_infosiga|function|2d1b265af5f4c12a|||||||||||||||
+dado_id_logradouros|stem|9b140be0853d9a9d|89b8720e1718e53d|554045d79e55a5ab|2067594147||t20174.9664934989s|s170135b|170135|rds|local|vector|||607.406||
+dado_logradouros|stem|36a0ebd9cf34bb63|e2d25b393c7d0f09|76fa7f73fa049e4d|751837765||t20174.9665558244s|s94002b|94002|rds|local|vector|||2.547||
+descritiva_datas_FA|stem|c8cb74dfbd5ca132|e1c4df07a0496d84|22e5bda083493bc6|-1476594544||t20174.9853265324s|s84b|84|rds|local|vector|||5.219|1m22mRemoved 460 rows containing missing values or values outside the scale rangegeom_point.|
+descritiva_obitos_tempo|stem|55d240eab3366ad4|71b757aeb4b1ec09|9d5f9d7ce019806c|-1643841388||t20174.9853521274s|s100b|100|rds|local|vector|||6.547|1m22mRemoved 20 rows containing missing values or values outside the scale rangegeom_text.. 1m22mRemoved 19 rows containing missing values or values outside the scale rangegeom_text.|
+descritiva_tamanho_FA|stem|e59bf3494465e3b1|53866b7f0c676f6f|332dae773518e815|218788181||t20174.9863259721s|s79b|79|rds|local|vector|||3.953||
+dado_cohort_trecho|stem|32e67040b13bc836|011c770fd3d47bb0|c81158ed3c666da8|-1026376492||t20174.9863840226s|s371b|371|rds|local|vector|||3.562||
+dado_did_logradouro_mes|stem|0cff01a829b608e1|5afc872bf2fd7bd4|c17481fa3018eb14|1789043580||t20174.9865181469s|s1638605b|1638605|rds|local|vector|||11.063||
+descritiva_hora_sinistro|stem|e4c9f49fa36c40b9|73509ebd72c52bf1|5c23b0c348eaab3b|1569173501||t20174.9890638237s|s87b|87|rds|local|vector|||4.109|1m22mRemoved 96 rows containing missing values or values outside the scale rangegeom_tile.|
+descritiva_qualidade_match|stem|b201a5c7a23a3287|dcbd431ead198823|056bfac0b4cbcbab|1827488715||t20174.9900062585s|s84b|84|rds|local|vector|||3.969||
+descritiva_datas_trechos|stem|ddbb8de9eecb04dc|228af331d6a334cd|3d66e8b518772ecc|-1130768564||t20174.9920293675s|s95b|95|rds|local|vector|||6.625||
+plot_mapa_sinistros|function|6ce94d507e3969d2|||||||||||||||
+descritiva_mapa_sinistro|stem|ba1bd55b47fd1067|63ac00fb0c48e7b6|028a8cfcbee5bd4e|439751572||t20174.9976951925s|s78b|78|rds|local|vector|||20.203|attribute variables are assumed to be spatially constant throughout all geometries. attribute variables are assumed to be spatially constant throughout all geometries|
 trechos|object|31717936fd810641
 tidy_faixa_azul|function|61df77465bfe63f4
 definir_cohort|function|57c5219c8a46b9f5
 tidy_logradouros|function|1fb919fa5050a506
 dado_trecho_mes|function|f76b014a91dd29db
-.Random.seed|object|9bc053d48b473cb2
+.Random.seed|object|78e2cf77e21515eb
 gerar_tabela_cohort|function|c43661af439bc449
 workers|object|cc74994856042732
 prepara_trecho_did|function|3589ece6a9c39e92
-plot_hora_sinistro|function|6b264b981c28f197
+plot_hora_sinistro|function|b58a1974c299f37c
 limpar|function|40c2a3b526f64268
 tidy_complemento_trecho|function|156977f0aa46e9ed
 gerar_tabela_cohort_het|function|698cc582e6a6fd30
-plot_tamanho_FA|function|6d6bddb0576d1d6b
+plot_tamanho_FA|function|51d707b97cdf9289
 calcular_amenidades|function|f0a239287b604e40
 prepara_logradouro_did|function|0fded5bb62208c42
 agrupar_logradouros|function|e6d7c1dd214c2722
 calcular_radares|function|ae1a4b0872d7f70d
 preparar_grafico_did|function|7ebe37f2e28563f0
 preparar_grafico_did_het|function|7ebe37f2e28563f0
+plot_datas_trechos|function|d33a0b941046099f
 tidy_trechos|function|615ce4e6786e1218
 match_dados|function|2bdd42618472d257
 tidy_sinistros|function|02ae9a126847e484
 download_osm|function|27f429f2b0c059b3
 calcular_interseccao|function|17f841c3d15d30e9
-plot_qualidade_match|function|e2c2ce9451290835
+plot_qualidade_match|function|3a08c971aa99d521
 match_dados_split|function|af75f651a24093b2
 plot_datas_FA|function|8a09a6aeec91b63f
 dado_logradouro_mes|function|f9b9b7e50c662151
+plot_mapas|function|7ed3d1586dfbd954
 plot_obitos_tempo|function|a3bd20fd36b7010f
 padronizar|function|b21b399378d20536
 fit_did|function|84db2153da90d2c3
@@ -170,3 +138,4 @@ did_yname|function|361d3b3087c843b7
 did_by_group|function|ace6deda8ca84a92
 tokenizar_osm|function|54a035142a9779ab
 tokenizar_infosiga|function|2d1b265af5f4c12a
+descritiva_mapas|stem||ef58d4ff76782b5d|4cb96e5b21e1dfc8|996910975||t20175.016390791s||0|rds|local|vector|||21.766|attribute variables are assumed to be spatially constant throughout all geometries. attribute variables are assumed to be spatially constant throughout all geometries|object faixa_azul not found

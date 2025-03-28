@@ -91,71 +91,11 @@ plot_tamanho_FA <- function(logradouros_id, logradouros, faixa_azul, trechos){
                       labels = c("TRUE" = "Com faixa azul", "FALSE" = "Sem faixa azul")) +
     labs(x = "Comprimento da via (km)", y = NULL) +
     theme_minimal()
-  ggsave("output/plot_tamanho_FA.pdf", gg, width = 7, height = 6)
+  ggsave("output/plot_tamanho_FA.pdf", gg, width = 10, height = 6)
   
 } 
 
-# logradouros_id |> 
-#   semi_join(logradouros |> 
-#               filter(!is.na(data_implementacao)) |> 
-#               select(logradouro = nome)) |> 
-#   unnest(trechos) |> 
-#   rename(id_osm = trechos) |> 
-#   filter(logradouro == " CAXINGUI ") |> 
-#   left_join(faixa_azul |> select(id_osm) |> mutate(FA = TRUE)) |> 
-#   left_join(trechos |> select(id_osm, comprimento)) |> 
-#   mutate(FA = replace_na(FA, FALSE)) |> 
-#   group_by(logradouro, FA) |>
-#   summarize(comprimento = sum(comprimento) / 1000) |> 
-#   mutate(ordem = sum(comprimento)) |> 
-#   ggplot(aes(x = comprimento, y = reorder(logradouro,ordem))) +
-#   geom_col(aes(fill = FA), colour = "black", lwd = .1) +
-#   scale_fill_manual("", values = c("FALSE" = "#A6A6A6", "TRUE" = "#4472C4"),
-#                     labels = c("TRUE" = "Com faixa azul", "FALSE" = "Sem faixa azul")) +
-#   labs(x = "Comprimento da via (km)", y = NULL) +
-#   theme_minimal()
-# 
-# logradouros_id |> 
-#   semi_join(logradouros |> 
-#               filter(!is.na(data_implementacao)) |> 
-#               select(logradouro = nome)) |> 
-#   unnest(trechos) |> 
-#   rename(id_osm = trechos) |> 
-#   filter(logradouro == " CAXINGUI ") |> 
-#   select(id_osm) |> 
-#   left_join(trechos) |> 
-#   View()
-  
 
-# osm.token |> 
-#   right_join(osm.token |> 
-#                left_join(faixa_azul) |> 
-#                filter(!data_implementacao |> is.na()) |> 
-#                distinct(logradouro, data_implementacao)) |> 
-#   select(id_osm, logradouro_completo = logradouro, data_implementacao) |> 
-#   left_join(faixa_azul |> 
-#               mutate(faixa_azul = "faixa_azul") |> 
-#               select(id_osm, faixa_azul)) |> 
-#   left_join(trechos |> select(id_osm, geometry = geom)) |> 
-#   mutate(faixa_azul = replace_na(faixa_azul, "sem_faixa"),
-#          tamanho = st_length(geometry)) |> 
-#   st_drop_geometry() |> 
-#   group_by(logradouro_completo, faixa_azul) |> 
-#   summarize(tamanho = tamanho |> sum()) |> 
-#   group_by(logradouro_completo) |> 
-#   mutate(order = sum(tamanho), 
-#          faixa_azul = factor(faixa_azul, 
-#                              levels = c("sem_faixa", "faixa_azul"),
-#                              labels = c("Trecho comum", "Trecho de faixa azul"))) |> 
-#   ggplot(aes(x = tamanho, y = reorder(logradouro_completo, order), fill = faixa_azul)) +
-#   geom_col(colour = "black", lwd = .1) +
-#   scale_x_continuous("Tamanho da via (km)") +
-#   labs(y = NULL) +
-#   scale_fill_manual("", values = c("Trecho comum" = "#A6A6A6", "Trecho de faixa azul" = "#4472C4")) +
-#   theme_minimal() +
-#   theme(legend.position = "inside", legend.position.inside = c(.7,.2))
-# ggsave("output/tamanho-trechos.pdf", width = 7, height = 6)
-# ggsave("output/tamanho-trechos.png", width = 9, height = 5, dpi = 400)
 
 
 # PANFLETO CET ----
@@ -364,112 +304,84 @@ plot_hora_sinistro <- function(sinistros){
     scale_y_continuous("Horário", breaks = 0:11*2) +
     scale_x_continuous("Dia do mês", breaks = NULL)
   
-  ggsave("output/horarios-sinistros.pdf", gg, width = 10, height =4)
+  ggsave("output/plot_horarios_sinistros.pdf", gg, width = 10, height =4)
 }
 
-# 
-# 
-# 
-# 
-# # RADIAL ANO MES ----
-# 
-# sinistros |> 
-#   filter(tipo != "NOTIFICACAO", year(data) > 2018) |> 
-#   group_by(ano = year(data), mes = month(data)) |> 
-#   summarize(n = n(), .groups = "drop") |>
-#   (\(.) bind_rows(., . |> filter(mes == 12) |> mutate(mes = 0, ano = ano + 1)))() |>
-#   ggplot(aes(x = mes, y = n, colour = factor(ano))) +
-#   geom_line(lwd = 1.5, alpha = .75) +
-#   coord_radial(expand = FALSE, inner.radius = 0.1, r_axis_inside = TRUE) +
-#   scale_y_continuous(limits = c(1000, 3000)) +
-#   scale_x_continuous(breaks = 1:12, labels = 1:12) +
-#   theme_minimal() 
-#   
-# ggsave("output/sinistros-meses.pdf", width = 8, height = 8)
-# 
-# 
-# TRECHOS/LOGRADOUROS TRATADOS POR PERIODO ----
-# 
-# trechos <- st_read("banco_dados/trechos.gpkg") |>
-#   st_drop_geometry() |>
-#   as_tibble() |>
-#   filter(tipo_via %in% c("trunk", "primary", "secondary")) |>
-#   left_join(read_csv("dados_tratados/osm-token.csv", col_types = list(id_osm = "c")) |>
-#               select(id_osm, logradouro_limpo) |>
-#               mutate(len = str_length(logradouro_limpo)) |>
-#               group_by(id_osm) |>
-#               arrange(-len) |>
-#               summarize(logradouro_limpo = nth(logradouro_limpo, 1), .groups = "drop")) |>
-#   mutate(id_osm = as.numeric(id_osm)) |>
-#   select(id_osm, logradouro, logradouro_limpo, tipo_via, faixas, limite_velocidade, mao_unica, superficie, comprimento)
 
-# faixa_azul <- tar_read(dado_faixa_azul)
-# trechos <- tar_read(dado_trechos)
-# 
-# faixa_azul |>
-#   left_join(trechos |> st_drop_geometry() |> select(id_osm, comprimento)) |> 
-#   group_by(data_implementacao) |>
-#   summarize(trechos = n(),
-#             comprimento = sum(comprimento)) |>
-#   complete(data_implementacao = seq(min(data_implementacao), max(data_implementacao), by = "1 month"), fill = list(trechos = 0, comprimento = 0)) |>
-#   mutate(trechos_total = cumsum(trechos),
-#          trechos_label = if_else(trechos == 0, "", as.character(trechos_total)),
-#          comprimento_total = cumsum(comprimento)) |>
-#   ggplot(aes(x= data_implementacao)) +
-#   geom_col(aes(y = trechos_total), fill = rgb(.05,.1,.3)) +
-#   geom_text(aes(y = trechos_total, label = trechos_label), vjust = -0.5, hjust = 0.8) +
-#   labs(x = NULL, y = "Número de trechos",
-#        title = "Trechos implementados por período") +
-#   theme_minimal()
-# 
-# 
-# 
-# faixa_azul |>
-#   left_join(trechos |> st_drop_geometry() |> select(id_osm, logradouro, comprimento)) |> 
-#   mutate(logradouro = factor(logradouro) |> fct_reorder(desc(data_implementacao))) |> 
-#   group_by(data_implementacao, logradouro) |>
-#   summarize(trechos = sum(comprimento)) |> ungroup() |> 
-#   complete(data_implementacao = seq(min(data_implementacao), max(data_implementacao), by = "1 month"), logradouro, fill = list(trechos = 0)) |> 
-#   group_by(logradouro) |> 
-#   mutate(trechos_total = cumsum(trechos),
-#          trechos_label = if_else(trechos == 0, "", as.character(trechos_total))) |>
-#   ggplot(aes(x= data_implementacao)) +
-#   geom_col(aes(y = trechos_total, fill = logradouro), colour = "white", lwd = .1) +
-#   # geom_col(aes(y = trechos_total), fill = rgb(.05,.1,.3)) +
-#   # geom_text(aes(y = trechos_total, label = trechos_label), vjust = -0.5, hjust = 0.8) +
-#   labs(x = NULL, y = "Número de trechos",
-#        title = "Trechos implementados por período") +
-#   theme_minimal() +
-#   scale_fill_viridis_d(direction = -1) +
-#   theme(legend.position = "bottom")
-# 
-# 
-# 
-# token_osm <- tar_read(dado_token_osm)
-# 
-# ggsave("output/trechos_implementados.pdf", width = 10, height = 7.5)
-# ggsave("output/trechos_implementados.png", width = 7, height = 6, dpi = 400)
-# 
-# trechos |>
-#   left_join(faixa_azul) |>
-#   group_by(logradouro_limpo, data_implementacao) |>
-#   summarize(trechos = n()) |>
-#   filter(!is.na(data_implementacao)) |>
-#   group_by(data_implementacao) |>
-#   summarize(logradouros = n()) |>
-#   complete(data_implementacao = seq(min(data_implementacao), max(data_implementacao), by = "1 month"), fill = list(logradouros = 0)) |>
-#   mutate(logradouros_total = cumsum(logradouros),
-#          logradouros_label = if_else(logradouros == 0, "", as.character(logradouros_total))) |>
-#   ggplot() +
-#   geom_col(aes(data_implementacao, logradouros_total), fill = rgb(.05,.1,.3)) +
-#   geom_text(aes(data_implementacao, logradouros_total, label = logradouros_label), vjust = -0.5, hjust = 0.8) +
-#   labs(x = NULL, y = "Número de vias",
-#        title = "Vias tratadas por período") +
-#   theme_minimal()
-# ggsave("output/logradouros_implementados.pdf", width = 10, height = 7.5)
-# ggsave("output/logradouros_implementados.png", width = 7, height = 6, dpi = 400)
-#   
-# 
+
+plot_datas_trechos <- function(faixa_azul, trechos, token_osm){
+  gg <- faixa_azul |>
+    left_join(trechos |> st_drop_geometry() |> select(id_osm, comprimento)) |>
+    group_by(data_implementacao) |>
+    summarize(trechos = n(),
+              comprimento = sum(comprimento)) |>
+    complete(data_implementacao = seq(min(data_implementacao), max(data_implementacao), by = "1 month"), fill = list(trechos = 0, comprimento = 0)) |>
+    mutate(trechos_total = cumsum(trechos),
+           trechos_label = if_else(trechos == 0, "", as.character(trechos_total)),
+           comprimento_total = cumsum(comprimento)) |>
+    ggplot(aes(x= data_implementacao)) +
+    geom_col(aes(y = trechos_total), fill = rgb(.05,.1,.3)) +
+    geom_text(aes(y = trechos_total, label = trechos_label), vjust = -0.5, hjust = 0.8) +
+    labs(x = NULL, y = "Número de trechos",
+         title = "Trechos implementados por período") +
+    theme_minimal()
+  ggsave("output/plot_datas_ntrechos.pdf", gg, width = 10, height = 7)
+  
+  
+  gg <- faixa_azul |>
+    left_join(token_osm) |> 
+    group_by(logradouro_limpo, data_implementacao) |>
+    summarize(trechos = n()) |>
+    filter(!is.na(data_implementacao)) |>
+    group_by(data_implementacao) |>
+    summarize(logradouros = n()) |>
+    complete(data_implementacao = seq(min(data_implementacao), max(data_implementacao), by = "1 month"), fill = list(logradouros = 0)) |>
+    mutate(logradouros_total = cumsum(logradouros),
+           logradouros_label = if_else(logradouros == 0, "", as.character(logradouros_total))) |>
+    ggplot() +
+    geom_col(aes(data_implementacao, logradouros_total), fill = rgb(.05,.1,.3)) +
+    geom_text(aes(data_implementacao, logradouros_total, label = logradouros_label), vjust = -0.5, hjust = 0.8) +
+    labs(x = NULL, y = "Número de vias",
+         title = "Vias tratadas por período") +
+    theme_minimal()
+  
+  ggsave("output/plot_datas_nlogradouros.pdf", gg, width = 10, height = 7)
+
+  
+  gg <- faixa_azul |>
+    left_join(trechos |> st_drop_geometry() |> select(id_osm, comprimento)) |>
+    left_join(token_osm |> 
+                arrange(alias) |> 
+                group_by(id_osm) |> 
+                filter(row_number() == 1) |> 
+                select(id_osm, logradouro = logradouro_limpo)) |>
+    mutate(logradouro = logradouro |> 
+             factor() |> 
+             fct_reorder(desc(data_implementacao))) |>
+    group_by(data_implementacao, logradouro) |>
+    summarize(trechos = sum(comprimento) / 1000) |> ungroup() |>
+    complete(data_implementacao = seq(min(data_implementacao), max(data_implementacao), by = "1 month"), logradouro, fill = list(trechos = 0)) |>
+    group_by(logradouro) |>
+    mutate(trechos_total = cumsum(trechos),
+           trechos_label = if_else(trechos == 0, "", as.character(trechos_total))) |>
+    ggplot(aes(x= data_implementacao)) +
+    geom_col(aes(y = trechos_total, fill = logradouro), colour = "white", lwd = .1) +
+    labs(x = NULL, y = "Soma dos quilômetros implementados",
+         title = NULL) +
+    theme_minimal() +
+    # scale_fill_viridis_d(direction = -1) +
+    scale_fill_manual("", values = paletteer::paletteer_d("ggsci::default_igv")) +
+    theme(legend.position = "bottom",
+          legend.text=element_text(size=8))
+  
+  ggsave("output/plot_datas_comprimento_separado.pdf", gg, width = 12, height = 8)
+  
+
+  
+}
+
+
+
 # # QUALIDADE DO MATCH ----
 # 
 
@@ -512,7 +424,7 @@ plot_qualidade_match <- function(sinistros, match){
     )
   
   
-  ggsave("output/qualidade_match.pdf", gg, width = 6, height = 6)
+  ggsave("output/plot_qualidade_match.pdf", gg, width = 6, height = 6)
 }
 
 
@@ -520,118 +432,62 @@ plot_qualidade_match <- function(sinistros, match){
 
 
 
-# # MAPA SINISTROS ----
-# 
-# distrito <- st_read("dados_tratados/distrito/SIRGAS_SHP_distrito.shp") |> 
-#   st_set_crs("epsg:31983") |> 
-#   summarize(geometry = st_union(geometry) |> st_simplify(dTolerance = 100))
-# 
-# gg <- sinistros |> 
-#   filter(tipo != "NOTIFICACAO", !is.na(longitude), !is.na(latitude)) |> 
-#   st_as_sf(coords = c("longitude", "latitude"), crs = "EPSG:4326") |> 
-#   st_transform(crs = "epsg:31983") |>
-#   st_intersection(distrito) |>
-#   st_coordinates() |> 
-#   ggplot() +
-#   geom_sf(data = distrito,
-#           aes(geometry = geometry), colour = NA, fill = "grey98") +
-#   geom_sf(data = trechos |> 
-#             filter(!tipo_via %in% c("service", "unclassified")) |> 
-#             st_transform("epsg:31983") |> 
-#             st_intersection(distrito) |> 
-#             filter(tipo_via %in% c("trunk", "primary", "secondary")),
-#           aes(geometry = st_simplify(geom, dTolerance = 10)), colour = "#3c3744", lwd = .3, alpha = .7) +
-#   geom_hex(aes(x = X, y = Y), alpha = .7, bins = 40) +
-#   geom_sf(data = distrito,
-#           aes(geometry = geometry), colour = "grey25", fill = NA, alpha = .7) +
-#   scale_fill_gradient("Número de sinistros", low = "grey98", high = "darkred") +
-#   theme_void()
-#   
-# ggsave("output/mapa_sinistros.pdf", gg, width = 10, height = 15)
-# 
-# 
-# # COMPLETUDE DADOS IFOOD ----
-# 
-# dado_disponivel <- read_csv("sala_segura/20-12-24/dado_disponivel.csv", col_types = c("id_osm" = "c"))
-# 
-# tabela <- trechos |> 
-#   as_tibble() |> 
-#   filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
-#   select(id_osm, comprimento) |> 
-#   left_join(faixa_azul) |> 
-#   mutate(faixa_azul = !is.na(data_implementacao)) |> 
-#   select(-data_implementacao)
-# 
-# tabela |> 
-#   left_join(dado_disponivel |> 
-#               group_by(id_osm) |> 
-#               summarize(meses_disponiveis = sum(dado))) |> 
-#   mutate(meses_disponiveis = replace_na(meses_disponiveis, 0)) |> 
-#   group_by(meses_disponiveis) |> 
-#   summarize(n = n()) |> 
-#   arrange(-meses_disponiveis) |> 
-#   mutate(percentual = ((n) / sum(n)) |> round(3) |> scales::percent()) |> 
-#   ggplot(aes(y = factor(meses_disponiveis), x = n)) +
-#   geom_col() +
-#   geom_text(aes(label = percentual), nudge_x = 1000) +
-#   theme_minimal() +
-#   labs(x = "Número de trechos", y = "Número de meses em que há dados disponíveis")
-# 
-# ggsave("output/ifood/completude_ifood.pdf", width = 5, height = 5)
-# 
-# 
-# tabela |> 
-#   left_join(dado_disponivel |> 
-#               group_by(id_osm) |> 
-#               summarize(meses_disponiveis = sum(dado))) |> 
-#   mutate(meses_disponiveis = replace_na(meses_disponiveis, 0)) |> 
-#   group_by(meses_disponiveis) |> 
-#   summarize(n = sum(comprimento)) |> 
-#   arrange(-meses_disponiveis) |> 
-#   mutate(percentual = ((n) / sum(n)) |> round(3) |> scales::percent()) |> 
-#   ggplot(aes(y = factor(meses_disponiveis), x = n)) +
-#   geom_col() +
-#   geom_text(aes(label = percentual), nudge_x = 150000) +
-#   theme_minimal() +
-#   scale_x_continuous(labels = scales::number) +
-#   labs(x = "Comprimento agregado de trechos (metros)", y = "Número de meses em que há dados disponíveis")
-# 
-# ggsave("output/ifood/completude_ifood_comprimento.pdf", width = 5, height = 5)
-# 
-# 
-# tabela |> 
-#   left_join(dado_disponivel |> 
-#               group_by(id_osm) |> 
-#               summarize(meses_disponiveis = sum(dado))) |> 
-#   mutate(meses_disponiveis = replace_na(meses_disponiveis, 0)) |> 
-#   filter(faixa_azul == TRUE) |> 
-#   group_by(meses_disponiveis) |> 
-#   summarize(n = n()) |> 
-#   arrange(-meses_disponiveis) |> 
-#   mutate(percentual = ((n) / sum(n)) |> round(3) |> scales::percent()) |> 
-#   ggplot(aes(y = factor(meses_disponiveis), x = n)) +
-#   geom_col(fill = "darkblue") +
-#   geom_text(aes(label = percentual), nudge_x = 25) +
-#   theme_minimal() +
-#   labs(x = "Número de trechos de faixa azul", y = "Número de meses em que há dados disponíveis")
-# 
-# ggsave("output/ifood/completude_ifood_faixa_azul.pdf", width = 5, height = 5)
-# 
-# tabela |> 
-#   left_join(dado_disponivel |> 
-#               group_by(id_osm) |> 
-#               summarize(meses_disponiveis = sum(dado))) |> 
-#   mutate(meses_disponiveis = replace_na(meses_disponiveis, 0)) |> 
-#   filter(faixa_azul == TRUE) |> 
-#   group_by(meses_disponiveis) |> 
-#   summarize(n = sum(comprimento)) |> 
-#   arrange(-meses_disponiveis) |> 
-#   mutate(percentual = ((n) / sum(n)) |> round(3) |> scales::percent()) |> 
-#   ggplot(aes(y = factor(meses_disponiveis), x = n)) +
-#   geom_col(fill = "darkblue") +
-#   geom_text(aes(label = percentual), nudge_x = 7000) +
-#   theme_minimal() +
-#   scale_x_continuous(labels = scales::number) +
-#   labs(x = "Comprimento agregado de trechos de faixa azul (metros)", y = "Número de meses em que há dados disponíveis")
-# 
-# ggsave("output/ifood/completude_ifood_faixa_azul_comprimento.pdf", width = 5, height = 5)
+# MAPA SINISTROS ----
+plot_mapas <- function(sinistros){
+  distrito <- st_read("dados_tratados/distrito/SIRGAS_SHP_distrito.shp") |>
+    st_set_crs("epsg:31983") |>
+    summarize(geometry = st_union(geometry) |> st_simplify(dTolerance = 100))
+  
+  trechos.mapa <- trechos |> 
+    filter(!tipo_via %in% c("service", "unclassified")) |> 
+    st_transform("epsg:31983") |> 
+    st_intersection(distrito)
+  
+  gg <- sinistros |>
+    filter(tipo != "NOTIFICACAO", !is.na(longitude), !is.na(latitude)) |>
+    st_as_sf(coords = c("longitude", "latitude"), crs = "EPSG:4326") |>
+    st_transform(crs = "epsg:31983") |>
+    st_intersection(distrito) |>
+    st_coordinates() |>
+    ggplot() +
+    geom_sf(data = distrito,
+            aes(geometry = geometry), colour = NA, fill = "grey98") +
+    geom_sf(data = trechos.mapa |>
+              filter(tipo_via %in% c("trunk", "primary", "secondary")),
+            aes(geometry = geometry), colour = "#3c3744", lwd = .3, alpha = .7) +
+    geom_hex(aes(x = X, y = Y), alpha = .7, bins = 40) +
+    geom_sf(data = distrito,
+            aes(geometry = geometry), colour = "grey25", fill = NA, alpha = .7) +
+    scale_fill_gradient("Número de sinistros", low = "grey98", high = "darkred") +
+    theme_void()
+  
+  ggsave("output/mapa_sinistros.pdf", gg, width = 10, height = 15)
+  
+  gg <- ggplot() +
+    geom_sf(data = distrito,
+            aes(geometry = geometry), colour = "grey25", fill = "grey98") +
+    geom_sf(data = trechos.mapa |> 
+              filter(!tipo_via %in% c("trunk", "primary", "secondary")),
+            aes(geometry = st_simplify(geometry, dTolerance = 10)), colour = "grey50", lwd = .15, alpha = .8) +
+    geom_sf(data = trechos.mapa |> 
+              filter(tipo_via %in% c("trunk", "primary", "secondary")),
+            aes(geometry = st_simplify(geometry, dTolerance = 10)), colour = "#3c3744", lwd = .3, alpha = .8) +
+    # geom_sf(data = trechos.mapa |> 
+    #           semi_join(faixa_azul),
+    #         aes(geometry = geometry), colour = "white", lwd = 1.4, alpha = .9) +
+    geom_sf(data = trechos.mapa |> 
+              semi_join(faixa_azul),
+            aes(geometry = geometry), colour = "#090c9b", lwd = 3, alpha = .1) +
+    geom_sf(data = trechos.mapa |> 
+              semi_join(faixa_azul),
+            aes(geometry = geometry), colour = "#090c9b", lwd = 1, alpha = .1) +
+    geom_sf(data = trechos.mapa |> 
+              semi_join(faixa_azul),
+            aes(geometry = geometry), colour = "#090c9b", lwd = .5, alpha = .8) +
+    theme_void()
+  
+  ggsave("output/mapa_faixa_azul.pdf", gg, width = 10, height = 15)
+  
+}
+
+

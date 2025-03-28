@@ -102,6 +102,9 @@ list(
     name = descritiva_datas_FA,
     command = plot_datas_FA(dado_logradouros, dado_id_logradouros, dado_match, dado_sinistros)),
   tar_target(
+    name = descritiva_datas_trechos,
+    command = plot_datas_trechos(dado_faixa_azul, dado_trechos, dado_token_osm)),
+  tar_target(
     name = descritiva_obitos_tempo,
     command = plot_obitos_tempo(dado_sinistros, dado_match, dado_faixa_azul, dado_logradouros, dado_id_logradouros)),
   tar_target(
@@ -110,7 +113,12 @@ list(
   tar_target(
     name = descritiva_hora_sinistro,
     command = plot_hora_sinistro(dado_sinistros)),
-  
+  tar_target(
+    name = descritiva_qualidade_match,
+    command = plot_qualidade_match(dado_sinistros, dado_match)),
+  tar_target(
+    name = descritiva_mapas,
+    command = plot_mapas(dado_sinistros)),
   
   # 7. DID ----
   # 7.1 agrega
