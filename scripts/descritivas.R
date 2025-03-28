@@ -3,6 +3,7 @@ library(sf)
 library(mapview)
 # library(ggsankey)
 library(paletteer)
+library(gganimate)
 
 # trechos <- tar_read(dado_trechos)
 # logradouros <- tar_read(dado_logradouros)
@@ -17,6 +18,34 @@ library(paletteer)
 #   filter(row_number() == 1) |> 
 #   ungroup() |> 
 #   arrange(id_osm)
+
+
+
+
+plot_obitos_ano <- function(sinistros){
+  gg <- sinistros |> 
+    filter(tipo == "SINISTRO FATAL", year(data) %in% 2015:2024) |> 
+    group_by(data = make_date(year = year(data)), moto = motocicletas > 0) |> 
+    summarize(obitos = sum(gravidade_fatal)) |> 
+    group_by(data) |> 
+    mutate(moto = replace_na(moto, FALSE),
+           y = ifelse(moto == TRUE, obitos, sum(obitos)),
+           label = ifelse(moto == TRUE, scales::percent(obitos / sum(obitos)), sum(obitos))) |> 
+    ungroup() |> 
+    ggplot(aes(x = data)) +
+    geom_col(aes(y = obitos, fill = moto), colour = "white") +
+    geom_text(aes(y = y, label = label), nudge_y = -30, colour = "white") +
+    scale_fill_manual("Veículo", 
+                      values = c(adjustcolor("darkblue", blue.f = 1.1, alpha.f = .9), 
+                                 adjustcolor("darkblue", blue.f = .7, alpha.f = .9)), 
+                      labels = c("Outros", "Motocicletas")) +
+    scale_x_date(NULL, date_breaks = "years", date_labels = "%Y") +
+    labs(y = "Total de óbitos em decorrência de sinistros fatais") +
+    theme_minimal()
+  
+  ggsave("output/plot_obitos_ano.pdf", gg, width = 10, height = 6)
+}
+
 
 
 
@@ -433,7 +462,7 @@ plot_qualidade_match <- function(sinistros, match){
 
 
 # MAPA SINISTROS ----
-plot_mapas <- function(sinistros){
+plot_mapas <- function(sinistros, trechos, faixa_azul){
   distrito <- st_read("dados_tratados/distrito/SIRGAS_SHP_distrito.shp") |>
     st_set_crs("epsg:31983") |>
     summarize(geometry = st_union(geometry) |> st_simplify(dTolerance = 100))
@@ -472,9 +501,6 @@ plot_mapas <- function(sinistros){
     geom_sf(data = trechos.mapa |> 
               filter(tipo_via %in% c("trunk", "primary", "secondary")),
             aes(geometry = st_simplify(geometry, dTolerance = 10)), colour = "#3c3744", lwd = .3, alpha = .8) +
-    # geom_sf(data = trechos.mapa |> 
-    #           semi_join(faixa_azul),
-    #         aes(geometry = geometry), colour = "white", lwd = 1.4, alpha = .9) +
     geom_sf(data = trechos.mapa |> 
               semi_join(faixa_azul),
             aes(geometry = geometry), colour = "#090c9b", lwd = 3, alpha = .1) +
@@ -488,6 +514,37 @@ plot_mapas <- function(sinistros){
   
   ggsave("output/mapa_faixa_azul.pdf", gg, width = 10, height = 15)
   
+  df <- faixa_azul |> 
+    left_join(trechos |> st_transform("epsg:31983")) |> 
+    group_by(data_implementacao = data_implementacao) |> 
+    summarize(geometry = st_union(geometry)) |> 
+    (\(df) df |>
+       select(data_implementacao) |> 
+       mutate(grupo = rep(list(1:length(data_implementacao)), length(data_implementacao))) |> 
+       unnest(grupo) |> 
+       left_join(df |> 
+                   mutate(grupo = 1:length(data_implementacao)) |> 
+                   select(-data_implementacao)))() |> 
+    filter(grupo <= data_implementacao |> factor() |> as.numeric())
+  
+  gg <- ggplot(mapping = aes(geometry = geometry)) +
+    geom_sf(data = distrito, colour = "grey25", fill = "grey98") +
+    geom_sf(data = df, aes(colour = factor(grupo)), lwd = 1, alpha = .8) +
+    transition_time(data_implementacao) +
+    scale_colour_viridis_d() +
+    labs(title = "{frame_time}") +
+    theme_void() +
+    theme(plot.title = element_text(hjust = 0.5, size = 80),
+          legend.position = "none")
+  
+  anim_save("output/mapa_faixa_azul.gif", gg, 
+            renderer = gifski_renderer(loop = T), 
+            width = 2250, height = 3000, 
+            duration = 10, end_pause = 20)
 }
+
+
+
+
 
 

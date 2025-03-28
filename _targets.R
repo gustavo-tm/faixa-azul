@@ -14,7 +14,7 @@ assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
 # tar_delete()
 
 tar_option_set(
-  packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "circlize", "igraph"), 
+  packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "circlize", "igraph", "gganimate"), 
   error = "trim",
   # format = "qs", # Optionally set the default storage format. qs is fast.
 
@@ -118,7 +118,12 @@ list(
     command = plot_qualidade_match(dado_sinistros, dado_match)),
   tar_target(
     name = descritiva_mapas,
-    command = plot_mapas(dado_sinistros)),
+    command = plot_mapas(dado_sinistros, dado_trechos, dado_faixa_azul)),
+  tar_target(
+    name = descritiva_obitos_ano,
+    command = plot_obitos_ano(dado_sinistros)),
+  
+  
   
   # 7. DID ----
   # 7.1 agrega
