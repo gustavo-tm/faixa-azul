@@ -25,7 +25,7 @@ library(gganimate)
 plot_obitos_ano <- function(sinistros){
   gg <- sinistros |> 
     filter(tipo == "SINISTRO FATAL", year(data) %in% 2015:2024) |> 
-    group_by(data = make_date(year = year(data)), moto = motocicletas > 0) |> 
+    group_by(data = make_date(year = year(data)), moto = replace_na(tp_veiculo_motocicleta, 0) > 0) |> 
     summarize(obitos = sum(gravidade_fatal)) |> 
     group_by(data) |> 
     mutate(moto = replace_na(moto, FALSE),
@@ -87,8 +87,8 @@ plot_datas_FA <- function(logradouros, logradouros_id, match, sinistros){
                  rename(id_osm = trechos, nome = logradouro) |> 
                  inner_join(match |> select(id_sinistro, id_osm)) |> 
                  left_join(sinistros |> 
-                             select(id_sinistro, data, tipo, motocicletas)) |> 
-                 mutate(motocicleta = replace_na(motocicletas, 0) > 0) |> 
+                             select(id_sinistro, data, tipo, tp_veiculo_motocicleta)) |> 
+                 mutate(motocicleta = replace_na(tp_veiculo_motocicleta, 0) > 0) |> 
                  arrange(motocicleta) |> 
                  filter(tipo == "SINISTRO FATAL")) +
     # geom_jitter() +
@@ -98,6 +98,45 @@ plot_datas_FA <- function(logradouros, logradouros_id, match, sinistros){
   ggsave("output/plot_datas_FA_obitos.pdf", ggg, width = 11, height = 7)
   
 }
+
+
+# TRECHOS/LOGRADOUROS TRATADOS POR PERIODO
+plot_trechos_vias_periodo <- function(faixa_azul, logradouros) {
+  df <- faixa_azul |> 
+    group_by(data_implementacao) |> 
+    summarize(trechos = n()) |> 
+    left_join(logradouros |> 
+                filter(!is.na(data_implementacao)) |> 
+                group_by(data_implementacao) |> 
+                summarize(logradouros = n())) |> 
+    filter(year(data_implementacao) <= 2024) |> 
+    complete(data_implementacao = seq(min(data_implementacao), max(data_implementacao), by = "1 month"), 
+             fill = list(trechos = 0, logradouros = 0)) |> 
+    mutate(trechos_total = cumsum(trechos),
+           trechos_label = if_else(trechos == 0, "", as.character(trechos_total))) |> 
+    mutate(logradouros_total = cumsum(logradouros),
+           logradouros_label = if_else(logradouros == 0, "", as.character(logradouros_total)))
+  
+  gg <- df |> 
+    ggplot() +
+    geom_col(aes(data_implementacao, trechos_total), fill = rgb(.05,.1,.3)) +
+    geom_text(aes(data_implementacao, trechos_total, label = trechos_label), vjust = -0.5, hjust = 0.8) +
+    labs(x = NULL, y = "Número de trechos",
+         title = "Trechos implementados por período") +
+    theme_minimal(base_size = 14)
+  ggsave("output/did/trechos_implementados.png", gg, width = 8, height = 6, dpi = 300)
+  
+  gg <- df |> 
+    ggplot() +
+    geom_col(aes(data_implementacao, logradouros_total), fill = rgb(.05,.1,.3)) +
+    geom_text(aes(data_implementacao, logradouros_total, label = logradouros_label), vjust = -0.5, hjust = 0.8) +
+    labs(x = NULL, y = "Número de vias",
+         title = "Vias implementadas por período") +
+    theme_minimal(base_size = 14)
+  ggsave("output/did/logradouros_implementados.png", gg, width = 8, height = 6, dpi = 300)
+}
+
+
 
 # TAMANHO VIAS ----
 
@@ -155,7 +194,7 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
   ggsave("output/plot_obitos_tempo_total.pdf", gg, width = 8, height = 5)
   
   gg <- sinistros |> 
-    filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
+    filter(tipo == "SINISTRO FATAL", year(data) > 2015, !is.na(tp_veiculo_motocicleta)) |> 
     left_join(match, by = join_by(id_sinistro)) |> 
     left_join(faixa_azul |> distinct()) |> 
     mutate(match_sucesso = is.na(id_osm) == FALSE,
@@ -194,7 +233,7 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
   
   
   gg <- sinistros |> 
-    filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
+    filter(tipo == "SINISTRO FATAL", year(data) > 2015, !is.na(tp_veiculo_motocicleta)) |> 
     left_join(match, by = join_by(id_sinistro)) |> 
     semi_join(faixa_azul |> select(id_osm)) |> 
     group_by(ano = year(data)) |> 
@@ -226,7 +265,7 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
   ggsave("output/plot_obitos_tempo_FA_logradouro.pdf", gg, width = 8, height = 5)
   
   gg <- sinistros |> 
-    filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
+    filter(tipo == "SINISTRO FATAL", year(data) > 2015, !is.na(tp_veiculo_motocicleta)) |> 
     left_join(match, by = join_by(id_sinistro)) |>
     semi_join(logradouros |> 
                 filter(!is.na(data_implementacao)) |> 

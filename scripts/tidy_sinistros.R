@@ -28,20 +28,20 @@ tidy_sinistros <- function(){
            hora = hora_sinistro,
            latitude, longitude,
            logradouro, numero = numero_logradouro,
-           motocicletas = tp_veiculo_motocicleta, 
-           gravidade_ileso, gravidade_leve, gravidade_grave, gravidade_fatal, gravidade_nao_disponivel,
+           contains("gravidade"),
+           contains("tp_veiculo"),
            tipo_acidente = tipo_acidente_primario,
            tipo = tipo_registro) |> 
     mutate(hora = str_sub(hora, 1, 2) |> as.numeric())
   
-  df <- sinistros |>
+  sinistros <- sinistros |>
     mutate(across(c(longitude, latitude), ~ as.numeric(str_replace(.x, ",", "."))),
            data = lubridate::make_date(year = ano, month = mes, day = dia),
            id_sinistro = row_number()) |> 
     select(id_sinistro, id_infosiga, data, hora, logradouro, numero, latitude, longitude, tipo, tipo_acidente,
-           motocicletas, contains("gravidade"))
+           contains("tp_veiculo"), contains("gravidade"))
   
-  return(df)
+  return(sinistros)
   
   # df |> write_csv("banco_dados/sinistros.csv")
   
