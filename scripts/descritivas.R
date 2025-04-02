@@ -190,7 +190,7 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     scale_fill_viridis_d(option = "mako", direction = -1, end = .6, begin = .2) +
     theme_minimal() +
     labs(x = NULL, fill = "Local do sinistro", y = "Óbitos",
-         title = "Óbitos totais por tipo de via")
+         title = "Óbitos totais - por tipo de via")
   ggsave("output/plot_obitos_tempo_total.pdf", gg, width = 8, height = 5)
   
   gg <- sinistros |> 
@@ -214,7 +214,7 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     scale_fill_viridis_d(option = "mako", direction = -1, end = .6, begin = .2) +
     theme_minimal() +
     labs(x = NULL, fill = "Local do sinistro", y = "Óbitos",
-         title = "Óbitos em sinistros com moto por tipo de via")
+         title = "Óbitos em sinistros com moto - por tipo de via")
   ggsave("output/plot_obitos_tempo_moto.pdf", gg, width = 8, height = 5)
   
   gg <- sinistros |> 
@@ -228,7 +228,7 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     geom_text(aes(y = mortes, label = mortes), vjust = -0.5) +
     theme_minimal() +
     labs(x = NULL, y = "Óbitos",
-         title = "Óbitos totais - trechos com Faixa Azul")
+         title = "Óbitos totais - trechos que receberam Faixa Azul")
   ggsave("output/plot_obitos_tempo_FA.pdf", gg, width = 8, height = 5)
   
   
@@ -278,7 +278,7 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     geom_col(aes(y = obitos), fill = rgb(.05,.1,.3)) +
     geom_text(aes(y = obitos, label = obitos), vjust = -0.5) +
     labs(x = NULL, y = "Óbitos",
-         title = "Óbitos totais - vias que receberam Faixa Azul") +
+         title = "Óbitos em sinistros com moto - vias que receberam Faixa Azul") +
     theme_minimal()
   ggsave("output/plot_obitos_tempo_FA_logradouro_moto.pdf", gg, width = 8, height = 5)
   
