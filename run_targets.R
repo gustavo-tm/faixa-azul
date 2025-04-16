@@ -1,3 +1,7 @@
 library(targets)
 
-tar_make(starts_with("did_logradouro"))
+# renv::status()
+# renv::restore()
+# renv::install()
+
+tar_make()

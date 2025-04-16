@@ -676,3 +676,43 @@ plot_proporcao_grupos <- function(sinistros, trechos, match) {
   
 }
 
+
+
+# MAGNITUDE DO TRATAMENTO----
+# 
+# df <- match |> 
+#   mutate(golden_match =
+#            similaridade > .85 &
+#            distancia_geografica < 150 &
+#            (match_titulo == TRUE | match_tipo == TRUE)) |> 
+#   filter(golden_match) |> 
+#          # & numero_zero == FALSE)
+#   select(id_sinistro, id_osm) |> 
+#   anti_join(faixa_azul) |> 
+#   semi_join(trechos |>
+#               st_drop_geometry() |> 
+#               filter(tipo_via %in% c("trunk", "primary", "secondary"))) |> 
+#   left_join(sinistros) |> 
+#   mutate(sinistro = 1,
+#          sinistro_moto = motocicletas > 0) |> 
+#   group_by(id_osm, ano = year(data), mes = month(data)) |> 
+#   summarize(sinistros = sum(sinistro),
+#             sinistro_moto = sum(sinistro_moto),
+#             fatalidades = sum(gravidade_fatal)) |> 
+#   ungroup() |> 
+#   pivot_longer(sinistros:fatalidades, names_to = "variavel", values_to = "valor") |> 
+#   mutate(valor = replace_na(valor, 0)) |> 
+#   complete(id_osm, ano, mes, variavel, fill = list(valor = 0)) |> 
+#   left_join(trechos |> 
+#               st_drop_geometry() |> 
+#               select(id_osm, comprimento)) |> 
+#   mutate(valor_km = valor * 1000 / comprimento)
+# 
+# 
+# df |> 
+#   group_by(ano, variavel) |> 
+#   summarize(valor_km = mean(valor_km)) |>
+#   mutate(valor_CET = valor_km * (1 - 0.472),
+#          diff = valor_km - valor_CET) |> 
+#   filter(ano %in% 2022:2024) 
+# 
