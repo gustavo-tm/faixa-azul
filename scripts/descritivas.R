@@ -673,8 +673,42 @@ plot_comparacao_sinisitros_ano <- function(sinistros, trechos, match) {
 # ⁠grafico com os meses no eixo x e um stacked col plot que mostra quantos
 # % da pool sao never treated, not yet treated e treated
 plot_proporcao_grupos <- function(sinistros, trechos, match) {
+  gg <- trechos |> 
+    st_drop_geometry() |> 
+    filter(tipo_via %in% c("trunk", "primary")) |> 
+    left_join(faixa_azul) |> 
+    select(id_osm, comprimento, data_implementacao) |> 
+    mutate(join = 1) |> 
+    left_join(tibble(data = seq(ymd("2022-01-01"), ymd("2025-01-01"), by = "1 month"),
+                     join = 1)) |> 
+    mutate(faixa_azul = case_when(is.na(data_implementacao) ~ "Controle",
+                                  data < data_implementacao ~ "Ainda será tratado",
+                                  data >= data_implementacao ~ "Tratado",
+                                  TRUE ~ "ERRO") |> 
+             factor(levels = c("Tratado", "Ainda será tratado", "Controle") |> rev())) |> 
+    group_by(data, faixa_azul) |> 
+    summarize(comprimento = sum(comprimento) / 1000) |> 
+    group_by(data) |> 
+    mutate(percentual = comprimento / sum(comprimento)) |> 
+    ungroup() |> 
+    mutate(label = ifelse(month(data) == 1 & faixa_azul == "Tratado", 
+                          scales::percent(percentual |> round(3)), NA)) |> 
+    ggplot(aes(x = data, y = comprimento)) +
+    geom_area(aes(fill = faixa_azul),
+              colour = "black", lwd = .1, alpha = .75) +
+    geom_label(aes(label = label), alpha = .7, nudge_y = 50) +
+    scale_y_continuous("Quilômetros de trechos", labels = scales::number) +
+    labs(x = NULL, fill = "Grupo") +
+    theme_minimal()
   
+  ggsave("output/plot_staggered_data.pdf", gg, width = 7, height = 4)
 }
+
+
+
+
+
+
 
 
 
