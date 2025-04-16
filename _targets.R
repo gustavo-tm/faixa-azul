@@ -122,12 +122,15 @@ list(
   tar_target(
     name = descritiva_qualidade_match,
     command = plot_qualidade_match(dado_sinistros, dado_match)),
-  # tar_target(
-  #   name = descritiva_mapas,
-  #   command = plot_mapas(dado_sinistros, dado_trechos, dado_faixa_azul)),
+  tar_target(
+    name = descritiva_mapas,
+    command = plot_mapas(dado_sinistros, dado_trechos, dado_faixa_azul)),
   tar_target(
     name = descritiva_obitos_ano,
     command = plot_obitos_ano(dado_sinistros)),
+  tar_target(
+    name = descritiva_proporcao_grupos,
+    command = plot_proporcao_grupos(dado_trechos, dado_faixa_azul)),
   tar_target(
     name = descritiva_tratados_periodo,
     command = plot_trechos_vias_periodo(dado_faixa_azul, dado_logradouros)),

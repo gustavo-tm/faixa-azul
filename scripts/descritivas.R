@@ -665,14 +665,56 @@ plot_sinistros_comprimento <- function(df) {
 
 # quais vias aumentaram, diminuiram, continuaram igual o numero de mortes ou sinistros de 23-24
 # Comparar o % com vias nao tratadas primarias e truncais
-plot_comparacao_sinisitros_ano <- function(sinistros, trechos, match) {
-  
-}
+# plot_comparacao_sinisitros_ano <- function(sinistros, trechos, match) {
+#   df <- match |> 
+#     select(id_osm, id_sinistro) |> 
+#     left_join(sinistros) |> 
+#     filter(motocicletas > 0) |> 
+#     group_by(id_osm, ano = year(data)) |> 
+#     summarize(fatalidades = sum(gravidade_fatal)) |> 
+#     ungroup() |> 
+#     mutate(fatalidades = replace_na(fatalidades, 0)) |> 
+#     filter(ano %in% 2023:2024) |> 
+#     complete(id_osm, ano, fill = list(fatalidades = 0)) |> 
+#     right_join(logradouros_id |> 
+#                  unnest(trechos) |> 
+#                  rename(id_osm = trechos)) |> 
+#     semi_join(trechos |> 
+#                 st_drop_geometry() |> 
+#                 filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
+#                 select(id_osm)) |> 
+#     group_by(id_logradouro, ano) |> 
+#     summarize(fatalidades = sum(fatalidades)) |>
+#     ungroup() |> 
+#     complete(id_logradouro, ano, fill = list(fatalidades = 0)) |> 
+#     drop_na() |> 
+#     pivot_wider(names_from = ano, values_from = fatalidades, id_cols = id_logradouro,
+#                 names_prefix = "ano_") |> 
+#     mutate(aumentou = ano_2024 > ano_2023,
+#            diminuiu = ano_2024 < ano_2023) |> 
+#     left_join(logradouros |> 
+#                 mutate(fa_2024 = year(data_implementacao) == 2024) |> 
+#                 select(id_logradouro, fa_2024, data_implementacao)) |> 
+#     mutate(grupo = case_when(is.na(fa_2024) ~ "Controle",
+#                              fa_2024 ~ "Recebeu faixa azul em 2024",
+#                              !fa_2024 ~ "Recebeu faixa azul em outro período",
+#                              TRUE ~ "Erro"))
+#   
+#   df |> 
+#     group_by(grupo) |> 
+#     summarize(aumentou = scales::percent(mean(aumentou)),
+#               diminuiu = scales::percent(mean(diminuiu))) |> 
+#     rename("Percentual de vias onde houve aumento de sinistro entre 2023 e 2024" = aumentou)
+#   
+# }
+# 
+
+
 
 
 # ⁠grafico com os meses no eixo x e um stacked col plot que mostra quantos
 # % da pool sao never treated, not yet treated e treated
-plot_proporcao_grupos <- function(sinistros, trechos, match) {
+plot_proporcao_grupos <- function(trechos, faixa_azul) {
   gg <- trechos |> 
     st_drop_geometry() |> 
     filter(tipo_via %in% c("trunk", "primary")) |> 
@@ -714,13 +756,13 @@ plot_proporcao_grupos <- function(sinistros, trechos, match) {
 
 # MAGNITUDE DO TRATAMENTO----
 # 
-# df <- match |> 
+# df <- match |>
 #   mutate(golden_match =
 #            similaridade > .85 &
 #            distancia_geografica < 150 &
-#            (match_titulo == TRUE | match_tipo == TRUE)) |> 
+#            (match_titulo == TRUE | match_tipo == TRUE) & 
+#            numero_zero == FALSE) |>
 #   filter(golden_match) |> 
-#          # & numero_zero == FALSE)
 #   select(id_sinistro, id_osm) |> 
 #   anti_join(faixa_azul) |> 
 #   semi_join(trechos |>
