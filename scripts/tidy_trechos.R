@@ -141,7 +141,7 @@ agrupar_logradouros <- function(trechos, token_osm){
   grafico <- conexoes |> 
     select(id_osm.x, id_osm.y) |> 
     adjacencyList2Matrix(square = TRUE) |> 
-    graph_from_adjacency_matrix()
+    graph_from_adjacency_matrix(mode = "undirected")
   
   # grafico |> 
   #   visIgraph(idToLabel = FALSE) |> 
@@ -160,6 +160,25 @@ agrupar_logradouros <- function(trechos, token_osm){
   
   return(id_logradouros)
 }
+
+ggplot() + 
+  geom_histogram(aes(x = igraph::degree(grafico))) +
+  scale_x_continuous(breaks = 1:30)
+
+# g <- make_ring(10)
+# igraph::degree(g, mode = c("all")) |> View()
+# g2 <- sample_gnp(100, 10 / 1000)
+# igraph::degree(g2)
+# degree_distribution(grafico)
+# plot(g2)
+
+
+#CAMINHO!!!
+
+#igraph::dfs
+
+
+#igraph::shortest_paths
 
 
 tidy_logradouros <- function(id_logradouros, trechos, trechos_complemento, faixa_azul){
@@ -188,6 +207,3 @@ tidy_logradouros <- function(id_logradouros, trechos, trechos_complemento, faixa
       trechos = n())
   return(logradouros)
 }
-
-
-
