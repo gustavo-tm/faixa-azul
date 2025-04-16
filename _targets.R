@@ -62,6 +62,12 @@ list(
   tar_target(
     name = dado_faixa_azul,
     command = tidy_faixa_azul(dado_trechos)),
+  tar_target(
+    name = dado_vizinhos_150,
+    command = tidy_vizinhos(dado_trechos, dado_id_logradouros, dado_faixa_azul, 150)),
+  tar_target(
+    name = dado_vizinhos_500,
+    command = tidy_vizinhos(dado_trechos, dado_id_logradouros, dado_faixa_azul, 500)),
   
   # 4. LOGRADOUROS ----
   tar_target(
@@ -125,6 +131,12 @@ list(
   tar_target(
     name = descritiva_tratados_periodo,
     command = plot_trechos_vias_periodo(dado_faixa_azul, dado_logradouros)),
+  tar_target(
+    name = descritiva_comprimento_trechos,
+    command = plot_comprimento_trechos(dado_trechos)),
+  tar_target(
+    name = descritiva_sinistros_comprimento,
+    command = plot_sinistros_comprimento(dado_did_trecho_golden)),
   
   
   
@@ -171,7 +183,7 @@ list(
                              logradouros = dado_logradouros,
                              por_logradouro = TRUE)),
 
-  # 7.3. roda por trecho ----
+  # 7.3    roda por trecho ----
   
   tar_target(
     name = did_todos_total,
@@ -250,7 +262,7 @@ list(
       filename = "trecho/moto-golden",
       por_km = TRUE)),
   
-  # 7.3.1 Gravidade ----
+  # 7.3.01 Gravidade ----
   tar_target(
     name = did_leve_todos_golden,
     command = fit_did_all(
@@ -302,7 +314,7 @@ list(
       titulo = "Sinistros de moto, fatal, golden",
       filename = "trecho/het/gravidade/fatal-moto-golden")),
   
-  # 7.3.2 Tipo de acidente ----
+  # 7.3.02 Tipo de acidente ----
   tar_target(
     name = did_choque_todos_golden,
     command = fit_did_all(
@@ -369,7 +381,25 @@ list(
       titulo = "Sinistros com colisões, motos e outros, golden",
       filename = "trecho/het/acidente/colisao-moto-outros-golden")),
   
-  # 7.3.3 Tempo tratado ----
+  tar_target(
+    name = did_atropelamento_todos_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "acidente_atropelamento",
+      titulo = "Sinistros com atropelamentos, golden",
+      filename = "trecho/het/acidente/atropelamento-todos-golden")),
+  
+  tar_target(
+    name = did_outros_todos_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "acidente_outros",
+      titulo = "Sinistros com outros tipos de acidente, golden",
+      filename = "trecho/het/acidente/outros-todos-golden")),
+  
+  # 7.3.03 Tempo tratado ----
   tar_target(
     name = did_12ate_todos_golden,
     command = did_het_tempo_tratado(
@@ -455,7 +485,7 @@ list(
       meses = 15,
       mais_que = TRUE)),
   
-  # 7.3.4 Numero de faixas ----
+  # 7.3.04 Numero de faixas ----
   tar_target(
     name = did_faixas_2ate_todos_golden,
     command = did_het_num_faixas(
@@ -541,7 +571,7 @@ list(
       num_faixas = 3,
       mais_que = TRUE)),
   
-  # 7.3.5 Tipo de via ----
+  # 7.3.05 Tipo de via ----
   tar_target(
     name = did_tipovia_primary_todos_golden,
     command = did_het_tipo_via(
@@ -558,7 +588,7 @@ list(
       cohorts = dado_cohort_trecho,
       yname = "sinistros_veiculo_motocicleta",
       titulo = "Sinistros de moto, primárias",
-      filename = "trecho/het/tipo_via/primary-todos-golden",
+      filename = "trecho/het/tipo_via/primary-moto-golden",
       tipo_via = "primary")),
   
   tar_target(
@@ -577,7 +607,7 @@ list(
       cohorts = dado_cohort_trecho,
       yname = "sinistros_veiculo_motocicleta",
       titulo = "Sinistros de moto, secundárias",
-      filename = "trecho/het/tipo_via/secondary-todos-golden",
+      filename = "trecho/het/tipo_via/secondary-moto-golden",
       tipo_via = "secondary")),
   
   tar_target(
@@ -596,10 +626,10 @@ list(
       cohorts = dado_cohort_trecho,
       yname = "sinistros_veiculo_motocicleta",
       titulo = "Sinistros de moto, troncais",
-      filename = "trecho/het/tipo_via/trunk-todos-golden",
+      filename = "trecho/het/tipo_via/trunk-moto-golden",
       tipo_via = "trunk")),
   
-  # 7.3.6 Velocidade maxima ----
+  # 7.3.06 Velocidade maxima ----
   tar_target(
     name = did_velmax_40ate_todos_golden,
     command = did_het_vel_maxima(
@@ -685,7 +715,7 @@ list(
       vel_maxima = 50,
       mais_que = TRUE)),
   
-  # 7.3.7 Quantidade de envolvidos ----
+  # 7.3.07 Quantidade de envolvidos ----
   tar_target(
     name = did_qtd_todos_golden,
     command = fit_did_all(
@@ -702,6 +732,14 @@ list(
       yname = "veiculo_motocicleta",
       titulo = "Quantidade de motocicletas envolvidas, golden",
       filename = "trecho/het/qtd_envolvidos/qtd-veiculo-moto-golden")),
+  tar_target(
+    name = did_qtd_veiculo_auto_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "veiculo_automovel",
+      titulo = "Quantidade de automóveis envolvidos, golden",
+      filename = "trecho/het/qtd_envolvidos/qtd-veiculo-auto-golden")),
   
   tar_target(
     name = did_qtd_gravidade_leve_golden,
@@ -728,7 +766,252 @@ list(
       titulo = "Quantidade de envolvidos, fatal, golden",
       filename = "trecho/het/qtd_envolvidos/qtd-gravidade-fatal-golden")),
   
-  # 7.4 roda por logradouro ----
+  # 7.3.08 Sem 23 de maio e sem grupo 63 ----
+  tar_target(
+    name = did_filtro_avs_todos_golden,
+    command = did_filtro_avenidas(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros",
+      titulo = "Todos os sinistros, golden",
+      filename = "trecho/filtro_avenidas/todos-golden",
+      sem_av23maio = TRUE, 
+      sem_grupo63 = TRUE)),
+  tar_target(
+    name = did_filtro_avs_moto_golden,
+    command = did_filtro_avenidas(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_veiculo_motocicleta",
+      titulo = "Sinistros de moto, golden",
+      filename = "trecho/filtro_avenidas/moto-golden",
+      sem_av23maio = TRUE, 
+      sem_grupo63 = TRUE)),
+  
+  # 7.3.09 Tipo de veículo ----
+  # tar_target(
+  #   name = did_tp_veiculo_moto_golden,
+  #   command = fit_did_all(
+  #     df = dado_did_trecho_golden,
+  #     cohorts = dado_cohort_trecho,
+  #     yname = "veiculo_motocicleta",
+  #     titulo = "Motocicletas envolvidas, golden",
+  #     filename = "trecho/het/tipo_veiculo/qtd-moto-golden")),
+  # tar_target(
+  #   name = did_tp_veiculo_auto_golden,
+  #   command = fit_did_all(
+  #     df = dado_did_trecho_golden,
+  #     cohorts = dado_cohort_trecho,
+  #     yname = "veiculo_automovel",
+  #     titulo = "Automoveis envolvidos, golden",
+  #     filename = "trecho/het/tipo_veiculo/qtd-auto-golden")),
+  
+  # 7.3.10 Horário ----
+  tar_target(
+    name = did_hora_05_10_todos_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_05_10",
+      titulo = "Todos os sinsitros, 05h-10h, golden",
+      filename = "trecho/het/horario/05_10-todos-golden")),
+  tar_target(
+    name = did_hora_05_10_moto_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_05_10_moto",
+      titulo = "Sinistros de moto, 05h-10h, golden",
+      filename = "trecho/het/horario/05_10-moto-golden")),
+  
+  tar_target(
+    name = did_hora_11_16_todos_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_11_16",
+      titulo = "Todos os sinsitros, 11h-16h, golden",
+      filename = "trecho/het/horario/11_16-todos-golden")),
+  tar_target(
+    name = did_hora_11_16_moto_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_11_16_moto",
+      titulo = "Sinistros de moto, 11h-16h, golden",
+      filename = "trecho/het/horario/11_16-moto-golden")),
+  
+  tar_target(
+    name = did_hora_12_22_todos_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_12_22",
+      titulo = "Todos os sinsitros, 12h-22h, golden",
+      filename = "trecho/het/horario/12_22-todos-golden")),
+  tar_target(
+    name = did_hora_12_22_moto_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_12_22_moto",
+      titulo = "Sinistros de moto, 12h-22h, golden",
+      filename = "trecho/het/horario/12_22-moto-golden")),
+  
+  tar_target(
+    name = did_hora_17_21_todos_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_17_21",
+      titulo = "Todos os sinsitros, 17h-21h, golden",
+      filename = "trecho/het/horario/17_21-todos-golden")),
+  tar_target(
+    name = did_hora_17_21_moto_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_17_21_moto",
+      titulo = "Sinistros de moto, 17h-21h, golden",
+      filename = "trecho/het/horario/17_21-moto-golden")),
+  
+  tar_target(
+    name = did_hora_18_19_todos_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_18_19",
+      titulo = "Todos os sinsitros, 18h-19h, golden",
+      filename = "trecho/het/horario/18_19-todos-golden")),
+  tar_target(
+    name = did_hora_18_19_moto_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_18_19_moto",
+      titulo = "Sinistros de moto, 18h-19h, golden",
+      filename = "trecho/het/horario/18_19-moto-golden")),
+  
+  tar_target(
+    name = did_hora_17_21_choque_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_17_21_choque",
+      titulo = "Choques, 17h-21h, golden",
+      filename = "trecho/het/horario/17_21-choque-golden")),
+  tar_target(
+    name = did_hora_17_21_colisao_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_17_21_colisao",
+      titulo = "Colisões, 17h-21h, golden",
+      filename = "trecho/het/horario/17_21-colisao-golden")),
+  tar_target(
+    name = did_hora_17_21_choque_colisao_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_17_21_choque_colisao",
+      titulo = "Choques ou colisões, 17h-21h, golden",
+      filename = "trecho/het/horario/17_21-choque-colisao-golden")),
+  tar_target(
+    name = did_hora_17_21_atropelamento_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_17_21_atropelamento",
+      titulo = "Atropelamentos, 17h-21h, golden",
+      filename = "trecho/het/horario/17_21-atropelamento-golden")),
+  tar_target(
+    name = did_hora_17_21_outros_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_hora_17_21_outros",
+      titulo = "Outros, 17h-21h, golden",
+      filename = "trecho/het/horario/17_21-outros-golden")),
+
+  # 7.3.11 Sem vias secundárias ----
+  tar_target(
+    name = did_filtro_tp_via_todos_golden,
+    command = did_het_tipo_via(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros",
+      titulo = "Todos os sinistros, golden",
+      filename = "trecho/filtro_tipo_via/todos-golden",
+      tipo_via = c("primary", "trunk"))),
+  tar_target(
+    name = did_filtro_tp_via_moto_golden,
+    command = did_het_tipo_via(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_veiculo_motocicleta",
+      titulo = "Sinistros de moto, golden",
+      filename = "trecho/filtro_tipo_via/moto-golden",
+      tipo_via = c("primary", "trunk"))),
+  
+  # 7.3.12 Comprimento do trecho ----
+  tar_target(
+    name = did_comprimento_50_todos_golden,
+    command = did_het_comprimento_trecho(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros",
+      titulo = "Todos os sinistros, trechos +50m, golden",
+      filename = "trecho/het/comprimento/50-todos-golden",
+      comprimento_trecho = 50)),
+  tar_target(
+    name = did_comprimento_50_moto_golden,
+    command = did_het_comprimento_trecho(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_veiculo_motocicleta",
+      titulo = "Sinistros de moto, trechos +50m, golden",
+      filename = "trecho/filtro_tipo_via/50-moto-golden",
+      comprimento_trecho = 50)),
+  
+  tar_target(
+    name = did_comprimento_100_todos_golden,
+    command = did_het_comprimento_trecho(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros",
+      titulo = "Todos os sinistros, trechos +100m, golden",
+      filename = "trecho/het/comprimento/100-todos-golden",
+      comprimento_trecho = 100)),
+  tar_target(
+    name = did_comprimento_100_moto_golden,
+    command = did_het_comprimento_trecho(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_veiculo_motocicleta",
+      titulo = "Sinistros de moto, trechos +100m, golden",
+      filename = "trecho/filtro_tipo_via/100-moto-golden",
+      comprimento_trecho = 100)),
+  
+  tar_target(
+    name = did_comprimento_200_todos_golden,
+    command = did_het_comprimento_trecho(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros",
+      titulo = "Todos os sinistros, trechos +200m, golden",
+      filename = "trecho/het/comprimento/200-todos-golden",
+      comprimento_trecho = 200)),
+  tar_target(
+    name = did_comprimento_200_moto_golden,
+    command = did_het_comprimento_trecho(
+      df = dado_did_trecho_golden,
+      cohorts = dado_cohort_trecho,
+      yname = "sinistros_veiculo_motocicleta",
+      titulo = "Sinistros de moto, trechos +200m, golden",
+      filename = "trecho/filtro_tipo_via/200-moto-golden",
+      comprimento_trecho = 200)),
+  #
+  # 7.4    roda por logradouro ----
   tar_target(
     name = did_logradouro_todos,
     command = fit_did_all(
@@ -763,7 +1046,7 @@ list(
       titulo = "Sinistros de moto, golden",
       filename = "logradouro/moto-golden")),
   
-  # 7.4.1 Gravidade ----
+  # 7.4.01 Gravidade ----
   tar_target(
     name = did_logradouro_leve_todos_golden,
     command = fit_did_all(
@@ -815,7 +1098,7 @@ list(
       titulo = "Sinistros de moto, fatal, golden",
       filename = "logradouro/het/gravidade/fatal-moto-golden")),
   
-  # 7.4.2 Tipo de acidente ----
+  # 7.4.02 Tipo de acidente ----
   tar_target(
     name = did_logradouro_choque_todos_golden,
     command = fit_did_all(
@@ -864,6 +1147,112 @@ list(
       cohorts = dado_cohort_logradouro,
       yname = "sinistros_colisao_moto_carro",
       titulo = "Sinistros com colisões, motos e carros, golden",
-      filename = "logradouro/het/acidente/colisao-moto-carro-golden"))
+      filename = "logradouro/het/acidente/colisao-moto-carro-golden")),
+  
+  
+  
+  # 7.5    Efeitos spillover ----
+  
+  tar_target(
+    name = dado_did_trecho_mes_vias,
+    command = dado_trecho_mes(dado_sinistros, dado_match, dado_trechos, 
+                              tipo_vias = c("trunk", "trunk_link", "motorway", "motorway_link",
+                                            "primary", "primary_link", "secondary", "tertiary", "residencial"))),
+  
+  tar_target(
+    name = dado_did_trecho_golden_vizinhos_150,
+    command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, 
+                                 faixa_azul = dado_vizinhos_150, 
+                                 vizinhos = TRUE,
+                                 filtrar_por = golden_match)),
+  tar_target(
+    name = dado_did_trecho_golden_vizinhos_150_vias,
+    command = prepara_trecho_did(dado_did_trecho_mes_vias, dado_trechos, dado_trechos_complemento, 
+                                 faixa_azul = dado_vizinhos_150, 
+                                 vizinhos = TRUE,
+                                 filtrar_por = golden_match)),
+  tar_target(
+    name = dado_did_trecho_golden_vizinhos_500,
+    command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento, 
+                                 faixa_azul = dado_vizinhos_500, 
+                                 vizinhos = TRUE,
+                                 filtrar_por = golden_match)),
+  
+  tar_target(
+    name = dado_cohort_trecho_vizinhos_150,
+    command = definir_cohort_vizinho(
+      dado_did_trecho_golden_vizinhos_150,
+      faixa_azul = dado_vizinhos_150,
+      trechos = dado_trechos,
+      logradouros = dado_logradouros,
+      por_logradouro = FALSE)),
+  tar_target(
+    name = dado_cohort_trecho_vizinhos_150_vias,
+    command = definir_cohort_vizinho(
+      dado_did_trecho_golden_vizinhos_150_vias,
+      faixa_azul = dado_vizinhos_150,
+      trechos = dado_trechos,
+      logradouros = dado_logradouros,
+      por_logradouro = FALSE)),
+  tar_target(
+    name = dado_cohort_trecho_vizinhos_500,
+    command = definir_cohort_vizinho(
+      dado_did_trecho_golden_vizinhos_500,
+      faixa_azul = dado_vizinhos_500,
+      trechos = dado_trechos,
+      logradouros = dado_logradouros,
+      por_logradouro = FALSE)),
+  
+  
+  tar_target(
+    name = did_vizinhos_150_todos_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden_vizinhos_150,
+      cohorts = dado_cohort_trecho_vizinhos_150,
+      yname = "sinistros",
+      titulo = "Todos os sinistros, efeito spillover, golden",
+      filename = "trecho/vizinhos/150-todos-golden")),
+  tar_target(
+    name = did_vizinhos_150_moto_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden_vizinhos_150,
+      cohorts = dado_cohort_trecho_vizinhos_150,
+      yname = "sinistros_veiculo_motocicleta",
+      titulo = "Sinistros de moto, efeito spillover, golden",
+      filename = "trecho/vizinhos/150-moto-golden")),
+  
+  tar_target(
+    name = did_vizinhos_150_vias_todos_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden_vizinhos_150_vias,
+      cohorts = dado_cohort_trecho_vizinhos_150_vias,
+      yname = "sinistros",
+      titulo = "Todos os sinistros, efeito spillover (todas as vias), golden",
+      filename = "trecho/vizinhos/150_vias-todos-golden")),
+  tar_target(
+    name = did_vizinhos_150_vias_moto_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden_vizinhos_150_vias,
+      cohorts = dado_cohort_trecho_vizinhos_150_vias,
+      yname = "sinistros_veiculo_motocicleta",
+      titulo = "Sinistros de moto, efeito spillover (todas as vias), golden",
+      filename = "trecho/vizinhos/150_vias-moto-golden")),
+  
+  tar_target(
+    name = did_vizinhos_500_todos_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden_vizinhos_500,
+      cohorts = dado_cohort_trecho_vizinhos_500,
+      yname = "sinistros",
+      titulo = "Todos os sinistros, efeito spillover, golden",
+      filename = "trecho/vizinhos/500-todos-golden")),
+  tar_target(
+    name = did_vizinhos_500_moto_golden,
+    command = fit_did_all(
+      df = dado_did_trecho_golden_vizinhos_500,
+      cohorts = dado_cohort_trecho_vizinhos_500,
+      yname = "sinistros_veiculo_motocicleta",
+      titulo = "Sinistros de moto, efeito spillover, golden",
+      filename = "trecho/vizinhos/500-moto-golden"))
   
 )

@@ -33,6 +33,50 @@ tidy_faixa_azul <- function(trechos){
 }
 
 
+tidy_vizinhos <- function(trechos, id_logradouros, faixa_azul, buffer = 500) {
+  id_logradouros <- id_logradouros |> 
+    unnest(cols = c(trechos)) |> 
+    rename(id_osm = trechos) |> 
+    select(contains("id"))
+  
+  
+  df <- trechos |> 
+    
+    # apenas trechos tratados
+    left_join(faixa_azul) |> 
+    filter(!is.na(data_implementacao))|> 
+    st_buffer(buffer)|> 
+    
+    # join geografico com os trechos, incluindo id dos logradouros
+    left_join(id_logradouros) |> 
+    st_join(trechos |> 
+              left_join(id_logradouros)) |> 
+    st_drop_geometry() |> 
+    
+    # exclui vizinhos pertencentes ao mesmo logradouro do trecho principal e vizinhos tratados
+    filter(id_logradouro.x != id_logradouro.y) |> 
+    anti_join(faixa_azul, by = join_by(id_osm.y == id_osm)) 
+
+  vizinhos <- df |> 
+    
+    # mantem os vizinhos que sao vizinhos de apenas um logradouro  
+    semi_join(df |> 
+                group_by(id_osm.y) |>
+                distinct(id_logradouro.x) |> 
+                count(id_osm.y) |> 
+                filter(n == 1)) |> 
+    
+    # mantem os vizinhos que tem somente uma data de implementacao
+    semi_join(df |> 
+                group_by(id_osm.y) |>
+                distinct(data_implementacao) |> 
+                count(id_osm.y) |> 
+                filter(n == 1)) |> 
+    select(id_osm_vizinho = id_osm.y, id_osm_tratado = id_osm.x, data_implementacao)
+  
+  return(vizinhos)
+}
+
 
 
 # Plot mapa -----

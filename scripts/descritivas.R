@@ -583,7 +583,96 @@ plot_mapas <- function(sinistros, trechos, faixa_azul){
 }
 
 
+# distribuicao dos tamanhos dos trechos e outro grafico com a distribuicao de sinistros por km, 
+# talvez com um facet wrap em cortes do comprimento, tipo um pra vias <50m, 250m, 500m, > 1km
+plot_comprimento_trechos <- function(trechos) {
+  p <- trechos |> 
+    ggplot() +
+    geom_density(aes(x = comprimento)) +
+    xlim(c(0, 500)) +
+    labs(title = "Densidade de comprimento dos trechos (até 500m)", 
+         y = "Densidade", x = "Comprimento (m)") +
+    theme_minimal()
+  ggsave("output/plot_comprimento_trechos.pdf", p, width = 10, height = 7)
+}
 
 
+# variância do numero de sinistros por km (eixo y) em diferentes thresholds de comprimento minimo (eixo x)
+# Esse pode ser bem legal pra discutir quanto da “variancia intrinseca” é mais por causa desses trechinhos de merda
+plot_sinistros_comprimento <- function(df) {
+  p <- df |> 
+    mutate(corte_comprimento = case_when(
+      comprimento <= 50   ~ "<50m",
+      comprimento > 50  & comprimento <= 100  ~ "<100m",
+      comprimento > 100 & comprimento <= 250  ~ "<250m",
+      comprimento > 250 & comprimento <= 500  ~ "<500m",
+      comprimento > 500 & comprimento <= 1000 ~ "<1000m",
+      comprimento > 1000  ~ ">1000m") |> as_factor() |> fct_reorder(comprimento)) |> 
+    ggplot() + 
+    geom_density(aes(x = sinistros)) +
+    facet_wrap(~corte_comprimento) +
+    xlim(c(0, 5)) +
+    labs(title = "Densidade de sinistros, por comprimento do trecho") +
+    theme_minimal()
+  ggsave("output/plot_densidade_sinistros.pdf", p, width = 10, height = 7)
+  
+  p <- df |> 
+    mutate(corte_comprimento = case_when(
+      comprimento <= 50 ~ "<50m",
+      comprimento > 50  & comprimento <= 100  ~ "<100m",
+      comprimento > 100 & comprimento <= 250  ~ "<250m",
+      comprimento > 250 & comprimento <= 500  ~ "<500m",
+      comprimento > 500 & comprimento <= 1000 ~ "<1000m",
+      comprimento > 1000  ~ ">1000m") |> as_factor() |> fct_reorder(comprimento)) |> 
+    mutate(sinistros = sinistros / comprimento * 1000) |> 
+    ggplot() + 
+    geom_density(aes(x = sinistros)) +
+    facet_wrap(~corte_comprimento) +
+    xlim(c(0, 100)) +
+    labs(title = "Densidade de sinistros por km",
+         x = "Sinistros por km", y = "Densidade") +
+    theme_minimal()
+  ggsave("output/plot_densidade_sinistros_km.pdf", p, width = 10, height = 7)
+  
+  
+  p <- df |> 
+    mutate(corte_comprimento = (comprimento %/% 25 + 1) * 25) |> 
+    group_by(corte_comprimento) |> 
+    summarise(sd = sd(sinistros)) |> 
+    ggplot() + 
+    geom_col(aes(x = corte_comprimento, y = sd)) +
+    xlim(c(0, 2000)) +
+    labs(title = "Desvio padrão de sinistros (por comprimento)",
+         x = "Comprimento (m)", y = "Desvio Padrão") +
+    theme_minimal()
+  ggsave("output/plot_variancia_sinistros.pdf", p, width = 10, height = 7)
+  
+  p <- df |> 
+    mutate(sinistros = sinistros / comprimento * 1000) |> 
+    mutate(corte_comprimento = (comprimento %/% 25 + 1) * 25) |> 
+    group_by(corte_comprimento) |> 
+    summarise(sd = sd(sinistros)) |> 
+    ggplot() + 
+    geom_col(aes(x = corte_comprimento, y = sd)) +
+    xlim(c(0, 2000)) +
+    labs(title = "Desvio padrão de sinistros por km (por comprimento)",
+         x = "Comprimento (m)", y = "Desvio Padrão") +
+    theme_minimal()
+  ggsave("output/plot_variancia_sinistros_km.pdf", p, width = 10, height = 7)
+  
+}
 
+
+# quais vias aumentaram, diminuiram, continuaram igual o numero de mortes ou sinistros de 23-24
+# Comparar o % com vias nao tratadas primarias e truncais
+plot_comparacao_sinisitros_ano <- function(sinistros, trechos, match) {
+  
+}
+
+
+# ⁠grafico com os meses no eixo x e um stacked col plot que mostra quantos
+# % da pool sao never treated, not yet treated e treated
+plot_proporcao_grupos <- function(sinistros, trechos, match) {
+  
+}
 
