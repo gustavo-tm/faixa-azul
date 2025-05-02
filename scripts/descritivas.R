@@ -1,6 +1,6 @@
 library(tidyverse)
 library(sf)
-library(mapview)
+# library(mapview)
 # library(ggsankey)
 library(paletteer)
 library(gganimate)
@@ -746,9 +746,53 @@ plot_proporcao_grupos <- function(trechos, faixa_azul) {
   ggsave("output/plot_staggered_data.pdf", gg, width = 7, height = 4)
 }
 
+# AGREGAÇÃO TRECHOS ----
 
-
-
+plot_agregacao_trechos <- function(trechos, id_logradouros, trechos_agregado){
+  # Estatística descritiva do tamanho dos trechos
+  g <- bind_rows(list(
+    trechos |> 
+      st_drop_geometry() |> 
+      select(comprimento) |> 
+      mutate(grupo = "Trecho (microdado)"),
+    
+    id_logradouros |> 
+      unnest(trechos) |>
+      rename(id_osm = trechos) |>
+      select(-logradouro) |> 
+      left_join(trechos)  |>  
+      st_drop_geometry() |> 
+      group_by(id_logradouro) |> 
+      summarize(comprimento = sum(comprimento),
+                n = n()) |> 
+      select(comprimento) |> 
+      mutate(grupo = "Logradouro"),
+    
+    trechos_agregado |> 
+      select(comprimento) |> 
+      mutate(grupo = "Trecho agregado")
+  ))
+  
+  gg <- g |> 
+    ggplot() +
+    geom_density(aes(fill = grupo, x = comprimento, colour = grupo), alpha = .6) +
+    geom_segment(data = g |> 
+                   group_by(grupo) |> 
+                   summarize(mean = mean(comprimento)),
+                 aes(x = mean, xend = mean, y = 0, yend = 2.1, colour = grupo),
+                 linetype = "dashed") +
+    geom_text(data = g |> 
+                group_by(grupo) |> 
+                summarize(mean = mean(comprimento)) |> 
+                mutate(label = mean |> round()),
+              aes(x = mean, label = label, y= 2.3, colour = grupo)) +
+    scale_x_continuous("Comprimento da via (em metros) - escala log10", trans = "log10") +
+    scale_y_continuous("Densidade de probabilidade", breaks = NULL) +
+    labs(fill = "Nível de agregação", colour = "Nível de agregação") +
+    theme_minimal()
+  
+  ggsave("output/plot_agregacao_trechos.pdf", gg, width = 9, height = 4.5)
+}
 
 
 

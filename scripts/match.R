@@ -1,6 +1,6 @@
 library(tidyverse)
-library(stringdist)
-library(fuzzyjoin)
+# library(stringdist)
+# library(fuzzyjoin)
 library(sf)
 
 # PREPARAÇÃO DADOS ----
@@ -49,8 +49,8 @@ tokenizar <- function(df, id){
              str_replace_all(string = _, setNames(rep(" ", length(titulo$titulo_ext)), titulo$titulo_ext)) |> 
              str_replace_all(string = _, setNames(rep(" ", length(tipo$tipo)), tipo$tipo)) |> 
              limpar()) |> 
-    regex_left_join(tipo |> select(tipo), by = join_by(logradouro == tipo)) |> 
-    regex_left_join(titulo |> select(titulo = titulo_ext), by = join_by(logradouro == titulo)) |> 
+    fuzzyjoin::regex_left_join(tipo |> select(tipo), by = join_by(logradouro == tipo)) |> 
+    fuzzyjoin::regex_left_join(titulo |> select(titulo = titulo_ext), by = join_by(logradouro == titulo)) |> 
     mutate(across(c(logradouro_limpo, tipo, titulo), ~ replace_na(.x, ""))) |> 
     
     #Corrigir quando aparecem 2 tokens no mesmo campo
@@ -130,13 +130,13 @@ match_dados <- function(sinistros, sinistros_token, trechos, trechos_token){
     st_drop_geometry() |> 
     left_join(sinistros_token, by = join_by(id_sinistro)) |> 
     left_join(trechos_token, by = join_by(id_osm)) |> 
-    mutate(similaridade = stringsim(logradouro_limpo.x, logradouro_limpo.y),
+    mutate(similaridade = stringdist::stringsim(logradouro_limpo.x, logradouro_limpo.y),
            match_tipo = tipo.x == tipo.y,
            match_titulo = titulo.x == titulo.y) |> 
     drop_na() |> 
     group_by(id_sinistro) |> 
     filter(similaridade == max(similaridade)) |> 
-    mutate(distancia_nome = stringdist(logradouro_limpo.x, logradouro_limpo.y))
+    mutate(distancia_nome = stringdist::stringdist(logradouro_limpo.x, logradouro_limpo.y))
   
   # Seleção do trecho mais próximo geograficamente quando há empate de proximidade de nome
   match_grafico <- match_nome |> 

@@ -14,11 +14,13 @@ assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
 # tar_delete()
 
 tar_option_set(
-  packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "circlize", "igraph", "gganimate"), 
+  # circlize, webshot2, renv, targets, visNetwork, 
+  packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "igraph", "gganimate",
+               "tidygraph", "ggraph"), 
   error = "trim",
   # format = "qs", # Optionally set the default storage format. qs is fast.
 
-  # controller = crew::crew_controller_local(workers = workers)
+  controller = crew::crew_controller_local(workers = workers)
 )
 
 # Run the R scripts in the R/ folder with your custom functions:
@@ -58,7 +60,23 @@ list(
     name = dado_trechos_complemento,
     command = tidy_complemento_trecho(dado_trechos, dado_radar, dado_interseccao, dado_amenidades)),
   
-  # 3. FAIXA AZUL ----
+  
+  
+  # 3. Agregação de trechos ----
+  # 3.1. Logradouro ----
+  tar_target(
+    name = dado_id_logradouros,
+    command = agrupar_logradouros(dado_trechos, dado_token_osm)),
+  tar_target(
+    name = dado_logradouros,
+    command = tidy_logradouros(dado_id_logradouros, dado_trechos, dado_trechos_complemento, dado_faixa_azul)),
+  
+  # 3.2. Trechos ----
+  tar_target(
+    name = dado_trechos_agregado,
+    command = agregar.trechos(dado_trechos, metros = 500)),
+  
+  # 4. FAIXA AZUL ----
   tar_target(
     name = dado_faixa_azul,
     command = tidy_faixa_azul(dado_trechos)),
@@ -68,14 +86,6 @@ list(
   tar_target(
     name = dado_vizinhos_500,
     command = tidy_vizinhos(dado_trechos, dado_id_logradouros, dado_faixa_azul, 500)),
-  
-  # 4. LOGRADOUROS ----
-  tar_target(
-    name = dado_id_logradouros,
-    command = agrupar_logradouros(dado_trechos, dado_token_osm)),
-  tar_target(
-    name = dado_logradouros,
-    command = tidy_logradouros(dado_id_logradouros, dado_trechos, dado_trechos_complemento, dado_faixa_azul)),
   
   
   # 5. MATCH ---- 
@@ -122,6 +132,9 @@ list(
   tar_target(
     name = descritiva_qualidade_match,
     command = plot_qualidade_match(dado_sinistros, dado_match)),
+  tar_target(
+    name = descritiva_trechos_agregados,
+    command = plot_agregacao_trechos(dado_trechos, dado_id_logradouros, dado_trechos_agregado)),
   tar_target(
     name = descritiva_mapas,
     command = plot_mapas(dado_sinistros, dado_trechos, dado_faixa_azul)),
