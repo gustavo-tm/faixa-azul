@@ -748,7 +748,7 @@ plot_proporcao_grupos <- function(trechos, faixa_azul) {
 
 # AGREGAÇÃO TRECHOS ----
 
-plot_agregacao_trechos <- function(trechos, id_logradouros, trechos_agregado){
+plot_agregacao_trechos <- function(trechos, id_logradouros, agregados){
   # Estatística descritiva do tamanho dos trechos
   g <- bind_rows(list(
     trechos |> 
@@ -768,7 +768,7 @@ plot_agregacao_trechos <- function(trechos, id_logradouros, trechos_agregado){
       select(comprimento) |> 
       mutate(grupo = "Logradouro"),
     
-    trechos_agregado |> 
+    agregados |> 
       select(comprimento) |> 
       mutate(grupo = "Trecho agregado")
   ))

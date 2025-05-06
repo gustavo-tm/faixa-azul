@@ -385,3 +385,31 @@ agregar.trechos <- function(trechos, metros = 500){
   
   return(trechos_agregado)
 }
+
+
+tidy_agregados <- function(id_agregados, trechos, trechos_complemento, faixa_azul) {
+  
+  trechos_agregado <- id_agregados |> 
+    unnest(id_osm) |> 
+    left_join(trechos |> 
+                st_drop_geometry() |> 
+                rename(comprimento_trecho = comprimento)) |> 
+    left_join(trechos_complemento) |> 
+    left_join(faixa_azul) |> 
+    group_by(id_trecho_agregado, trechos, comprimento) |> 
+    summarize(
+      across(
+        c(data_implementacao),
+        ~ .x |> sort() |> first()),
+      across(
+        c(faixas, limite_velocidade),
+        ~ .x |> as.numeric() |> mean(na.rm = TRUE)),
+      across(
+        c(amenidades, intersec),
+        ~ .x |> as.numeric() |> sum(na.rm = TRUE)),
+      across(
+        c(mao_unica, superficie, tipo_via),
+        ~ fct_infreq(.x) |> levels() |> first()),
+      radar_proximo = max(radar_proximo))
+  return(trechos_agregado)
+}
