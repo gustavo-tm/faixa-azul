@@ -76,7 +76,8 @@ fit_did <- function(df, titulo, filename, cohorts, por_km = FALSE, yname = "sini
     data = df,
     clustervars = clustervars,
     control_group = control_group,
-    xformla = ~ 1)
+    xformla = ~ 1,
+    base_period = "universal")
   fit.c <- att_gt(
     yname = yname,
     tname = "mes",
@@ -85,7 +86,8 @@ fit_did <- function(df, titulo, filename, cohorts, por_km = FALSE, yname = "sini
     data = df,
     clustervars = clustervars,
     control_group = control_group,
-    xformla = formula)
+    xformla = formula,
+    base_period = "universal")
   
   gerar_tabela_cohort(fit, cohorts, controle = FALSE, titulo = titulo, filename = filename)
   gerar_tabela_cohort(fit.c, cohorts, controle = TRUE, titulo = titulo, filename = filename)
@@ -129,23 +131,25 @@ fit_did <- function(df, titulo, filename, cohorts, por_km = FALSE, yname = "sini
 
 
 fit_did_all <- function(df, titulo, filename, cohorts, yname = "sinistros", clustervars = c("id"),
-                        control_group = "notyettreated", idname = "id", ylim = 5, apenas_km = TRUE,
+                        control_group = "notyettreated", idname = "id", ylim = 5, apenas_km = TRUE, apenas_total = FALSE,
                         formula = ~ tipo_via + faixas + limite_velocidade + amenidades + intersec + radar_proximo + comprimento,
                         formula_km = ~ tipo_via + faixas + limite_velocidade + amenidades + intersec + radar_proximo) {
-  fit_did(
-    df = df,
-    cohorts = cohorts,
-    yname = yname,
-    titulo = titulo,
-    filename = filename,
-    clustervars = clustervars,
-    control_group = control_group,
-    idname = idname,
-    formula = formula_km,
-    ylim = ylim,
-    por_km = TRUE)
+  if (apenas_km) {
+    fit_did(
+      df = df,
+      cohorts = cohorts,
+      yname = yname,
+      titulo = titulo,
+      filename = filename,
+      clustervars = clustervars,
+      control_group = control_group,
+      idname = idname,
+      formula = formula_km,
+      ylim = ylim,
+      por_km = TRUE)
+  }
   
-  if (!apenas_km) {
+  if (apenas_total) {
     fit_did(
       df = df,
       cohorts = cohorts,
