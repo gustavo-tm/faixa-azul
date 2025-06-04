@@ -18,29 +18,14 @@ download_osm <- function(){
     add_osm_feature(key = 'highway', value = c(
       "motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "service",
       "motorway_link", "trunk_link", "primary_link", "secondary_link", "motorway_junction"))  |>
-    # add_osm_feature(key = 'highway', value = c(
-    #   "trunk", "primary", "secondary"))  |>
     osmdata_sf()
-  
-  # saveRDS(osm, "dados_brutos/osm.rds")
-  # 
-  # gg <- osm$osm_lines |> 
-  #   ggplot() +
-  #   geom_sf(lwd = .1) +
-  #   theme_void()
-  # 
-  # ggsave("output/vias_osm.pdf", gg, width = 30, height = 40)
-  
+
   osm <- as_tibble(osm$osm_lines) |>
-    # separate_wider_delim(alt_name, ";", names_sep = "_", too_few = "align_start") |> 
     select(id_osm = osm_id,
            logradouro = name,
            logradouro_alt1 = alt_name,
            logradouro_alt2 = alt_name1,
            logradouro_alt3 = alt_name_1,
-           # logradouro_alt1 = alt_name_1,
-           # logradouro_alt2 = alt_name_2,
-           # logradouro_alt3 = alt_name_3,
            logradouro_ref = ref,
            tipo_via = highway,
            faixas = lanes,
@@ -143,10 +128,7 @@ agrupar_logradouros <- function(trechos, token_osm){
     circlize::adjacencyList2Matrix(square = TRUE) |> 
     graph_from_adjacency_matrix(mode = "undirected")
   
-  # grafico |> 
-  #   visIgraph(idToLabel = FALSE) |> 
-  #   htmltools::save_html("grafico.html")
-  
+
   id_logradouros <- grafico |> 
     components() |> 
     membership() |> 
@@ -160,25 +142,6 @@ agrupar_logradouros <- function(trechos, token_osm){
   
   return(id_logradouros)
 }
-
-ggplot() + 
-  geom_histogram(aes(x = igraph::degree(grafico))) +
-  scale_x_continuous(breaks = 1:30)
-
-# g <- make_ring(10)
-# igraph::degree(g, mode = c("all")) |> View()
-# g2 <- sample_gnp(100, 10 / 1000)
-# igraph::degree(g2)
-# degree_distribution(grafico)
-# plot(g2)
-
-
-#CAMINHO!!!
-
-#igraph::dfs
-
-
-#igraph::shortest_paths
 
 
 tidy_logradouros <- function(id_logradouros, trechos, trechos_complemento, faixa_azul){
@@ -224,6 +187,9 @@ agregar.trechos <- function(trechos, metros = 500){
     filter(logradouro.x == logradouro.y,
            id_osm.x != id_osm.y)
   
+  conexoes |> 
+    distinct(id_osm.x)
+  
   # GRAFO ----
   grafo <- conexoes |>
     select(id_osm.x, id_osm.y) |>
@@ -243,51 +209,6 @@ agregar.trechos <- function(trechos, metros = 500){
       igraph::degree()
   )
   
-  # logradouros |> 
-  #   ggplot() +
-  #   geom_histogram(aes(x = grau)) +
-  #   scale_x_continuous(breaks = 0:6) +
-  #   theme_minimal() +
-  #   labs(x = "Grau do vértice", y = "Frequência")
-  
-  
-  # subgrafo <- induced_subgraph(
-  #   grafo,
-  #   vids = logradouros |>
-  #     filter(id_logradouro == 1026) |>
-  #     pull(id_osm)
-  # )
-  # 
-  # grafo.dfs(subgrafo, grafico = T)
-  
-  # 
-  # subgrafo2 <- induced_subgraph(
-  #   grafo,
-  #   vids = logradouros |> 
-  #     filter(id_logradouro == 64) |> 
-  #     pull(id_osm)
-  # )
-  # 
-  # logradouros |> 
-  #   filter(id_logradouro == 263) |> 
-  #   left_join(trechos) |> 
-  #   st_set_geometry("geometry") |> 
-  #   mapview::mapview(zcol = "id_osm", legend = F) |> 
-  #   mapview::mapshot2("_temp/rua 263.html")
-  
-  # plot.grafo <- function(grafo){
-  #   set.seed(420)
-  #   grafo |> 
-  #     as_tbl_graph()  |> 
-  #     ggraph(layout = 'fr') +  # Fruchterman-Reingold layout
-  #     geom_edge_link(width = 1.5) +
-  #     geom_node_point(size = 6, color = "steelblue") +
-  #     # geom_node_text(aes(label = name), color = "black", size = 4) +
-  #     theme_graph()
-  # }
-  
-  # subgrafico |> plot.grafo()
-  # ggsave("_temp/grafo.pdf", width = 6, height = 6)
   
   # Rodar dfs para encontrar ordem
   grafo.dfs <- function(subgrafo, grafico = FALSE){
@@ -326,7 +247,7 @@ agregar.trechos <- function(trechos, metros = 500){
       ordem[-1]
     ))))
     
-    # Create an edge attribute to indicate DFS path
+    # Colorir para o grafo
     E(subgrafo)$is_dfs <- FALSE
     E(subgrafo)$is_dfs[dfs_edge_ids] <- TRUE
     
@@ -361,18 +282,32 @@ agregar.trechos <- function(trechos, metros = 500){
   trechos_agregado <- eulerian |> 
     select(id_logradouro, sub_ids) |> 
     unnest(sub_ids) |> 
-    mutate(id_logradouro = str_c(str_pad(id_logradouro, 4, pad = "0"), str_pad(subid, 3, pad = "0"), sep = "-")) |> 
+    mutate(id_logradouro_sub = str_c(str_pad(id_logradouro, 5, pad = "0"), str_pad(subid, 3, pad = "0"), sep = "-")) |> 
     left_join(trechos |> st_drop_geometry() |> select(id_osm, comprimento)) |> 
-    group_by(id_logradouro) |> 
-    mutate(comprimento_total = sum(comprimento),
+    group_by(id_logradouro_sub) |> 
+    mutate(comprimento_total = sum(comprimento) + 1,
            comprimento_cum = cumsum(comprimento),
+           comprimento_percent = comprimento_cum / comprimento_total,
            agrupamentos = comprimento_total %/% metros + 1,
-           grupo = comprimento_cum %/% metros,
-           id_logradouro = str_c(id_logradouro, str_pad(grupo, 3, pad = "0"), sep = "-")) |> 
-    group_by(id_trecho_agregado = id_logradouro) |> 
+           grupo = comprimento_percent %/% (1 / agrupamentos),
+           id_trecho_agregado = str_c(id_logradouro_sub, str_pad(grupo, 3, pad = "0"), sep = "-")) |> 
+    group_by(id_trecho_agregado) |> 
     summarize(id_osm = list(id_osm), 
               comprimento = sum(comprimento),
               trechos = n())
+  
+  # Incluir de volta na base os logradouros que tem apenas um trecho, então não aparece nas conexões
+  trechos_agregado_completo <- bind_rows(list(
+    trechos_agregado,
+    trechos |>
+      st_drop_geometry() |> 
+      filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
+      anti_join(trechos_agregado |> unnest(id_osm) |> select(id_osm)) |> 
+      mutate(id_trecho_agregado = str_c(str_c("A", str_pad(row_number(), 4, pad = "0")), "001", sep = "-"),
+             trechos = 1, id_osm = list(id_osm)) |> 
+      select(id_trecho_agregado, id_osm, comprimento, trechos)
+  ))
+  
   
   # Plotar os diagramas
   # eulerian |>
@@ -383,7 +318,8 @@ agregar.trechos <- function(trechos, metros = 500){
   #   #                   \(x) ggsave(str_c("output/agregar-trechos/", round(runif(1)*1000), ".pdf", sep = ""), 
   #   #                               x, width = 10, height = 10)))
   
-  return(trechos_agregado)
+  
+  return(trechos_agregado_completo)
 }
 
 

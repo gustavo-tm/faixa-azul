@@ -17,10 +17,10 @@ tar_option_set(
   # circlize, webshot2, renv, targets, visNetwork, 
   packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "igraph", "gganimate",
                "tidygraph", "ggraph"), 
-  error = "trim"
+  error = "trim",
   # format = "qs", # Optionally set the default storage format. qs is fast.
 
-  # controller = crew::crew_controller_local(workers = workers)
+  controller = crew::crew_controller_local(workers = workers)
 )
 
 # Run the R scripts in the R/ folder with your custom functions:
