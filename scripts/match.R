@@ -75,8 +75,6 @@ tokenizar_infosiga <- function(sinistros){
   return(infosiga.token)
 }
 
-trechos <- tar_read(dado_trechos)
-
 
 tokenizar_osm <- function(trechos){
   osm.token <- trechos |>  
@@ -182,6 +180,16 @@ match_dados <- function(sinistros, sinistros_token, trechos, trechos_token){
   # match |> 
   #   select(id_sinistro, id_osm, logradouro = logradouro_limpo.y, similaridade, distancia_geografica, distancia_nome, match_tipo, match_titulo) |> 
   #   write_csv("banco_dados/match.csv")
+}
+
+
+golden_match <- function(match) {
+  match |> 
+    mutate(golden_match =
+             similaridade > .85 &
+             distancia_geografica < 150 &
+             (match_titulo == TRUE | match_tipo == TRUE) & 
+             numero_zero == FALSE)
 }
 
 

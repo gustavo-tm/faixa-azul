@@ -171,11 +171,14 @@ tidy_logradouros <- function(id_logradouros, trechos, trechos_complemento, faixa
   return(logradouros)
 }
 
-agregar.trechos <- function(trechos, metros = 500){
+agregar_trechos <- function(trechos, faixa_azul, metros = 500){
   
   # LISTA DE ADJACÊNCIA ----
   conexoes <- trechos |> 
     filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
+    left_join(faixa_azul) |> 
+    mutate(data_implementacao = if_else(is.na(data_implementacao), "", as.character(data_implementacao)),
+           logradouro = str_c(logradouro, data_implementacao)) |> 
     arrange(logradouro) |> 
     select(id_osm, logradouro) |> 
     
@@ -303,8 +306,9 @@ agregar.trechos <- function(trechos, metros = 500){
       st_drop_geometry() |> 
       filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
       anti_join(trechos_agregado |> unnest(id_osm) |> select(id_osm)) |> 
-      mutate(id_trecho_agregado = str_c(str_c("A", str_pad(row_number(), 4, pad = "0")), "001", sep = "-"),
-             trechos = 1, id_osm = list(id_osm)) |> 
+      mutate(id_trecho_agregado = str_c(str_c("A", str_pad(row_number(), 4, pad = "0")), "001", sep = "-")) |> 
+      group_by(id_trecho_agregado) |> 
+      mutate(trechos = 1, id_osm = list(id_osm)) |> 
       select(id_trecho_agregado, id_osm, comprimento, trechos)
   ))
   

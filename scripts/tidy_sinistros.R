@@ -21,6 +21,7 @@ tidy_sinistros <- function(){
     data.table::fread("dados_brutos/sinistros_2022-2025.csv", encoding = "Latin-1")) |> 
     as_tibble() |> 
     filter(municipio == "SAO PAULO") |> 
+    filter(!if_all(c(tipo_via, administracao, conservacao, jurisdicao), ~ . %in% c("NAO DISPONIVEL", ""))) |>
     select(id_infosiga = id_sinistro,
            ano = ano_sinistro,
            mes = mes_sinistro,

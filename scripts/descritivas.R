@@ -5,22 +5,6 @@ library(sf)
 library(paletteer)
 library(gganimate)
 
-# trechos <- tar_read(dado_trechos)
-# logradouros <- tar_read(dado_logradouros)
-# logradouros_id <- tar_read(dado_id_logradouros)
-# sinistros <- tar_read(dado_sinistros)
-# faixa_azul <- tar_read(dado_faixa_azul)
-# match <- tar_read(dado_match)
-# osm.token <- tar_read(dado_token_osm) |> 
-#   mutate(len = str_length(logradouro_limpo)) |> 
-#   group_by(id_osm) |> 
-#   arrange(-len) |> 
-#   filter(row_number() == 1) |> 
-#   ungroup() |> 
-#   arrange(id_osm)
-
-
-
 
 plot_obitos_ano <- function(sinistros){
   gg <- sinistros |> 

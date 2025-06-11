@@ -1,11 +1,12 @@
 library(tidyverse)
 library(sf)
+library(MatchIt)
 
 
-dado_trecho_mes <- function(sinistros, match, trechos, tipo_vias = c("trunk", "primary", "secondary")){
+dado_trecho_mes <- function(sinistros, match, trechos, tipo_vias = c("trunk", "primary", "secondary")) {
   df <- sinistros |> 
     rename_with(~ str_replace(., "tp_veiculo", "veiculo"), contains("tp_veiculo")) |> 
-    filter(year(data) >= 2019 & year(data) <= 2024) |> 
+    filter(year(data) >= 2019) |> 
     select(id_sinistro, data, hora, contains("veiculo"), contains("gravidade"), tipo_acidente) |> #quantidade_envolvidos
     mutate(across(matches("veiculo|gravidade"), ~ replace_na(.x, 0)),
            qtd_envolvidos = gravidade_leve + gravidade_grave + gravidade_fatal + gravidade_nao_disponivel) |> 
@@ -62,12 +63,7 @@ dado_trecho_mes <- function(sinistros, match, trechos, tipo_vias = c("trunk", "p
            sinistros_hora_17_20_atropelamento  = hora >= 17 & hora <= 20 & acidente_atropelamento,
            sinistros_hora_17_20_outros         = hora >= 17 & hora <= 20 & acidente_outros) |> 
     
-    left_join(match |>
-                mutate(golden_match =
-                         similaridade > .85 &
-                         distancia_geografica < 150 &
-                         (match_titulo == TRUE | match_tipo == TRUE) & 
-                         numero_zero == FALSE)) |>
+    left_join(match) |>
     semi_join(trechos |>
                 st_drop_geometry() |>
                 filter(tipo_via %in% tipo_vias), by = join_by(id_osm)) |>
@@ -137,22 +133,12 @@ prepara_trecho_did <- function(dado_did, trechos, trechos_complemento, faixa_azu
   
 }
 
-consolida_trecho_did <- function(did_trecho, meses = 1) {
-  did_trecho |> 
-    ungroup() |> 
-    mutate(data = make_date(
-      year = year(data), 
-      month = ((month(data) - 1) %/% meses + 1) * meses)) |> 
-    group_by(id, data) |> 
-    summarise(across(matches("sinistros|veiculo|acidente|gravidade|qtd"), sum))
-}
 
-
-dado_agregado_mes <- function(sinistros, match, id_trechos, trechos_agregado, 
-                                     tipo_vias = c("trunk", "primary", "secondary")) {
+dado_agregado_mes <- function(sinistros, match, id_trechos, trechos_agregado, tipo_vias = c("trunk", "primary", "secondary"),
+                              tipo_join = "padrao") {
   df <- sinistros |> 
     rename_with(~ str_replace(., "tp_veiculo", "veiculo"), contains("tp_veiculo")) |> 
-    filter(year(data) >= 2019 & year(data) <= 2024) |> 
+    filter(year(data) >= 2019) |> 
     select(id_sinistro, data, hora, contains("veiculo"), contains("gravidade"), tipo_acidente) |> #quantidade_envolvidos
     mutate(across(matches("veiculo|gravidade"), ~ replace_na(.x, 0)),
            qtd_envolvidos = gravidade_leve + gravidade_grave + gravidade_fatal + gravidade_nao_disponivel) |> 
@@ -209,18 +195,12 @@ dado_agregado_mes <- function(sinistros, match, id_trechos, trechos_agregado,
            sinistros_hora_17_20_atropelamento  = hora >= 17 & hora <= 20 & acidente_atropelamento,
            sinistros_hora_17_20_outros         = hora >= 17 & hora <= 20 & acidente_outros) |> 
     
-    left_join(match |>
-                mutate(numero_zero = replace_na(numero_zero, FALSE),
-                       golden_match =
-                         similaridade > .85 &
-                         distancia_geografica < 150 &
-                         (match_titulo == TRUE | match_tipo == TRUE) & 
-                         numero_zero == FALSE)) |>
+    left_join(match) |>
     inner_join(id_trechos |> 
-                unnest(id_osm) |> 
-                select(id_trecho_agregado, id_osm) |> 
-                left_join(trechos_agregado |>
-                            filter(tipo_via %in% tipo_vias))) |>
+                 unnest(id_osm) |> 
+                 select(id_trecho_agregado, id_osm) |> 
+                 left_join(trechos_agregado |>
+                             filter(tipo_via %in% tipo_vias))) |>
     group_by(id_trecho_agregado,
              data = make_date(year = year(data), month = month(data)),
              golden_match = golden_match) |>
@@ -228,6 +208,17 @@ dado_agregado_mes <- function(sinistros, match, id_trechos, trechos_agregado,
               qtd_envolvidos = sum(qtd_envolvidos),
               across(matches("sinistros_|veiculo|acidente|gravidade"), sum)) |>
     ungroup() 
+  
+  
+  if (tipo_join == "completo") {
+    df <- df |>
+      right_join(trechos_agregado |>
+                   ungroup() |>
+                   select(id_trecho_agregado)) |>
+      mutate(golden_match = replace_na(golden_match, TRUE),
+             data = replace_na(data, make_date(year = 2019)))
+  }
+  
   
   zero_cols <- c(
     "sinistros", "qtd_envolvidos",
@@ -261,6 +252,8 @@ prepara_agregado_did <- function(dado_did, trechos_agregado, filtrar_por = c(gol
     mutate(value = value |> reorder(value) |> factor() |> as.numeric()) |>
     pivot_wider(names_from = name, values_from = value) |>
     mutate(data_implementacao = replace_na(data_implementacao, 0),
+           comprimento_sqrt = sqrt(comprimento),
+           comprimento_cbrt = comprimento^(1/3),
            # id_trecho_agregado = as.numeric(id_trecho_agregado),
            across(c(mao_unica:radar_proximo), ~ factor(.x))) |>
     ungroup() |> 
@@ -271,7 +264,7 @@ prepara_agregado_did <- function(dado_did, trechos_agregado, filtrar_por = c(gol
 dado_logradouro_mes <- function(sinistros, match, id_logradouros){
   df <- sinistros |> 
     rename_with(~ str_replace(., "tp_veiculo", "veiculo"), contains("tp_veiculo")) |> 
-    filter(year(data) >= 2019 & year(data) <= 2024) |> 
+    filter(year(data) >= 2019) |> 
     select(id_sinistro, data, hora, contains("veiculo"), contains("gravidade"), tipo_acidente) |> #quantidade_envolvidos
     mutate(across(matches("veiculo|gravidade"), ~ replace_na(.x, 0)),
            qtd_envolvidos = gravidade_leve + gravidade_grave + gravidade_fatal + gravidade_nao_disponivel) |> 
@@ -326,12 +319,7 @@ dado_logradouro_mes <- function(sinistros, match, id_logradouros){
            sinistros_hora_17_20_atropelamento  = hora >= 17 & hora <= 20 & acidente_atropelamento,
            sinistros_hora_17_20_outros         = hora >= 17 & hora <= 20 & acidente_outros) |>
     
-    left_join(match |>
-                mutate(golden_match =
-                         similaridade > .75 &
-                         distancia_geografica < 100 &
-                         match_titulo == TRUE &
-                         match_tipo == TRUE)) |>
+    left_join(match) |>
     tibble() |>
     left_join(id_logradouros |>
                 unnest(trechos) |>
@@ -386,24 +374,27 @@ prepara_logradouro_did <- function(dado_did, logradouros, filtrar_por = c(golden
 definir_cohort <- function(dado, faixa_azul = NULL, logradouros = NULL, agregados = NULL, trechos = NULL, 
                            por_logradouro = FALSE, por_agregado = FALSE){
   cohort <- dado |> 
-    filter(year(data) <= 2024,
-           mes == data_implementacao) |> 
+    filter(mes == data_implementacao) |> 
     distinct(data, data_implementacao) |> 
     arrange(data_implementacao)
   
-  if (por_logradouro){
+  if (por_logradouro) {
     logradouros |> 
       group_by(data = data_implementacao) |> 
       summarize(n_trechos = sum(trechos),
                 n_logradouros = n(),
                 comprimento = (sum(comprimento) / 1000) |> round()) |> 
-      right_join(cohort)
+      right_join(cohort) |> 
+      mutate(n_agregados = "-")
   } else if (por_agregado) {
     agregados |> 
       group_by(data = data_implementacao) |> 
       summarize(n_trechos = sum(trechos),
-                n_logradouros = n(),
+                n_agregados = n(),
                 comprimento = (sum(comprimento) / 1000) |> round()) |> 
+      left_join(logradouros |> 
+                  group_by(data= data_implementacao) |> 
+                  summarize(n_logradouros = n())) |> 
       right_join(cohort)
   } else {
     cohort |> 
@@ -417,14 +408,14 @@ definir_cohort <- function(dado, faixa_azul = NULL, logradouros = NULL, agregado
                   rename(data = data_implementacao)) |> 
       left_join(logradouros |> 
                   group_by(data= data_implementacao) |> 
-                  summarize(n_logradouros = n())) 
+                  summarize(n_logradouros = n())) |> 
+      mutate(n_agregados = "-")
   }
 }
 
 definir_cohort_vizinho <- function(dado, faixa_azul = NULL, logradouros = NULL, trechos = NULL, por_logradouro = FALSE){
   cohort <- dado |> 
-    filter(year(data) <= 2024,
-           mes == data_implementacao) |> 
+    filter(mes == data_implementacao) |> 
     distinct(data, data_implementacao) |> 
     arrange(data_implementacao)
   
@@ -452,3 +443,132 @@ definir_cohort_vizinho <- function(dado, faixa_azul = NULL, logradouros = NULL, 
                   summarize(n_logradouros = n())) 
   }
 }
+
+
+consolida_trecho_did <- function(did_trecho, meses = 1) {
+  did_trecho |> 
+    ungroup() |> 
+    mutate(
+      data = make_date(
+        year = year(data), 
+        month = ((month(data) - 1) %/% meses + 1) * meses),
+      data_implementacao = ifelse(data_implementacao == 0, 0, ((data_implementacao - 1) %/% meses + 1)),
+      mes = (mes - 1) %/% meses + 1,
+    ) |> 
+    group_by(id, data) |> 
+    summarise(across(matches("sinistros|veiculo|acidente|gravidade|qtd"), sum),
+              across(!matches("sinistros|veiculo|acidente|gravidade|qtd"), last)) |> 
+    ungroup()
+}
+
+
+psm_agregados <- function(agregados, id_agregados, sinistros, match, inclui_medias = FALSE) {
+  
+  obitos <- id_agregados |> 
+    unnest(id_osm) |> 
+    left_join(match |> 
+                select(id_sinistro, id_osm, golden_match)) |> 
+    left_join(sinistros |> 
+                filter(year(data) >= 2019,
+                       year(data) <= 2021)) |> 
+    filter(golden_match) |> 
+    mutate(obito = !is.na(gravidade_fatal) & gravidade_fatal > 0) |> 
+    group_by(id_trecho_agregado) |> 
+    summarise(obitos = sum(obito),
+              sinistros = n())
+  
+  
+  # Preparação da base para o PSM ----
+  df <- agregados |>
+    ungroup() |> 
+    left_join(obitos) |> 
+    mutate(faixa_azul = as.integer(!is.na(data_implementacao)),
+           across(c(faixas), ~ round(.x)),
+           limite_velocidade = (round(limite_velocidade / 10) * 10),
+           across(c(amenidades, intersec), ~ .x / comprimento),
+           across(c(faixas, limite_velocidade, mao_unica), ~ ifelse(is.na(.x), "NA", .x)),
+           across(c(obitos, sinistros), ~ replace_na(.x, 0)))
+  
+  # Propensity score matching ----
+  if (inclui_medias) {
+    PSM <- df |>
+      matchit(faixa_azul ~ trechos + comprimento + faixas + limite_velocidade + amenidades + 
+                intersec + tipo_via + radar_proximo + obitos + sinistros,
+              data = _,
+              method = "nearest",
+              distance = "glm", link = "logit")
+  } else {
+    PSM <- df |>
+      matchit(faixa_azul ~ trechos + comprimento + faixas + limite_velocidade + amenidades + 
+                intersec + tipo_via + radar_proximo,
+              data = _,
+              method = "nearest",
+              distance = "glm", link = "logit")
+  }
+  
+  # Algumas descritivas do PSM ----
+  # PSM |> 
+  #   summary() |> 
+  #   plot()
+  # 
+  # plot(PSM, type = "density", interactive = FALSE,
+  #      which.xs = ~ trechos + comprimento + limite_velocidade + amenidades + 
+  #        intersec + tipo_via + radar_proximo) 
+  
+  # Agrupando resultados do PSM em uma tabela ----
+  resultado <- df |> 
+    select(id_trecho_agregado, faixa_azul) |> 
+    
+    # Quando encontra um vizinho, resultado_match = 1, caso contrário 0 (deve ser removido)
+    mutate(resultado_match = PSM$weights,
+           propensity_score = PSM$distance)
+  
+  # Gráfico com o as distribuições de propensity score ----
+  # bind_rows(
+  #   resultado |> filter(resultado_match == 1) |> mutate(matched = "b) Pós PSM"),
+  #   resultado |> mutate(matched = "a) Pré PSM")
+  # ) |> 
+  #   ggplot() +
+  #   geom_density(aes(x = propensity_score, fill = factor(faixa_azul)), alpha = .5) +
+  #   facet_wrap(~ matched) +
+  #   theme_minimal() +
+  #   labs(x = "Propensity Score") +
+  #   scale_fill_manual("Grupo", 
+  #                     labels = c("Controle", "Tratamento"), 
+  #                     values = c("darkblue", "darkred"))
+  
+  # Resultado do logit ----
+  # PSM$model |> summary()
+  
+  return(resultado)
+}
+
+
+prepara_psm_agregados_did <- function(dado, psm) {
+  dado <- dado |> 
+    semi_join(psm |> 
+                filter(resultado_match == 1), 
+              by = join_by(id == id_trecho_agregado))
+  
+  dado |> 
+    mutate(id = as.integer(as_factor(id))) |> 
+    write_csv(file = "dados_tratados/df_did_psm.csv")
+  
+  dado |> 
+    mutate(id = as.integer(as_factor(id)),
+           across(c(matches("sinistro|gravidade|acidente"),  qtd_envolvidos, intersec, amenidades), 
+                  ~ .x * 1000 / comprimento)) |> 
+    write_csv(file = "dados_tratados/df_did-km_psm.csv")
+  
+  return(dado)
+}
+
+
+# pareamento_manual <- function(did) {
+#   did |> 
+#     mutate(faixas2 = round(faixas),
+#            limite_velocidade2 = round(limite_velocidade/10)*10) |> 
+#     filter(faixas2 %in% 3:5,
+#            limite_velocidade2 %in% 40:60,
+#            tipo_via %in% c("primary", "trunk"))
+# }
