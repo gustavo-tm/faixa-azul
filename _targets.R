@@ -18,7 +18,7 @@ tar_option_set(
   packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "igraph", "gganimate",
                "tidygraph", "ggraph", "qs2", "MatchIt"), 
   error = "trim",
-  format = "qs" # Optionally set the default storage format. qs is fast.
+  format = "qs", # Optionally set the default storage format. qs is fast.
 
   # controller = crew::crew_controller_local(workers = workers)
 )
@@ -166,6 +166,10 @@ list(
   tar_target(
     name = descritiva_sinistros_comprimento,
     command = plot_sinistros_comprimento(dado_did_trecho_golden)),
+  tar_target(
+    name = descritiva_staggered_descritivo,
+    command = plot_staggered_descritivo(dado_sinistros, dado_match, dado_faixa_azul)),
+  
   
 
 
@@ -236,15 +240,15 @@ list(
   ### Balanceamento
   tar_target(
     name = dado_psm_agregados_simples,
-    command = psm_agregados(dado_agregados, dado_id_agregados, dado_sinistros, dado_match,
+    command = psm_agregados(dado_agregados, dado_id_agregados, dado_sinistros, dado_match, file = "psm simples",
                             inclui_medias = FALSE)),
   tar_target(
     name = dado_psm_agregados,
-    command = psm_agregados(dado_agregados, dado_id_agregados, dado_sinistros, dado_match,
+    command = psm_agregados(dado_agregados, dado_id_agregados, dado_sinistros, dado_match, file = "psm completo",
                             inclui_medias = TRUE)),
   tar_target(
     name = dado_psm_agregados_1000,
-    command = psm_agregados(dado_agregados, dado_id_agregados_1000, dado_sinistros, dado_match,
+    command = psm_agregados(dado_agregados, dado_id_agregados_1000, dado_sinistros, dado_match, file = "psm 1000",
                             inclui_medias = TRUE)),
   
   tar_target(
@@ -288,6 +292,7 @@ list(
     name = dado_cohort_agregado,
     command = definir_cohort(dado_did_agregado,
                              agregados = dado_agregados,
+                             logradouros = dado_logradouros,
                              por_agregado = TRUE)),
   tar_target(
     name = dado_cohort_logradouro,

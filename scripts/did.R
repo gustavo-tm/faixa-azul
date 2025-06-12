@@ -185,14 +185,42 @@ res_csdid <- function(fit, cohort, titulo, filename, ylim = 4, xlim = 12) {
     }
   }
   
+  # tabela resultado por cohort
   tabela_cohort_csdid(fit$fit, fit$fit.c, cohort, titulo, filename)
   
   out <- aggte(fit$fit.c, type = "simple", na.rm = TRUE)
   ATT <- out$overall.att
-  ci_low = ATT - out$overall.se * 1.96
-  ci_high = ATT + out$overall.se * 1.96
+  se <- out$overall.se
+  ci_low = ATT - se * 1.96
+  ci_high = ATT + se * 1.96
   significance <- if(ci_low < 0 & ci_high > 0){""}else{"*"}
   
+  # tabelinha resultados agregados
+  tibble(ATT = ATT, 
+         SE = se, 
+         "IC (95%)" = paste0("[", round(ci_low, 2), ", ", round(ci_high, 2), "]"),
+         Significante = if(ci_low < 0 & ci_high > 0){"Não"}else{"Sim"}) |> 
+    gt() |> 
+    fmt_number(decimals = 2) |> 
+    cols_align(align= "right") |> 
+    cols_width(everything() ~ 600/4) |> 
+    gtsave(paste0("output/did/", filename, "-tabelinhaATT.png"))
+  
+  # tabelinha descritivas da base
+  fit$fit$DIDparams$data |> 
+    as_tibble() |> 
+    summarize(Mínimo = min(sinistros),
+              Q1 = quantile(sinistros, .25),
+              Mediana = median(sinistros),
+              Média = mean(sinistros),
+              Q3 = quantile(sinistros, .75),
+              Max = max(sinistros)) |> 
+    gt() |> 
+    fmt_number(decimals = 2) |> 
+    cols_width(everything() ~ 100) |> 
+    gtsave(paste0("output/did/", filename, "-tabelinhaSummary.png"))
+  
+  # grafico do staggered
   g1 <- bind_rows(
     prepara_grafico_csdid(fit$fit, controle = "Não"),
     prepara_grafico_csdid(fit$fit.c, controle = "Sim")) |>
@@ -209,16 +237,18 @@ res_csdid <- function(fit, cohort, titulo, filename, ylim = 4, xlim = 12) {
   g1 |>
     ggsave(filename = filename |> paste0("-plot.png"),
            path = "output/did/",
-           plot = _,
+           plot = _, create.dir = T,
            width = 10, height = 7.5, dpi = 300)
   
+  # grafico do staggered por grupo
   g2 <- fit$fit.c |>
     ggdid(xgap = 5, ncol = 3, title = paste(titulo, "- grupos"))
-  g2 <- fit$fit.c |>
-    ggdid(xgap = 5, ncol = 3, title = paste(titulo, "- grupos"))
+
+  g2 <- g2 + scale_x_continuous(breaks = c())
+  
   g2 |>
     ggsave(filename = filename |> paste0("-plot-groups.png"),
-           path = "output/did/",
+           path = "output/did/", create.dir = T,
            plot = _,
            width = 18, height = 9, dpi = 300, bg = "white")
 }

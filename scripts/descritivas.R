@@ -780,6 +780,40 @@ plot_agregacao_trechos <- function(trechos, id_logradouros, agregados){
 
 
 
+# STAGGERED DESCRITIVO ----
+
+plot_staggered_descritivo <- function(sinistros, match, faixa_azul){
+  gg <- sinistros |> 
+    select(id_sinistro, data, tipo) |> 
+    left_join(match) |> 
+    filter(golden_match) |> 
+    select(id_sinistro, data, id_osm, tipo) |> 
+    left_join(faixa_azul) |> 
+    filter(!is.na(data_implementacao), 
+           data_implementacao <= max(data) - months(12)) |> 
+    mutate(data = make_date(year = year(data), month = month(data)),
+           dist = time_length(data - data_implementacao, "months")) |> 
+    filter(abs(dist) <= 11) |>
+    # group_by(dist = round(dist), tipo) |>
+    group_by(dist = round(dist), tipo) |>
+    summarize(n = n()) |> 
+    ungroup() |> 
+    complete(dist, tipo, fill = list(n = 0)) |> 
+    mutate(periodo = case_when(dist < 0 ~ "pre",
+                               dist > 0 ~ "pos",
+                               TRUE ~ NA)) |> 
+    # mutate(dist = ifelse(periodo == "pre", -dist, dist)) |> 
+    ggplot(aes(x = dist, y = n)) +
+    geom_point() +
+    geom_smooth(aes(colour = periodo), method = "lm", se = F) +
+    facet_wrap(~tipo, scales = "free") +
+    theme_minimal() +
+    labs(x = "Distância ao mês do tratamento", y = "Número de sinistros") +
+    theme(legend.position = "none")
+  ggsave("output/plot_staggered_descritivo.pdf", gg, width = 7, height = 4)
+}
+
+
 
 
 # MAGNITUDE DO TRATAMENTO----

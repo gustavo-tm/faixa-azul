@@ -462,7 +462,7 @@ consolida_trecho_did <- function(did_trecho, meses = 1) {
 }
 
 
-psm_agregados <- function(agregados, id_agregados, sinistros, match, inclui_medias = FALSE) {
+psm_agregados <- function(agregados, id_agregados, sinistros, match, file, inclui_medias = FALSE) {
   
   obitos <- id_agregados |> 
     unnest(id_osm) |> 
@@ -524,18 +524,20 @@ psm_agregados <- function(agregados, id_agregados, sinistros, match, inclui_medi
            propensity_score = PSM$distance)
   
   # Gráfico com o as distribuições de propensity score ----
-  # bind_rows(
-  #   resultado |> filter(resultado_match == 1) |> mutate(matched = "b) Pós PSM"),
-  #   resultado |> mutate(matched = "a) Pré PSM")
-  # ) |> 
-  #   ggplot() +
-  #   geom_density(aes(x = propensity_score, fill = factor(faixa_azul)), alpha = .5) +
-  #   facet_wrap(~ matched) +
-  #   theme_minimal() +
-  #   labs(x = "Propensity Score") +
-  #   scale_fill_manual("Grupo", 
-  #                     labels = c("Controle", "Tratamento"), 
-  #                     values = c("darkblue", "darkred"))
+  gg <- bind_rows(
+    resultado |> filter(resultado_match == 1) |> mutate(matched = "b) Pós PSM"),
+    resultado |> mutate(matched = "a) Pré PSM")
+  ) |>
+    ggplot() +
+    geom_density(aes(x = propensity_score, fill = factor(faixa_azul)), alpha = .5) +
+    facet_wrap(~ matched) +
+    theme_minimal() +
+    labs(x = "Propensity Score", y = NULL) +
+    scale_fill_manual("Grupo",
+                      labels = c("Controle", "Tratamento"),
+                      values = c("darkblue", "darkred"))
+  
+  ggsave(paste0("output/PSM/", file, ".pdf"), gg, width = 7, height = 4)
   
   # Resultado do logit ----
   # PSM$model |> summary()
