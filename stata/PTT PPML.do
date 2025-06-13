@@ -18,7 +18,10 @@ if $por_km == 1 {
 }
 
 
-gen Y = sinistros_hora_17_20
+// keep if tipo_via == "trunk"
+
+
+gen Y = sinistros_hora_17_20_moto
 gen month = mes
 gen group = data_implementacao
 
@@ -273,8 +276,8 @@ graph_opt(xtitle("Meses") ytitle("Efeito") xlabel(-12(1)12) yline(0, lpattern(da
 ylabel(-1.5(0.5)1.5) legend(off))
 
 
-graph save "C:\Dev\faixa-azul\stata\plots\imput\hora\17_20-todos-km.gph", replace
-graph export "C:\Dev\faixa-azul\stata\plots\imput\hora\17_20-todos-km.png", replace
+graph save "C:\Dev\faixa-azul\stata\plots\imput\hora\17_20-moto-km.gph", replace
+graph export "C:\Dev\faixa-azul\stata\plots\imput\hora\17_20-moto-km.png", replace
 
 * Display results
 // di "Imputation Estimator Results:"

@@ -1432,7 +1432,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Todos os sinistros",
       filename = "agregado-psm/todos",
-      ylim = 2)),
+      ylim = 1.5)),
   tar_target(
     name = res_agregado_psm_todos_km_w,
     command = res_csdid(
@@ -1440,7 +1440,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Todos os sinistros",
       filename = "agregado-psm/todos",
-      ylim = 2)),
+      ylim = 1.5)),
   tar_target(
     name = res_agregado_psm_todos_km_w2,
     command = res_csdid(
@@ -1448,7 +1448,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Todos os sinistros",
       filename = "agregado-psm/todos",
-      ylim = 2)),
+      ylim = 1.5)),
   tar_target(
     name = res_agregado_psm_todos_km_w3,
     command = res_csdid(
@@ -1456,7 +1456,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Todos os sinistros",
       filename = "agregado-psm/todos",
-      ylim = 2)),
+      ylim = 1.5)),
   
   tar_target(
     name = res_agregado_psm_moto,
@@ -1498,7 +1498,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Sinistros de moto",
       filename = "agregado-psm/moto",
-      ylim = 2)),
+      ylim = 1.5)),
   tar_target(
     name = res_agregado_psm_moto_km_w,
     command = res_csdid(
@@ -1506,7 +1506,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Sinistros de moto",
       filename = "agregado-psm/moto",
-      ylim = 2)),
+      ylim = 1.5)),
   tar_target(
     name = res_agregado_psm_moto_km_w2,
     command = res_csdid(
@@ -1514,7 +1514,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Sinistros de moto",
       filename = "agregado-psm/moto",
-      ylim = 2)),
+      ylim = 1.5)),
   tar_target(
     name = res_agregado_psm_moto_km_w3,
     command = res_csdid(
@@ -1522,7 +1522,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Sinistros de moto",
       filename = "agregado-psm/moto",
-      ylim = 2)),
+      ylim = 1.5)),
   
   ## Resultados principais em log ----
   tar_target(
@@ -1562,7 +1562,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Log todos os sinistros",
       filename = "agregado-psm/log/todos",
-      ylim = 1)),
+      ylim = 0.5)),
   tar_target(
     name = res_agregado_psm_log_todos_km,
     command = res_csdid(
@@ -1570,7 +1570,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Log todos os sinistros",
       filename = "agregado-psm/log/todos",
-      ylim = 2)),
+      ylim = 1.5)),
   tar_target(
     name = res_agregado_psm_log_moto,
     command = res_csdid(
@@ -1578,7 +1578,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Log sinistros de moto",
       filename = "agregado-psm/log/moto",
-      ylim = 1)),
+      ylim = 0.5)),
   tar_target(
     name = res_agregado_psm_log_moto_km,
     command = res_csdid(
@@ -1586,7 +1586,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Log sinistros de moto",
       filename = "agregado-psm/log/moto",
-      ylim = 2)),
+      ylim = 1.5)),
   
   ## Efeitos heterogêneos ----
   #### Horario ----
@@ -1767,6 +1767,67 @@ list(
       filename = "agregado/het/horario/tipo_acidente/17_20-outros",
       ylim = 1.5)),
   
+  
+  # EM LOG
+  tar_target(
+    name = did_agregado_psm_hora_log_07_10_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      log_delta = 0.1,
+      yname = "sinistros_hora_05_10")),
+  tar_target(
+    name = did_agregado_psm_hora_log_17_20_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      log_delta = 0.1,
+      yname = "sinistros_hora_17_20")),
+  tar_target(
+    name = did_agregado_psm_hora_log_07_10_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      log_delta = 0.1,
+      yname = "sinistros_hora_05_10_moto")),
+  tar_target(
+    name = did_agregado_psm_hora_log_17_20_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      log_delta = 0.1,
+      yname = "sinistros_hora_17_20_moto")),
+
+
+  tar_target(
+    name = res_agregado_psm_hora_log_07_10_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_log_07_10_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Log todos os sinistros, 07h-10h",
+      filename = "agregado/het/horario/log/07_10-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_hora_log_17_20_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_log_17_20_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Log todos os sinistros, 17h-20h",
+      filename = "agregado/het/horario/log/17_20-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_hora_log_07_10_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_log_07_10_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Log sinistros de moto, 07h-10h",
+      filename = "agregado/het/horario/log/07_10-moto",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_hora_log_17_20_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_log_17_20_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Log sinistros de moto, 17h-20h",
+      filename = "agregado/het/horario/log/17_20-moto",
+      ylim = 1.5)),
+  
   #### Gravidade ----
   tar_target(
     name = did_agregado_psm_gravidade_fatal_todos,
@@ -1808,7 +1869,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Todos os sinistros, com óbitos",
       filename = "agregado/het/gravidade/fatal-todos",
-      ylim = 1.5)),
+      ylim = 0.5)),
   tar_target(
     name = res_agregado_psm_gravidade_grave_todos,
     command = res_csdid(
@@ -1816,15 +1877,15 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Todos os sinistros, com vitmas graves",
       filename = "agregado/het/gravidade/grave-todos",
-      ylim = 1.5)),
+      ylim = 0.5)),
   tar_target(
     name = res_agregado_psm_gravidade_leve_todos,
     command = res_csdid(
       fit = did_agregado_psm_gravidade_leve_todos,
       cohort = dado_cohort_agregado,
-      titulo = "Todos os sinistros, com vitmas graves",
+      titulo = "Todos os sinistros, com vitmas leves",
       filename = "agregado/het/gravidade/leve-todos",
-      ylim = 1.5)),
+      ylim = 1)),
   
   tar_target(
     name = res_agregado_psm_gravidade_fatal_moto,
@@ -1833,7 +1894,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Sinistros de moto, com óbitos",
       filename = "agregado/het/gravidade/fatal-moto",
-      ylim = 1.5)),
+      ylim = 0.5)),
   tar_target(
     name = res_agregado_psm_gravidade_grave_moto,
     command = res_csdid(
@@ -1841,15 +1902,106 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Sinistros de moto, com vitmas graves",
       filename = "agregado/het/gravidade/grave-moto",
-      ylim = 1.5)),
+      ylim = 0.5)),
   tar_target(
     name = res_agregado_psm_gravidade_leve_moto,
     command = res_csdid(
       fit = did_agregado_psm_gravidade_leve_moto,
       cohort = dado_cohort_agregado,
-      titulo = "Sinistros de moto, com vitmas graves",
-      filename = "agregado/het/gravidade/leve-todos",
-      ylim = 1.5)),
+      titulo = "Sinistros de moto, com vitmas leves",
+      filename = "agregado/het/gravidade/leve-moto",
+      ylim = 1)),
+  
+  
+  # EM LOG
+  tar_target(
+    name = did_agregado_psm_gravidade_log_fatal_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      log_delta = 0.1,
+      yname = "sinistros_gravidade_fatal")),
+  tar_target(
+    name = did_agregado_psm_gravidade_log_grave_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      log_delta = 0.1,
+      yname = "sinistros_gravidade_grave")),
+  tar_target(
+    name = did_agregado_psm_gravidade_log_leve_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      log_delta = 0.1,
+      yname = "sinistros_gravidade_leve")),
+  
+  tar_target(
+    name = did_agregado_psm_gravidade_log_fatal_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      log_delta = 0.1,
+      yname = "sinistros_gravidade_fatal_moto")),
+  tar_target(
+    name = did_agregado_psm_gravidade_log_grave_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      log_delta = 0.1,
+      yname = "sinistros_gravidade_grave_moto")),
+  tar_target(
+    name = did_agregado_psm_gravidade_log_leve_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      log_delta = 0.1,
+      yname = "sinistros_gravidade_leve_moto")),
+  
+  
+  tar_target(
+    name = res_agregado_psm_gravidade_log_fatal_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_gravidade_log_fatal_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Log todos os sinistros, com óbitos",
+      filename = "agregado/het/gravidade/log/fatal-todos",
+      ylim = 0.4)),
+  tar_target(
+    name = res_agregado_psm_gravidade_log_grave_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_gravidade_log_grave_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Log todos os sinistros, com vitmas graves",
+      filename = "agregado/het/gravidade/log/grave-todos",
+      ylim = 0.4)),
+  tar_target(
+    name = res_agregado_psm_gravidade_log_leve_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_gravidade_log_leve_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Log todos os sinistros, com vitmas leves",
+      filename = "agregado/het/gravidade/log/leve-moto",
+      ylim = 1)),
+  
+  tar_target(
+    name = res_agregado_psm_gravidade_log_fatal_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_gravidade_log_fatal_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Log sinistros de moto, com óbitos",
+      filename = "agregado/het/gravidade/log/fatal-moto",
+      ylim = 0.4)),
+  tar_target(
+    name = res_agregado_psm_gravidade_log_grave_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_gravidade_log_grave_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Log sinistros de moto, com vitmas graves",
+      filename = "agregado/het/gravidade/log/grave-moto",
+      ylim = 0.4)),
+  tar_target(
+    name = res_agregado_psm_gravidade_log_leve_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_gravidade_log_leve_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Log sinistros de moto, com vitmas leves",
+      filename = "agregado/het/gravidade/log/leve-moto",
+      ylim = 1)),
   
   
   #### Tipo de acidente ----
@@ -1925,9 +2077,9 @@ list(
       filename = "agregado/het/tipo-acidente/colisao-todos",
       ylim = 1.5)),
   tar_target(
-    name = res_agregado_psm_acidente_atropelmento_todos,
+    name = res_agregado_psm_acidente_atropelamento_todos,
     command = res_csdid(
-      fit = did_agregado_psm_acidente_atropelmento_todos,
+      fit = did_agregado_psm_acidente_atropelamento_todos,
       cohort = dado_cohort_agregado,
       titulo = "Todos os sinistros, atropelamentos",
       filename = "agregado/het/tipo-acidente/atropelmento-todos",
@@ -1939,6 +2091,23 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Todos os sinistros, outros",
       filename = "agregado/het/tipo-acidente/outros-todos",
+      ylim = 1.5)),
+  
+  tar_target(
+    name = res_agregado_psm_acidente_choque_apenas_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_acidente_choque_apenas_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros com moto somente, choques",
+      filename = "agregado/het/tipo-acidente/choque-apenas-moto",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_acidente_colisao_apenas_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_acidente_colisao_apenas_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros com moto somente, colisões",
+      filename = "agregado/het/tipo-acidente/colisao-apenas-moto",
       ylim = 1.5)),
   
   tar_target(
@@ -1956,22 +2125,6 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Sinistros com moto e carro, colisões",
       filename = "agregado/het/tipo-acidente/colisao-moto-carro",
-      ylim = 1.5)),
-  tar_target(
-    name = res_agregado_psm_acidente_atropelmento_moto_carro,
-    command = res_csdid(
-      fit = did_agregado_psm_acidente_atropelmento_moto_carro,
-      cohort = dado_cohort_agregado,
-      titulo = "Sinistros com moto e carro, atropelamentos",
-      filename = "agregado/het/tipo-acidente/atropelmento-moto-carro",
-      ylim = 1.5)),
-  tar_target(
-    name = res_agregado_psm_acidente_outros_moto_carro,
-    command = res_csdid(
-      fit = did_agregado_psm_acidente_outros_moto_carro,
-      cohort = dado_cohort_agregado,
-      titulo = "Sinistros com moto e carro, outros",
-      filename = "agregado/het/tipo-acidente/outros-moto-carro",
       ylim = 1.5)),
   
   tar_target(
@@ -2023,7 +2176,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Quantidade de indivíduos envolvidos",
       filename = "agregado/het/qtd-envolvidos/todos",
-      ylim = 1.5)),
+      ylim = 4)),
   
   tar_target(
     name = res_agregado_psm_qtd_fatal_todos,
@@ -2032,7 +2185,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Quantidade de óbitos",
       filename = "agregado/het/qtd-envolvidos/fatal",
-      ylim = 1.5)),
+      ylim = 0.6)),
   tar_target(
     name = res_agregado_psm_qtd_grave_todos,
     command = res_csdid(
@@ -2040,7 +2193,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Quantidade de vitimas graves",
       filename = "agregado/het/qtd-envolvidos/grave",
-      ylim = 1.5)),
+      ylim = 0.6)),
   tar_target(
     name = res_agregado_psm_qtd_leve_todos,
     command = res_csdid(
@@ -2071,7 +2224,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Quantidade de motocicletas",
       filename = "agregado/het/qtd-envolvidos/veiculo-moto",
-      ylim = 1.5)),
+      ylim = 1)),
   tar_target(
     name = res_agregado_psm_qtd_automovel_todos,
     command = res_csdid(
@@ -2079,7 +2232,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Quantidade de automoveis",
       filename = "agregado/het/qtd-envolvidos/veiculo-carro",
-      ylim = 1.5)),
+      ylim = 1)),
   
   
   #### Comprimento do trecho ----
@@ -2196,7 +2349,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Todos os sinistros, grupos 37 a 46",
       filename = "agregado/het/grupo/37_46-todos",
-      ylim = 1.5)),
+      ylim = 3)),
   tar_target(
     name = res_agregado_psm_grupos_58_60_todos,
     command = res_csdid(
@@ -2204,7 +2357,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Todos os sinistros, grupos 58 a 60",
       filename = "agregado/het/grupo/58_60-todos",
-      ylim = 1.5)),
+      ylim = 3)),
   tar_target(
     name = res_agregado_psm_grupos_63_73_todos,
     command = res_csdid(
@@ -2212,7 +2365,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Todos os sinistros, grupos 63 a 73",
       filename = "agregado/het/grupo/63_73-todos",
-      ylim = 1.5)),
+      ylim = 3)),
   
   tar_target(
     name = res_agregado_psm_grupos_37_46_moto,
@@ -2221,7 +2374,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Sinistros de moto, grupos 37 a 46",
       filename = "agregado/het/grupo/37_46-moto",
-      ylim = 1.5)),
+      ylim = 3)),
   tar_target(
     name = res_agregado_psm_grupos_58_60_moto,
     command = res_csdid(
@@ -2229,7 +2382,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Sinistros de moto, grupos 58 a 60",
       filename = "agregado/het/grupo/58_60-moto",
-      ylim = 1.5)),
+      ylim = 3)),
   tar_target(
     name = res_agregado_psm_grupos_63_73_moto,
     command = res_csdid(
@@ -2237,7 +2390,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Sinistros de moto, grupos 63 a 73",
       filename = "agregado/het/grupo/63_73-moto",
-      ylim = 1.5)),
+      ylim = 3)),
   
   #### Número de faixas ----
   tar_target(
@@ -2347,7 +2500,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Todos os sinistros, filtro tipo de vias",
       filename = "agregado/het/tipo-via/filtro-todos",
-      ylim = 1.5)),
+      ylim = 2)),
   tar_target(
     name = res_agregado_psm_tipo_vias_primary_todos,
     command = res_csdid(
@@ -2355,7 +2508,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Todos os sinistros, vias primárias",
       filename = "agregado/het/tipo-via/primary-todos",
-      ylim = 1.5)),
+      ylim = 2)),
   tar_target(
     name = res_agregado_psm_tipo_vias_trunk_todos,
     command = res_csdid(
@@ -2363,7 +2516,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Todos os sinistros, vias troncais",
       filename = "agregado/het/tipo-via/trunk-todos",
-      ylim = 1.5)), 
+      ylim = 2)), 
   
   tar_target(
     name = res_agregado_psm_tipo_vias_moto,
@@ -2372,7 +2525,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Sinistros de moto, filtro tipo de vias",
       filename = "agregado/het/tipo-via/filtro-moto",
-      ylim = 1.5)),
+      ylim = 2)),
   tar_target(
     name = res_agregado_psm_tipo_vias_primary_moto,
     command = res_csdid(
@@ -2380,7 +2533,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Sinistros de moto, vias primárias",
       filename = "agregado/het/tipo-via/primary-moto",
-      ylim = 1.5)),
+      ylim = 2)),
   tar_target(
     name = res_agregado_psm_tipo_vias_trunk_moto,
     command = res_csdid(
@@ -2388,7 +2541,7 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Sinistros de moto, vias troncais",
       filename = "agregado/het/tipo-via/trunk-moto",
-      ylim = 1.5)),
+      ylim = 2)),
   
   
   #### Velocidade máxima ----
