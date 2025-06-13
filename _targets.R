@@ -737,7 +737,6 @@ list(
   
   
   ## Efeitos heterogeneos ----
-  
   #### Horario ----
   tar_target(
     name = did_agregado_hora_05_10_todos,
@@ -808,7 +807,7 @@ list(
       yname = "sinistros_hora_17_20_outros")),
   
   
-  
+  # Respostas
   tar_target(
     name = res_agregado_hora_05_10_todos,
     command = res_csdid(
@@ -1011,30 +1010,273 @@ list(
     name = did_agregado_qtd_envolvidos_todos,
     command = fit_csdid(
       df = dado_did_agregado_golden,
-      yname = "acidente_choque")),
+      yname = "qtd_envolvidos")),
+  
+  tar_target(
+    name = did_agregado_qtd_fatal_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_golden,
+      yname = "gravidade_fatal")),
+  tar_target(
+    name = did_agregado_qtd_grave_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_golden,
+      yname = "gravidade_grave")),
+  tar_target(
+    name = did_agregado_qtd_leve_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_golden,
+      yname = "gravidade_leve")),
   
   
-  #### Quantidade de veículos ----
+  # Veiculos
+  tar_target(
+    name = did_agregado_qtd_motocicleta_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_golden,
+      yname = "veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_qtd_automovel_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_golden,
+      yname = "veiculo_automovel")),
   
   
   #### Comprimento do trecho ----
+  tar_target(
+    name = did_agregado_comprimento_50_2000_todos,
+    command = het_csdid_comprimento(
+      df = dado_did_agregado_golden,
+      comprimento_min = 50,
+      comprimento_max = 2000,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_comprimento_100_1500_todos,
+    command = het_csdid_comprimento(
+      df = dado_did_agregado_golden,
+      comprimento_min = 50,
+      comprimento_max = 2000,
+      yname = "sinistros")),
+  
+  tar_target(
+    name = did_agregado_comprimento_50_2000_moto,
+    command = het_csdid_comprimento(
+      df = dado_did_agregado_golden,
+      comprimento_min = 100,
+      comprimento_max = 1500,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_comprimento_100_1500_moto,
+    command = het_csdid_comprimento(
+      df = dado_did_agregado_golden,
+      comprimento_min = 100,
+      comprimento_max = 1500,
+      yname = "sinistros_veiculo_motocicleta")),
   
   
-  #### Tempo de tratamento ----
+  #### Grupos (tempo de tratamento) ----
+  tar_target(
+    name = did_agregado_grupos_37_46_todos,
+    command = het_csdid_grupos(
+      df = dado_did_agregado_golden,
+      grupos = 37:46,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_grupos_58_60_todos,
+    command = het_csdid_grupos(
+      df = dado_did_agregado_golden,
+      grupos = 58:60,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_grupos_63_73_todos,
+    command = het_csdid_grupos(
+      df = dado_did_agregado_golden,
+      grupos = 63:73,
+      yname = "sinistros")),
   
+  tar_target(
+    name = did_agregado_grupos_37_46_moto,
+    command = het_csdid_grupos(
+      df = dado_did_agregado_golden,
+      grupos = 37:46,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_grupos_58_60_moto,
+    command = het_csdid_grupos(
+      df = dado_did_agregado_golden,
+      grupos = 58:60,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_grupos_63_73_moto,
+    command = het_csdid_grupos(
+      df = dado_did_agregado_golden,
+      grupos = 63:73,
+      yname = "sinistros_veiculo_motocicleta")),
   
   #### Número de faixas ----
+  tar_target(
+    name = did_agregado_num_faixas_2ate_todos,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_golden,
+      num_faixas = 2,
+      ate = TRUE,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_num_faixas_2maisque_todos,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_golden,
+      num_faixas = 2,
+      ate = FALSE,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_num_faixas_3ate_todos,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_golden,
+      num_faixas = 3,
+      ate = TRUE,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_num_faixas_3maisque_todos,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_golden,
+      num_faixas = 3,
+      ate = FALSE,
+      yname = "sinistros")),
   
+  tar_target(
+    name = did_agregado_num_faixas_2ate_moto,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_golden,
+      num_faixas = 2,
+      ate = TRUE,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_num_faixas_2maisque_moto,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_golden,
+      num_faixas = 2,
+      ate = FALSE,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_num_faixas_3ate_moto,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_golden,
+      num_faixas = 3,
+      ate = TRUE,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_num_faixas_3maisque_moto,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_golden,
+      num_faixas = 3,
+      ate = FALSE,
+      yname = "sinistros_veiculo_motocicleta")),
   
   #### Tipo de via ----
+  tar_target(
+    name = did_agregado_tipo_vias_todos,
+    command = het_csdid_tipo_vias(
+      df = dado_did_agregado_golden,
+      tipo_vias = c("primary", "trunk"),
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_tipo_vias_primary_todos,
+    command = het_csdid_tipo_vias(
+      df = dado_did_agregado_golden,
+      tipo_vias = c("primary"),
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_tipo_vias_trunk_todos,
+    command = het_csdid_tipo_vias(
+      df = dado_did_agregado_golden,
+      tipo_vias = c("trunk"),
+      yname = "sinistros")),
+  
+  tar_target(
+    name = did_agregado_tipo_vias_moto,
+    command = het_csdid_tipo_vias(
+      df = dado_did_agregado_golden,
+      tipo_vias = c("primary", "trunk"),
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_tipo_vias_primary_moto,
+    command = het_csdid_tipo_vias(
+      df = dado_did_agregado_golden,
+      tipo_vias = c("primary"),
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_tipo_vias_trunk_moto,
+    command = het_csdid_tipo_vias(
+      df = dado_did_agregado_golden,
+      tipo_vias = c("trunk"),
+      yname = "sinistros_veiculo_motocicleta")),
   
   
   #### Velocidade máxima ----
-
+  tar_target(
+    name = did_agregado_vel_maxima_40ate_todos,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_golden,
+      vel_maxima = 40,
+      ate = TRUE,
+      control_group = "notyettreated",
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_vel_maxima_40maisque_todos,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_golden,
+      vel_maxima = 40,
+      ate = FALSE,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_vel_maxima_50ate_todos,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_golden,
+      vel_maxima = 50,
+      ate = TRUE,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_vel_maxima_50maisque_todos,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_golden,
+      vel_maxima = 50,
+      ate = FALSE,
+      yname = "sinistros")),
+  
+  tar_target(
+    name = did_agregado_vel_maxima_40ate_moto,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_golden,
+      vel_maxima = 40,
+      ate = TRUE,
+      control_group = "notyettreated",
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_vel_maxima_40maisque_moto,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_golden,
+      vel_maxima = 40,
+      ate = FALSE,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_vel_maxima_50ate_moto,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_golden,
+      vel_maxima = 50,
+      ate = TRUE,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_vel_maxima_50maisque_moto,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_golden,
+      vel_maxima = 50,
+      ate = FALSE,
+      yname = "sinistros_veiculo_motocicleta")),
   
   
   # 7.3.1  com balanceamento proprio ----
   ## Resultados principais ----
+  # Todos
   tar_target(
     name = did_agregado_psm_todos,
     command = fit_csdid(
@@ -1042,11 +1284,56 @@ list(
       por_km = FALSE,
       yname = "sinistros")),
   tar_target(
+    name = did_agregado_psm_todos_w,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      por_km = FALSE,
+      weightsname = "comprimento",
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_todos_w2,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      por_km = FALSE,
+      weightsname = "comprimento_sqrt",
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_todos_w3,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      por_km = FALSE,
+      weightsname = "comprimento_cbrt",
+      yname = "sinistros")),
+  
+  tar_target(
     name = did_agregado_psm_todos_km,
     command = fit_csdid(
       df = dado_did_agregado_psm,
       por_km = TRUE,
       yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_todos_km_w,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      por_km = TRUE,
+      weightsname = "comprimento",
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_todos_km_w2,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      por_km = TRUE,
+      weightsname = "comprimento_sqrt",
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_todos_km_w3,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      por_km = TRUE,
+      weightsname = "comprimento_cbrt",
+      yname = "sinistros")),
+  
+  # Moto
   tar_target(
     name = did_agregado_psm_moto,
     command = fit_csdid(
@@ -1054,43 +1341,186 @@ list(
       por_km = FALSE,
       yname = "sinistros_veiculo_motocicleta")),
   tar_target(
+    name = did_agregado_psm_moto_w,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      por_km = FALSE,
+      weightsname = "comprimento",
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_moto_w2,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      por_km = FALSE,
+      weightsname = "comprimento_sqrt",
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_moto_w3,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      por_km = FALSE,
+      weightsname = "comprimento_cbrt",
+      yname = "sinistros_veiculo_motocicleta")),
+  
+  tar_target(
     name = did_agregado_psm_moto_km,
     command = fit_csdid(
       df = dado_did_agregado_psm,
       por_km = TRUE,
       yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_moto_km_w,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      por_km = TRUE,
+      weightsname = "comprimento",
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_moto_km_w2,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      por_km = TRUE,
+      weightsname = "comprimento_sqrt",
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_moto_km_w3,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      por_km = TRUE,
+      weightsname = "comprimento_cbrt",
+      yname = "sinistros_veiculo_motocicleta")),
   
   
+  # Respostas 
   tar_target(
     name = res_agregado_psm_todos,
     command = res_csdid(
       fit = did_agregado_psm_todos,
       cohort = dado_cohort_agregado,
-      titulo = "Pareamento psm, todos os sinistros",
+      titulo = "Todos os sinistros",
       filename = "agregado-psm/todos",
       ylim = 1)),
+  tar_target(
+    name = res_agregado_psm_todos_w,
+    command = res_csdid(
+      fit = did_agregado_psm_todos_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros",
+      filename = "agregado-psm/todos",
+      ylim = 1)),
+  tar_target(
+    name = res_agregado_psm_todos_w2,
+    command = res_csdid(
+      fit = did_agregado_psm_todos_w2,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros",
+      filename = "agregado-psm/todos",
+      ylim = 1)),
+  tar_target(
+    name = res_agregado_psm_todos_w3,
+    command = res_csdid(
+      fit = did_agregado_psm_todos_w3,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros",
+      filename = "agregado-psm/todos",
+      ylim = 1)),
+  
   tar_target(
     name = res_agregado_psm_todos_km,
     command = res_csdid(
       fit = did_agregado_psm_todos_km,
       cohort = dado_cohort_agregado,
-      titulo = "Pareamento psm, todos os sinistros",
+      titulo = "Todos os sinistros",
       filename = "agregado-psm/todos",
       ylim = 2)),
+  tar_target(
+    name = res_agregado_psm_todos_km_w,
+    command = res_csdid(
+      fit = did_agregado_psm_todos_km_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros",
+      filename = "agregado-psm/todos",
+      ylim = 2)),
+  tar_target(
+    name = res_agregado_psm_todos_km_w2,
+    command = res_csdid(
+      fit = did_agregado_psm_todos_km_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros",
+      filename = "agregado-psm/todos",
+      ylim = 2)),
+  tar_target(
+    name = res_agregado_psm_todos_km_w3,
+    command = res_csdid(
+      fit = did_agregado_psm_todos_km_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros",
+      filename = "agregado-psm/todos",
+      ylim = 2)),
+  
   tar_target(
     name = res_agregado_psm_moto,
     command = res_csdid(
       fit = did_agregado_psm_moto,
       cohort = dado_cohort_agregado,
-      titulo = "Pareamento psm, sinistros de moto",
+      titulo = "Sinistros de moto",
       filename = "agregado-psm/moto",
       ylim = 1)),
+  tar_target(
+    name = res_agregado_psm_moto_w,
+    command = res_csdid(
+      fit = did_agregado_psm_moto_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto",
+      filename = "agregado-psm/moto",
+      ylim = 1)),
+  tar_target(
+    name = res_agregado_psm_moto_w2,
+    command = res_csdid(
+      fit = did_agregado_psm_moto_w2,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto",
+      filename = "agregado-psm/moto",
+      ylim = 1)),
+  tar_target(
+    name = res_agregado_psm_moto_w3,
+    command = res_csdid(
+      fit = did_agregado_psm_moto_w3,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto",
+      filename = "agregado-psm/moto",
+      ylim = 1)),
+  
   tar_target(
     name = res_agregado_psm_moto_km,
     command = res_csdid(
       fit = did_agregado_psm_moto_km,
       cohort = dado_cohort_agregado,
-      titulo = "Pareamento psm, sinistros de moto",
+      titulo = "Sinistros de moto",
+      filename = "agregado-psm/moto",
+      ylim = 2)),
+  tar_target(
+    name = res_agregado_psm_moto_km_w,
+    command = res_csdid(
+      fit = did_agregado_psm_moto_km_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto",
+      filename = "agregado-psm/moto",
+      ylim = 2)),
+  tar_target(
+    name = res_agregado_psm_moto_km_w2,
+    command = res_csdid(
+      fit = did_agregado_psm_moto_km_w2,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto",
+      filename = "agregado-psm/moto",
+      ylim = 2)),
+  tar_target(
+    name = res_agregado_psm_moto_km_w3,
+    command = res_csdid(
+      fit = did_agregado_psm_moto_km_w3,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto",
       filename = "agregado-psm/moto",
       ylim = 2)),
   
@@ -1159,7 +1589,868 @@ list(
       ylim = 2)),
   
   ## Efeitos heterogêneos ----
+  #### Horario ----
+  tar_target(
+    name = did_agregado_psm_hora_07_10_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_hora_05_10")),
+  tar_target(
+    name = did_agregado_psm_hora_11_16_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_hora_11_16")),
+  tar_target(
+    name = did_agregado_psm_hora_12_22_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_hora_12_22")),
+  tar_target(
+    name = did_agregado_psm_hora_17_20_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_hora_17_20")),
+  tar_target(
+    name = did_agregado_psm_hora_18_19_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_hora_18_19")),
   
+  tar_target(
+    name = did_agregado_psm_hora_07_10_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_hora_05_10_moto")),
+  tar_target(
+    name = did_agregado_psm_hora_11_16_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_hora_11_16_moto")),
+  tar_target(
+    name = did_agregado_psm_hora_12_22_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_hora_12_22_moto")),
+  tar_target(
+    name = did_agregado_psm_hora_17_20_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_hora_17_20_moto")),
+  tar_target(
+    name = did_agregado_psm_hora_18_19_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_hora_18_19_moto")),
+  
+  tar_target(
+    name = did_agregado_psm_hora_17_20_choque_colisao,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_hora_17_20_choque_colisao")),
+  tar_target(
+    name = did_agregado_psm_hora_17_20_atropelamento,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_hora_17_20_atropelamento")),
+  tar_target(
+    name = did_agregado_psm_hora_17_20_outros,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_hora_17_20_outros")),
+  
+  
+  
+  tar_target(
+    name = res_agregado_psm_hora_07_10_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_07_10_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, 07h-10h",
+      filename = "agregado/het/horario/07_10-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_hora_11_16_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_11_16_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, 11h-16h",
+      filename = "agregado/het/horario/11_16-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_hora_12_22_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_12_22_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, 12h-22h",
+      filename = "agregado/het/horario/12_22-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_hora_17_20_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_17_20_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, 17h-20h",
+      filename = "agregado/het/horario/17_20-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_hora_18_19_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_18_19_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, 18h-19h",
+      filename = "agregado/het/horario/18_19-todos",
+      ylim = 1.5)),
+  
+  tar_target(
+    name = res_agregado_psm_hora_07_10_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_07_10_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, 07h-10h",
+      filename = "agregado/het/horario/07_10-moto",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_hora_11_16_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_11_16_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, 11h-16h",
+      filename = "agregado/het/horario/11_16-moto",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_hora_12_22_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_12_22_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, 12h-22h",
+      filename = "agregado/het/horario/12_22-moto",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_hora_17_20_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_17_20_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, 17h-20h",
+      filename = "agregado/het/horario/17_20-moto",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_hora_18_19_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_18_19_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, 18h-19h",
+      filename = "agregado/het/horario/18_19-moto",
+      ylim = 1.5)),
+  
+  tar_target(
+    name = res_agregado_psm_hora_17_20_choque_colisao,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_17_20_choque_colisao,
+      cohort = dado_cohort_agregado,
+      titulo = "Choques e colisões, 17h-20h",
+      filename = "agregado/het/horario/tipo_acidente/17_20-choque-colisao",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_hora_17_20_atropelamento,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_17_20_atropelamento,
+      cohort = dado_cohort_agregado,
+      titulo = "Atropelamentos, 17h-20h",
+      filename = "agregado/het/horario/tipo_acidente/17_20-atropelamento",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_hora_17_20_outros,
+    command = res_csdid(
+      fit = did_agregado_psm_hora_17_20_outros,
+      cohort = dado_cohort_agregado,
+      titulo = "Outros sinistros, 17h-20h",
+      filename = "agregado/het/horario/tipo_acidente/17_20-outros",
+      ylim = 1.5)),
+  
+  #### Gravidade ----
+  tar_target(
+    name = did_agregado_psm_gravidade_fatal_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_gravidade_fatal")),
+  tar_target(
+    name = did_agregado_psm_gravidade_grave_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_gravidade_grave")),
+  tar_target(
+    name = did_agregado_psm_gravidade_leve_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_gravidade_leve")),
+  
+  tar_target(
+    name = did_agregado_psm_gravidade_fatal_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_gravidade_fatal_moto")),
+  tar_target(
+    name = did_agregado_psm_gravidade_grave_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_gravidade_grave_moto")),
+  tar_target(
+    name = did_agregado_psm_gravidade_leve_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_gravidade_leve_moto")),
+  
+  
+  tar_target(
+    name = res_agregado_psm_gravidade_fatal_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_gravidade_fatal_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, com óbitos",
+      filename = "agregado/het/gravidade/fatal-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_gravidade_grave_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_gravidade_grave_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, com vitmas graves",
+      filename = "agregado/het/gravidade/grave-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_gravidade_leve_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_gravidade_leve_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, com vitmas graves",
+      filename = "agregado/het/gravidade/leve-todos",
+      ylim = 1.5)),
+  
+  tar_target(
+    name = res_agregado_psm_gravidade_fatal_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_gravidade_fatal_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, com óbitos",
+      filename = "agregado/het/gravidade/fatal-moto",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_gravidade_grave_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_gravidade_grave_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, com vitmas graves",
+      filename = "agregado/het/gravidade/grave-moto",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_gravidade_leve_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_gravidade_leve_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, com vitmas graves",
+      filename = "agregado/het/gravidade/leve-todos",
+      ylim = 1.5)),
+  
+  
+  #### Tipo de acidente ----
+  tar_target(
+    name = did_agregado_psm_acidente_choque_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "acidente_choque")),
+  tar_target(
+    name = did_agregado_psm_acidente_colisao_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "acidente_colisao")),
+  tar_target(
+    name = did_agregado_psm_acidente_atropelamento_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "acidente_atropelamento")),
+  tar_target(
+    name = did_agregado_psm_acidente_outros_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "acidente_outros")),
+  
+  tar_target(
+    name = did_agregado_psm_acidente_choque_apenas_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_choque_apenas_moto")),
+  tar_target(
+    name = did_agregado_psm_acidente_colisao_apenas_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_choque_apenas_moto")),
+  
+  tar_target(
+    name = did_agregado_psm_acidente_choque_moto_carro,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_choque_moto_carro")),
+  tar_target(
+    name = did_agregado_psm_acidente_colisao_moto_carro,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_choque_moto_carro")),
+  
+  tar_target(
+    name = did_agregado_psm_acidente_choque_moto_outros,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_choque_moto_outros")),
+  tar_target(
+    name = did_agregado_psm_acidente_colisao_moto_outros,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "sinistros_choque_moto_outros")),
+  
+  
+  tar_target(
+    name = res_agregado_psm_acidente_choque_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_acidente_choque_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, choques",
+      filename = "agregado/het/tipo-acidente/choque-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_acidente_colisao_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_acidente_colisao_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, colisões",
+      filename = "agregado/het/tipo-acidente/colisao-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_acidente_atropelmento_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_acidente_atropelmento_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, atropelamentos",
+      filename = "agregado/het/tipo-acidente/atropelmento-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_acidente_outros_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_acidente_outros_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, outros",
+      filename = "agregado/het/tipo-acidente/outros-todos",
+      ylim = 1.5)),
+  
+  tar_target(
+    name = res_agregado_psm_acidente_choque_moto_carro,
+    command = res_csdid(
+      fit = did_agregado_psm_acidente_choque_moto_carro,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros com moto e carro, choques",
+      filename = "agregado/het/tipo-acidente/choque-moto-carro",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_acidente_colisao_moto_carro,
+    command = res_csdid(
+      fit = did_agregado_psm_acidente_colisao_moto_carro,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros com moto e carro, colisões",
+      filename = "agregado/het/tipo-acidente/colisao-moto-carro",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_acidente_atropelmento_moto_carro,
+    command = res_csdid(
+      fit = did_agregado_psm_acidente_atropelmento_moto_carro,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros com moto e carro, atropelamentos",
+      filename = "agregado/het/tipo-acidente/atropelmento-moto-carro",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_acidente_outros_moto_carro,
+    command = res_csdid(
+      fit = did_agregado_psm_acidente_outros_moto_carro,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros com moto e carro, outros",
+      filename = "agregado/het/tipo-acidente/outros-moto-carro",
+      ylim = 1.5)),
+  
+  tar_target(
+    name = res_agregado_psm_acidente_choque_moto_outros,
+    command = res_csdid(
+      fit = did_agregado_psm_acidente_choque_moto_outros,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros com moto, choques",
+      filename = "agregado/het/tipo-acidente/choque-moto-outros",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_acidente_colisao_moto_outros,
+    command = res_csdid(
+      fit = did_agregado_psm_acidente_colisao_moto_outros,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros com moto, colisões",
+      filename = "agregado/het/tipo-acidente/colisao-moto-outros",
+      ylim = 1.5)),
+  
+  
+  #### Quantidade de envolvidos ----
+  tar_target(
+    name = did_agregado_psm_qtd_envolvidos_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "qtd_envolvidos")),
+  
+  tar_target(
+    name = did_agregado_psm_qtd_fatal_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "gravidade_fatal")),
+  tar_target(
+    name = did_agregado_psm_qtd_grave_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "gravidade_grave")),
+  tar_target(
+    name = did_agregado_psm_qtd_leve_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "gravidade_leve")),
+  
+  
+  tar_target(
+    name = res_agregado_psm_qtd_envolvidos_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_qtd_envolvidos_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Quantidade de indivíduos envolvidos",
+      filename = "agregado/het/qtd-envolvidos/todos",
+      ylim = 1.5)),
+  
+  tar_target(
+    name = res_agregado_psm_qtd_fatal_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_qtd_fatal_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Quantidade de óbitos",
+      filename = "agregado/het/qtd-envolvidos/fatal",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_qtd_grave_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_qtd_grave_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Quantidade de vitimas graves",
+      filename = "agregado/het/qtd-envolvidos/grave",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_qtd_leve_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_qtd_leve_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Quantidade de vitimas leves",
+      filename = "agregado/het/qtd-envolvidos/leve",
+      ylim = 1.5)),
+  
+  
+  # Veiculos
+  tar_target(
+    name = did_agregado_psm_qtd_motocicleta_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_qtd_automovel_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm,
+      yname = "veiculo_automovel")),
+  
+  
+  tar_target(
+    name = res_agregado_psm_qtd_motocicleta_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_qtd_motocicleta_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Quantidade de motocicletas",
+      filename = "agregado/het/qtd-envolvidos/veiculo-moto",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_qtd_automovel_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_qtd_automovel_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Quantidade de automoveis",
+      filename = "agregado/het/qtd-envolvidos/veiculo-carro",
+      ylim = 1.5)),
+  
+  
+  #### Comprimento do trecho ----
+  tar_target(
+    name = did_agregado_psm_comprimento_50_2000_todos,
+    command = het_csdid_comprimento(
+      df = dado_did_agregado_psm,
+      comprimento_min = 50,
+      comprimento_max = 2000,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_comprimento_100_1500_todos,
+    command = het_csdid_comprimento(
+      df = dado_did_agregado_psm,
+      comprimento_min = 50,
+      comprimento_max = 2000,
+      yname = "sinistros")),
+  
+  tar_target(
+    name = did_agregado_psm_comprimento_50_2000_moto,
+    command = het_csdid_comprimento(
+      df = dado_did_agregado_psm,
+      comprimento_min = 100,
+      comprimento_max = 1500,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_comprimento_100_1500_moto,
+    command = het_csdid_comprimento(
+      df = dado_did_agregado_psm,
+      comprimento_min = 100,
+      comprimento_max = 1500,
+      yname = "sinistros_veiculo_motocicleta")),
+  
+  
+  tar_target(
+    name = res_agregado_psm_comprimento_50_2000_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_comprimento_50_2000_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, 50m a 2000m",
+      filename = "agregado/het/comprimento/50_2000-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_comprimento_100_1500_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_comprimento_100_1500_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, 100m a 1500m",
+      filename = "agregado/het/comprimento/100_1500-todos",
+      ylim = 1.5)),
+  
+  tar_target(
+    name = res_agregado_psm_comprimento_50_2000_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_comprimento_50_2000_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, 50m a 2000m",
+      filename = "agregado/het/comprimento/50_2000-moto",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_comprimento_100_1500_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_comprimento_100_1500_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, 100m a 1500m",
+      filename = "agregado/het/comprimento/100_1500-moto",
+      ylim = 1.5)),
+  
+  
+  #### Grupos (tempo de tratamento) ----
+  tar_target(
+    name = did_agregado_psm_grupos_37_46_todos,
+    command = het_csdid_grupos(
+      df = dado_did_agregado_psm,
+      grupos = 37:46,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_grupos_58_60_todos,
+    command = het_csdid_grupos(
+      df = dado_did_agregado_psm,
+      grupos = 58:60,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_grupos_63_73_todos,
+    command = het_csdid_grupos(
+      df = dado_did_agregado_psm,
+      grupos = 63:73,
+      yname = "sinistros")),
+  
+  tar_target(
+    name = did_agregado_psm_grupos_37_46_moto,
+    command = het_csdid_grupos(
+      df = dado_did_agregado_psm,
+      grupos = 37:46,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_grupos_58_60_moto,
+    command = het_csdid_grupos(
+      df = dado_did_agregado_psm,
+      grupos = 58:60,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_grupos_63_73_moto,
+    command = het_csdid_grupos(
+      df = dado_did_agregado_psm,
+      grupos = 63:73,
+      yname = "sinistros_veiculo_motocicleta")),
+  
+  
+  tar_target(
+    name = res_agregado_psm_grupos_37_46_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_grupos_37_46_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, grupos 37 a 46",
+      filename = "agregado/het/grupo/37_46-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_grupos_58_60_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_grupos_58_60_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, grupos 58 a 60",
+      filename = "agregado/het/grupo/58_60-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_grupos_63_73_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_grupos_63_73_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, grupos 63 a 73",
+      filename = "agregado/het/grupo/63_73-todos",
+      ylim = 1.5)),
+  
+  tar_target(
+    name = res_agregado_psm_grupos_37_46_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_grupos_37_46_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, grupos 37 a 46",
+      filename = "agregado/het/grupo/37_46-moto",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_grupos_58_60_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_grupos_58_60_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, grupos 58 a 60",
+      filename = "agregado/het/grupo/58_60-moto",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_grupos_63_73_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_grupos_63_73_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, grupos 63 a 73",
+      filename = "agregado/het/grupo/63_73-moto",
+      ylim = 1.5)),
+  
+  #### Número de faixas ----
+  tar_target(
+    name = did_agregado_psm_num_faixas_2ate_todos,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_psm,
+      num_faixas = 2,
+      ate = TRUE,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_num_faixas_2maisque_todos,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_psm,
+      num_faixas = 2,
+      ate = FALSE,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_num_faixas_3ate_todos,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_psm,
+      num_faixas = 3,
+      ate = TRUE,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_num_faixas_3maisque_todos,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_psm,
+      num_faixas = 3,
+      ate = FALSE,
+      yname = "sinistros")),
+  
+  tar_target(
+    name = did_agregado_psm_num_faixas_2ate_moto,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_psm,
+      num_faixas = 2,
+      ate = TRUE,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_num_faixas_2maisque_moto,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_psm,
+      num_faixas = 2,
+      ate = FALSE,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_num_faixas_3ate_moto,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_psm,
+      num_faixas = 3,
+      ate = TRUE,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_num_faixas_3maisque_moto,
+    command = het_csdid_num_faixas(
+      df = dado_did_agregado_psm,
+      num_faixas = 3,
+      ate = FALSE,
+      yname = "sinistros_veiculo_motocicleta")),
+  
+  ## RESPOSTAS COLOCAR
+  
+  #### Tipo de via ----
+  tar_target(
+    name = did_agregado_psm_tipo_vias_todos,
+    command = het_csdid_tipo_vias(
+      df = dado_did_agregado_psm,
+      tipo_vias = c("primary", "trunk"),
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_tipo_vias_primary_todos,
+    command = het_csdid_tipo_vias(
+      df = dado_did_agregado_psm,
+      tipo_vias = c("primary"),
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_tipo_vias_trunk_todos,
+    command = het_csdid_tipo_vias(
+      df = dado_did_agregado_psm,
+      tipo_vias = c("trunk"),
+      yname = "sinistros")),
+  
+  tar_target(
+    name = did_agregado_psm_tipo_vias_moto,
+    command = het_csdid_tipo_vias(
+      df = dado_did_agregado_psm,
+      tipo_vias = c("primary", "trunk"),
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_tipo_vias_primary_moto,
+    command = het_csdid_tipo_vias(
+      df = dado_did_agregado_psm,
+      tipo_vias = c("primary"),
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_tipo_vias_trunk_moto,
+    command = het_csdid_tipo_vias(
+      df = dado_did_agregado_psm,
+      tipo_vias = c("trunk"),
+      yname = "sinistros_veiculo_motocicleta")),
+  
+  
+  tar_target(
+    name = res_agregado_psm_tipo_vias_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_tipo_vias_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, filtro tipo de vias",
+      filename = "agregado/het/tipo-via/filtro-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_tipo_vias_primary_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_tipo_vias_primary_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, vias primárias",
+      filename = "agregado/het/tipo-via/primary-todos",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_tipo_vias_trunk_todos,
+    command = res_csdid(
+      fit = did_agregado_psm_tipo_vias_trunk_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros, vias troncais",
+      filename = "agregado/het/tipo-via/trunk-todos",
+      ylim = 1.5)), 
+  
+  tar_target(
+    name = res_agregado_psm_tipo_vias_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_tipo_vias_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, filtro tipo de vias",
+      filename = "agregado/het/tipo-via/filtro-moto",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_tipo_vias_primary_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_tipo_vias_primary_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, vias primárias",
+      filename = "agregado/het/tipo-via/primary-moto",
+      ylim = 1.5)),
+  tar_target(
+    name = res_agregado_psm_tipo_vias_trunk_moto,
+    command = res_csdid(
+      fit = did_agregado_psm_tipo_vias_trunk_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de moto, vias troncais",
+      filename = "agregado/het/tipo-via/trunk-moto",
+      ylim = 1.5)),
+  
+  
+  #### Velocidade máxima ----
+  tar_target(
+    name = did_agregado_psm_vel_maxima_40ate_todos,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_psm,
+      vel_maxima = 40,
+      ate = TRUE,
+      control_group = "notyettreated",
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_vel_maxima_40maisque_todos,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_psm,
+      vel_maxima = 40,
+      ate = FALSE,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_vel_maxima_50ate_todos,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_psm,
+      vel_maxima = 50,
+      ate = TRUE,
+      yname = "sinistros")),
+  tar_target(
+    name = did_agregado_psm_vel_maxima_50maisque_todos,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_psm,
+      vel_maxima = 50,
+      ate = FALSE,
+      yname = "sinistros")),
+  
+  tar_target(
+    name = did_agregado_psm_vel_maxima_40ate_moto,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_psm,
+      vel_maxima = 40,
+      ate = TRUE,
+      control_group = "notyettreated",
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_vel_maxima_40maisque_moto,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_psm,
+      vel_maxima = 40,
+      ate = FALSE,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_vel_maxima_50ate_moto,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_psm,
+      vel_maxima = 50,
+      ate = TRUE,
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_agregado_psm_vel_maxima_50maisque_moto,
+    command = het_csdid_vel_maxima(
+      df = dado_did_agregado_psm,
+      vel_maxima = 50,
+      ate = FALSE,
+      yname = "sinistros_veiculo_motocicleta")),
   
   # 7.3.2  com base completa ----
   ## Resultados principais ----
@@ -1476,6 +2767,7 @@ list(
   
   # 7.4    roda por trecho agregado - por bimestre ----
   ## Resultados principais ----
+  # Todos
   tar_target(
     name = did_bimestre_agregado_todos,
     command = fit_csdid(
@@ -1483,11 +2775,56 @@ list(
       por_km = FALSE,
       yname = "sinistros")),
   tar_target(
+    name = did_bimestre_agregado_todos_w,
+    command = fit_csdid(
+      df = dado_did_agregado,
+      por_km = FALSE,
+      weightsname = "comprimento",
+      yname = "sinistros")),
+  tar_target(
+    name = did_bimestre_agregado_todos_w2,
+    command = fit_csdid(
+      df = dado_did_agregado,
+      por_km = FALSE,
+      weightsname = "comprimento_sqrt",
+      yname = "sinistros")),
+  tar_target(
+    name = did_bimestre_agregado_todos_w3,
+    command = fit_csdid(
+      df = dado_did_agregado,
+      por_km = FALSE,
+      weightsname = "comprimento_cbrt",
+      yname = "sinistros")),
+  
+  tar_target(
     name = did_bimestre_agregado_todos_km,
     command = fit_csdid(
       df = dado_did_agregado_bimestral,
       por_km = TRUE,
       yname = "sinistros")),
+  tar_target(
+    name = did_bimestre_agregado_todos_km_w,
+    command = fit_csdid(
+      df = dado_did_agregado,
+      por_km = TRUE,
+      weightsname = "comprimento",
+      yname = "sinistros")),
+  tar_target(
+    name = did_bimestre_agregado_todos_km_w2,
+    command = fit_csdid(
+      df = dado_did_agregado,
+      por_km = TRUE,
+      weightsname = "comprimento_sqrt",
+      yname = "sinistros")),
+  tar_target(
+    name = did_bimestre_agregado_todos_km_w3,
+    command = fit_csdid(
+      df = dado_did_agregado,
+      por_km = TRUE,
+      weightsname = "comprimento_cbrt",
+      yname = "sinistros")),
+  
+  # Moto
   tar_target(
     name = did_bimestre_agregado_moto,
     command = fit_csdid(
@@ -1495,12 +2832,57 @@ list(
       por_km = FALSE,
       yname = "sinistros_veiculo_motocicleta")),
   tar_target(
+    name = did_bimestre_agregado_moto_w,
+    command = fit_csdid(
+      df = dado_did_agregado,
+      por_km = FALSE,
+      weightsname = "comprimento",
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_bimestre_agregado_moto_w2,
+    command = fit_csdid(
+      df = dado_did_agregado,
+      por_km = FALSE,
+      weightsname = "comprimento_sqrt",
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_bimestre_agregado_moto_w3,
+    command = fit_csdid(
+      df = dado_did_agregado,
+      por_km = FALSE,
+      weightsname = "comprimento_cbrt",
+      yname = "sinistros_veiculo_motocicleta")),
+  
+  tar_target(
     name = did_bimestre_agregado_moto_km,
     command = fit_csdid(
       df = dado_did_agregado_bimestral,
       por_km = TRUE,
       yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_bimestre_agregado_moto_km_w,
+    command = fit_csdid(
+      df = dado_did_agregado,
+      por_km = TRUE,
+      weightsname = "comprimento",
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_bimestre_agregado_moto_km_w2,
+    command = fit_csdid(
+      df = dado_did_agregado,
+      por_km = TRUE,
+      weightsname = "comprimento_sqrt",
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_bimestre_agregado_moto_km_w3,
+    command = fit_csdid(
+      df = dado_did_agregado,
+      por_km = TRUE,
+      weightsname = "comprimento_cbrt",
+      yname = "sinistros_veiculo_motocicleta")),
   
+  
+  # Respostas
   tar_target(
     name = res_bimestre_agregado_todos,
     command = res_csdid(
@@ -1511,6 +2893,34 @@ list(
       ylim = 1,
       xlim = 6)),
   tar_target(
+    name = res_bimestre_agregado_todos_w,
+    command = res_csdid(
+      fit = did_bimestre_agregado_todos_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros",
+      filename = "bimestral/agregado/todos",
+      ylim = 1,
+      xlim = 6)),
+  tar_target(
+    name = res_bimestre_agregado_todos_w2,
+    command = res_csdid(
+      fit = did_bimestre_agregado_todos_w2,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros",
+      filename = "bimestral/agregado/todos",
+      ylim = 1,
+      xlim = 6)),
+  tar_target(
+    name = res_bimestre_agregado_todos_w3,
+    command = res_csdid(
+      fit = did_bimestre_agregado_todos_w3,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros",
+      filename = "bimestral/agregado/todos",
+      ylim = 1,
+      xlim = 6)),
+  
+  tar_target(
     name = res_bimestre_agregado_todos_km,
     command = res_csdid(
       fit = did_bimestre_agregado_todos_km,
@@ -1519,6 +2929,34 @@ list(
       filename = "bimestral/agregado/todos",
       ylim = 2,
       xlim = 6)),
+  tar_target(
+    name = res_bimestre_agregado_todos_km_w,
+    command = res_csdid(
+      fit = did_bimestre_agregado_todos_km_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros",
+      filename = "bimestral/agregado/todos",
+      ylim = 2,
+      xlim = 6)),
+  tar_target(
+    name = res_bimestre_agregado_todos_km_w2,
+    command = res_csdid(
+      fit = did_bimestre_agregado_todos_km_w2,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros",
+      filename = "bimestral/agregado/todos",
+      ylim = 2,
+      xlim = 6)),
+  tar_target(
+    name = res_bimestre_agregado_todos_km_w3,
+    command = res_csdid(
+      fit = did_bimestre_agregado_todos_km_w3,
+      cohort = dado_cohort_agregado,
+      titulo = "Todos os sinistros",
+      filename = "bimestral/agregado/todos",
+      ylim = 2,
+      xlim = 6)),
+  
   tar_target(
     name = res_bimestre_agregado_moto,
     command = res_csdid(
@@ -1529,6 +2967,34 @@ list(
       ylim = 1,
       xlim = 6)),
   tar_target(
+    name = res_bimestre_agregado_moto_w,
+    command = res_csdid(
+      fit = did_bimestre_agregado_moto_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de motocicleta",
+      filename = "bimestral/agregado/moto",
+      ylim = 1,
+      xlim = 6)),
+  tar_target(
+    name = res_bimestre_agregado_moto_w2,
+    command = res_csdid(
+      fit = did_bimestre_agregado_moto_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de motocicleta",
+      filename = "bimestral/agregado/moto",
+      ylim = 1,
+      xlim = 6)),
+  tar_target(
+    name = res_bimestre_agregado_moto_w3,
+    command = res_csdid(
+      fit = did_bimestre_agregado_moto_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de motocicleta",
+      filename = "bimestral/agregado/moto",
+      ylim = 1,
+      xlim = 6)),
+  
+  tar_target(
     name = res_bimestre_agregado_moto_km,
     command = res_csdid(
       fit = did_bimestre_agregado_moto_km,
@@ -1537,10 +3003,137 @@ list(
       filename = "bimestral/agregado/moto",
       ylim = 2,
       xlim = 6)),
+  tar_target(
+    name = res_bimestre_agregado_moto_km_w,
+    command = res_csdid(
+      fit = did_bimestre_agregado_moto_km_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de motocicleta",
+      filename = "bimestral/agregado/moto",
+      ylim = 2,
+      xlim = 6)),
+  tar_target(
+    name = res_bimestre_agregado_moto_km_w2,
+    command = res_csdid(
+      fit = did_bimestre_agregado_moto_km_w2,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de motocicleta",
+      filename = "bimestral/agregado/moto",
+      ylim = 2,
+      xlim = 6)),
+  tar_target(
+    name = res_bimestre_agregado_moto_km_w3,
+    command = res_csdid(
+      fit = did_bimestre_agregado_moto_km_w3,
+      cohort = dado_cohort_agregado,
+      titulo = "Sinistros de motocicleta",
+      filename = "bimestral/agregado/moto",
+      ylim = 2,
+      xlim = 6)),
+  
+  
+  ## Resultados principais em log ----
+  tar_target(
+    name = did_bimestre_agregado_log_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_bimestral,
+      por_km = FALSE,
+      yname = "sinistros",
+      log_delta = 1)),
+  tar_target(
+    name = did_bimestre_agregado_log_todos_km,
+    command = fit_csdid(
+      df = dado_did_agregado_bimestral,
+      por_km = TRUE,
+      yname = "sinistros",
+      log_delta = 0.1)),
+  tar_target(
+    name = did_bimestre_agregado_log_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_bimestral,
+      por_km = FALSE,
+      yname = "sinistros_veiculo_motocicleta",
+      log_delta = 1)),
+  tar_target(
+    name = did_bimestre_agregado_log_moto_km,
+    command = fit_csdid(
+      df = dado_did_agregado_bimestral,
+      por_km = TRUE,
+      yname = "sinistros_veiculo_motocicleta",
+      log_delta = 0.1)),
+  
+  
+  tar_target(
+    name = res_bimestre_agregado_log_todos,
+    command = res_csdid(
+      fit = did_bimestre_agregado_log_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Log todos os sinistros",
+      filename = "bimestral/agregado/log/todos",
+      ylim = 2)),
+  tar_target(
+    name = res_bimestre_agregado_log_todos_km,
+    command = res_csdid(
+      fit = did_bimestre_agregado_log_todos_km,
+      cohort = dado_cohort_agregado,
+      titulo = "Log todos os sinistros",
+      filename = "bimestral/agregado/log/todos",
+      ylim = 2)),
+  tar_target(
+    name = res_bimestre_agregado_log_moto,
+    command = res_csdid(
+      fit = did_bimestre_agregado_log_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Log sinistros de moto",
+      filename = "bimestral/agregado/log/moto",
+      ylim = 2)),
+  tar_target(
+    name = res_bimestre_agregado_log_moto_km,
+    command = res_csdid(
+      fit = did_bimestre_agregado_log_moto_km,
+      cohort = dado_cohort_agregado,
+      titulo = "Log sinistros de moto",
+      filename = "bimestral/agregado/log/moto",
+      ylim = 2)),
+  
+  
+  # tar_target(
+  #   name = res_agregado_log_todos,
+  #   command = res_csdid(
+  #     fit = did_agregado_log_todos,
+  #     cohort = dado_cohort_agregado,
+  #     titulo = "Log todos os sinistros",
+  #     filename = "agregado/log/todos",
+  #     ylim = 1)),
+  # tar_target(
+  #   name = res_agregado_log_todos_km,
+  #   command = res_csdid(
+  #     fit = did_agregado_log_todos_km,
+  #     cohort = dado_cohort_agregado,
+  #     titulo = "Log todos os sinistros",
+  #     filename = "agregado/log/todos",
+  #     ylim = 2)),
+  # tar_target(
+  #   name = res_agregado_log_moto,
+  #   command = res_csdid(
+  #     fit = did_agregado_log_moto,
+  #     cohort = dado_cohort_agregado,
+  #     titulo = "Log sinistros de moto",
+  #     filename = "agregado/log/moto",
+  #     ylim = 1)),
+  # tar_target(
+  #   name = res_agregado_log_moto_km,
+  #   command = res_csdid(
+  #     fit = did_agregado_log_moto_km,
+  #     cohort = dado_cohort_agregado,
+  #     titulo = "Log sinistros de moto",
+  #     filename = "agregado/log/moto",
+  #     ylim = 2)),
   
   
   # 7.4.1  com balanceamento proprio ----
   ## Resultados principais ----
+  # Todos
   tar_target(
     name = did_bimestre_agregado_psm_todos,
     command = fit_csdid(
@@ -1548,11 +3141,56 @@ list(
       por_km = FALSE,
       yname = "sinistros")),
   tar_target(
+    name = did_bimestre_agregado_psm_todos_w,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = FALSE,
+      weightsname = "comprimento",
+      yname = "sinistros")),
+  tar_target(
+    name = did_bimestre_agregado_psm_todos_w2,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = FALSE,
+      weightsname = "comprimento_sqrt",
+      yname = "sinistros")),
+  tar_target(
+    name = did_bimestre_agregado_psm_todos_w3,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = FALSE,
+      weightsname = "comprimento_cbrt",
+      yname = "sinistros")),
+  
+  tar_target(
     name = did_bimestre_agregado_psm_todos_km,
     command = fit_csdid(
       df = dado_did_agregado_psm_bimestral,
       por_km = TRUE,
       yname = "sinistros")),
+  tar_target(
+    name = did_bimestre_agregado_psm_todos_km_w,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = TRUE,
+      weightsname = "comprimento",
+      yname = "sinistros")),
+  tar_target(
+    name = did_bimestre_agregado_psm_todos_km_w2,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = TRUE,
+      weightsname = "comprimento_sqrt",
+      yname = "sinistros")),
+  tar_target(
+    name = did_bimestre_agregado_psm_todos_km_w3,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = TRUE,
+      weightsname = "comprimento_cbrt",
+      yname = "sinistros")),
+  
+  # Moto
   tar_target(
     name = did_bimestre_agregado_psm_moto,
     command = fit_csdid(
@@ -1560,13 +3198,57 @@ list(
       por_km = FALSE,
       yname = "sinistros_veiculo_motocicleta")),
   tar_target(
+    name = did_bimestre_agregado_psm_moto_w,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = FALSE,
+      weightsname = "comprimento",
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_bimestre_agregado_psm_moto_w2,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = FALSE,
+      weightsname = "comprimento_sqrt",
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_bimestre_agregado_psm_moto_w3,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = FALSE,
+      weightsname = "comprimento_cbrt",
+      yname = "sinistros_veiculo_motocicleta")),
+  
+  tar_target(
     name = did_bimestre_agregado_psm_moto_km,
     command = fit_csdid(
       df = dado_did_agregado_psm_bimestral,
       por_km = TRUE,
       yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_bimestre_agregado_psm_moto_km_w,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = TRUE,
+      weightsname = "comprimento",
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_bimestre_agregado_psm_moto_km_w2,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = TRUE,
+      weightsname = "comprimento_sqrt",
+      yname = "sinistros_veiculo_motocicleta")),
+  tar_target(
+    name = did_bimestre_agregado_psm_moto_km_w3,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = TRUE,
+      weightsname = "comprimento_cbrt",
+      yname = "sinistros_veiculo_motocicleta")),
   
   
+  # Respostas 
   tar_target(
     name = res_bimestre_agregado_psm_todos,
     command = res_csdid(
@@ -1574,8 +3256,32 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Pareamento psm, todos os sinistros",
       filename = "bimestral/agregado-psm/todos",
-      ylim = 1,
-      xlim = 6)),
+      ylim = 1)),
+  tar_target(
+    name = res_bimestre_agregado_psm_todos_w,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_todos_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Pareamento psm, todos os sinistros",
+      filename = "bimestral/agregado-psm/todos",
+      ylim = 1)),
+  tar_target(
+    name = res_bimestre_agregado_psm_todos_w2,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_todos_w2,
+      cohort = dado_cohort_agregado,
+      titulo = "Pareamento psm, todos os sinistros",
+      filename = "bimestral/agregado-psm/todos",
+      ylim = 1)),
+  tar_target(
+    name = res_bimestre_agregado_psm_todos_w3,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_todos_w3,
+      cohort = dado_cohort_agregado,
+      titulo = "Pareamento psm, todos os sinistros",
+      filename = "bimestral/agregado-psm/todos",
+      ylim = 1)),
+  
   tar_target(
     name = res_bimestre_agregado_psm_todos_km,
     command = res_csdid(
@@ -1583,8 +3289,32 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Pareamento psm, todos os sinistros",
       filename = "bimestral/agregado-psm/todos",
-      ylim = 2,
-      xlim = 6)),
+      ylim = 2)),
+  tar_target(
+    name = res_bimestre_agregado_psm_todos_km_w,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_todos_km_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Pareamento psm, todos os sinistros",
+      filename = "bimestral/agregado-psm/todos",
+      ylim = 2)),
+  tar_target(
+    name = res_bimestre_agregado_psm_todos_km_w2,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_todos_km_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Pareamento psm, todos os sinistros",
+      filename = "bimestral/agregado-psm/todos",
+      ylim = 2)),
+  tar_target(
+    name = res_bimestre_agregado_psm_todos_km_w3,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_todos_km_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Pareamento psm, todos os sinistros",
+      filename = "bimestral/agregado-psm/todos",
+      ylim = 2)),
+  
   tar_target(
     name = res_bimestre_agregado_psm_moto,
     command = res_csdid(
@@ -1592,8 +3322,32 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Pareamento psm, sinistros de moto",
       filename = "bimestral/agregado-psm/moto",
-      ylim = 1,
-      xlim = 6)),
+      ylim = 1)),
+  tar_target(
+    name = res_bimestre_agregado_psm_moto_w,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_moto_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Pareamento psm, sinistros de moto",
+      filename = "bimestral/agregado-psm/moto",
+      ylim = 1)),
+  tar_target(
+    name = res_bimestre_agregado_psm_moto_w2,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_moto_w2,
+      cohort = dado_cohort_agregado,
+      titulo = "Pareamento psm, sinistros de moto",
+      filename = "bimestral/agregado-psm/moto",
+      ylim = 1)),
+  tar_target(
+    name = res_bimestre_agregado_psm_moto_w3,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_moto_w3,
+      cohort = dado_cohort_agregado,
+      titulo = "Pareamento psm, sinistros de moto",
+      filename = "bimestral/agregado-psm/moto",
+      ylim = 1)),
+  
   tar_target(
     name = res_bimestre_agregado_psm_moto_km,
     command = res_csdid(
@@ -1601,10 +3355,97 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Pareamento psm, sinistros de moto",
       filename = "bimestral/agregado-psm/moto",
-      ylim = 2,
-      xlim = 6)),
+      ylim = 2)),
+  tar_target(
+    name = res_bimestre_agregado_psm_moto_km_w,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_moto_km_w,
+      cohort = dado_cohort_agregado,
+      titulo = "Pareamento psm, sinistros de moto",
+      filename = "bimestral/agregado-psm/moto",
+      ylim = 2)),
+  tar_target(
+    name = res_bimestre_agregado_psm_moto_km_w2,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_moto_km_w2,
+      cohort = dado_cohort_agregado,
+      titulo = "Pareamento psm, sinistros de moto",
+      filename = "bimestral/agregado-psm/moto",
+      ylim = 2)),
+  tar_target(
+    name = res_bimestre_agregado_psm_moto_km_w3,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_moto_km_w3,
+      cohort = dado_cohort_agregado,
+      titulo = "Pareamento psm, sinistros de moto",
+      filename = "bimestral/agregado-psm/moto",
+      ylim = 2)),
+  
+  ## Resultados principais em log ----
+  tar_target(
+    name = did_bimestre_agregado_psm_log_todos,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = FALSE,
+      yname = "sinistros",
+      log_delta = 1)),
+  tar_target(
+    name = did_bimestre_agregado_psm_log_todos_km,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = TRUE,
+      yname = "sinistros",
+      log_delta = 0.1)),
+  tar_target(
+    name = did_bimestre_agregado_psm_log_moto,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = FALSE,
+      yname = "sinistros_veiculo_motocicleta",
+      log_delta = 1)),
+  tar_target(
+    name = did_bimestre_agregado_psm_log_moto_km,
+    command = fit_csdid(
+      df = dado_did_agregado_psm_bimestral,
+      por_km = TRUE,
+      yname = "sinistros_veiculo_motocicleta",
+      log_delta = 0.1)),
   
   
+  tar_target(
+    name = res_bimestre_agregado_psm_log_todos,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_log_todos,
+      cohort = dado_cohort_agregado,
+      titulo = "Log todos os sinistros",
+      filename = "bimestral/agregado-psm/log/todos",
+      ylim = 2)),
+  tar_target(
+    name = res_bimestre_agregado_psm_log_todos_km,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_log_todos_km,
+      cohort = dado_cohort_agregado,
+      titulo = "Log todos os sinistros",
+      filename = "bimestral/agregado-psm/log/todos",
+      ylim = 2)),
+  tar_target(
+    name = res_bimestre_agregado_psm_log_moto,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_log_moto,
+      cohort = dado_cohort_agregado,
+      titulo = "Log sinistros de moto",
+      filename = "bimestral/agregado-psm/log/moto",
+      ylim = 2)),
+  tar_target(
+    name = res_bimestre_agregado_psm_log_moto_km,
+    command = res_csdid(
+      fit = did_bimestre_agregado_psm_log_moto_km,
+      cohort = dado_cohort_agregado,
+      titulo = "Log sinistros de moto",
+      filename = "bimestral/agregado-psm/log/moto",
+      ylim = 2)),
+  
+  ## ----
 #   # 7.3.02 Gravidade ----
 #   #
 #   # tar_target(

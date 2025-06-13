@@ -209,12 +209,13 @@ res_csdid <- function(fit, cohort, titulo, filename, ylim = 4, xlim = 12) {
   # tabelinha descritivas da base
   fit$fit$DIDparams$data |> 
     as_tibble() |> 
-    summarize(Mínimo = min(sinistros),
-              Q1 = quantile(sinistros, .25),
-              Mediana = median(sinistros),
-              Média = mean(sinistros),
-              Q3 = quantile(sinistros, .75),
-              Max = max(sinistros)) |> 
+    (\(df) tibble(y = df |> pull(fit$yname)))(df = _) |> 
+    summarize(Mínimo = min(y),
+              Q1 = quantile(y, .25),
+              Mediana = median(y),
+              Média = mean(y),
+              Q3 = quantile(y, .75),
+              Max = max(y)) |> 
     gt() |> 
     fmt_number(decimals = 2) |> 
     cols_width(everything() ~ 100) |> 
@@ -238,7 +239,7 @@ res_csdid <- function(fit, cohort, titulo, filename, ylim = 4, xlim = 12) {
     ggsave(filename = filename |> paste0("-plot.png"),
            path = "output/did/",
            plot = _, create.dir = T,
-           width = 10, height = 7.5, dpi = 300)
+           width = 10, height = 7.5, dpi = 300, bg = "white")
   
   # grafico do staggered por grupo
   g2 <- fit$fit.c |>
@@ -309,6 +310,7 @@ res_csdid <- function(fit, cohort, titulo, filename, ylim = 4, xlim = 12) {
 # }
 
 
+
 het_csdid_comprimento <- function(
     df, por_km = TRUE,
     yname = "sinistros", clustervars = c("id"), control_group = "nevertreated", 
@@ -325,87 +327,94 @@ het_csdid_comprimento <- function(
 }
 
 
-# het_csdid_num_faixas <- function(
-    #     df, cohort, titulo, filename, apenas_km = TRUE, ylim = 4,
-#     yname = "sinistros", clustervars = c("id"), control_group = "nevertreated", 
-#     idname = "id", base_period = "universal", weightsname = "comprimento", est_method = "dr",
-#     formula = ~ tipo_via + limite_velocidade + amenidades + intersec + radar_proximo,
-#     num_faixas = 2, ate = TRUE) {
-#   
-#   if (ate) {
-#     df.reg <- df |> 
-#       filter(faixas <= num_faixas) 
-#   } else {
-#     df.reg <- df |> 
-#       filter(faixas > num_faixas) 
-#   }
-#   
-#   fit_csdid_full(df.reg, cohort, titulo, filename, apenas_km, ylim, yname, clustervars, control_group, 
-#                  idname, base_period, weightsname, est_method, formula)
-# }
-# 
-# 
-# het_csdid_tipo_vias <- function(
-    #     df, cohort, titulo, filename, apenas_km = TRUE, ylim = 4,
-#     yname = "sinistros", clustervars = c("id"), control_group = "nevertreated", 
-#     idname = "id", base_period = "universal", weightsname = "comprimento", est_method = "dr",
-#     formula = ~ faixas + limite_velocidade + amenidades + intersec + radar_proximo,
-#     tipo_vias = c("primary", "trunk")) {
-#   
-#   df.reg <- df |> 
-#     filter(tipo_via %in% tipo_vias)
-#   
-#   fit_csdid_full(df.reg, cohort, titulo, filename, apenas_km, ylim, yname, clustervars, control_group, 
-#                  idname, base_period, weightsname, est_method, formula)
-# }
-# 
-# 
-# het_csdid_vel_maxima <- function(
-    #     df, cohort, titulo, filename, apenas_km = TRUE, ylim = 4,
-#     yname = "sinistros", clustervars = c("id"), control_group = "nevertreated", 
-#     idname = "id", base_period = "universal", weightsname = "comprimento", est_method = "dr",
-#     formula = ~ tipo_via + faixas + amenidades + intersec + radar_proximo,
-#     vel_maxima = 40, ate = TRUE) {
-#   
-#   if (ate) {
-#     df.reg <- df |> 
-#       filter(limite_velocidade <= vel_maxima) 
-#   } else {
-#     df.reg <- df |> 
-#       filter(limite_velocidade > vel_maxima)
-#   }
-#   
-#   fit_csdid_full(df.reg, cohort, titulo, filename, apenas_km, ylim, yname, clustervars, control_group, 
-#                  idname, base_period, weightsname, est_method, formula)
-# }
-# 
-# 
-# het_csdid_tempo_tratado <- function(
-    #     df, cohort, titulo, filename, apenas_km = TRUE, ylim = 4,
-#     yname = "sinistros", clustervars = c("id"), control_group = "nevertreated", 
-#     idname = "id", base_period = "universal", weightsname = "comprimento", est_method = "dr",
-#     formula = ~ tipo_via + faixas + limite_velocidade + amenidades + intersec + radar_proximo,
-#     meses = 12, ate = TRUE) {
-#   
-#   df <- df |> 
-#     mutate(logr = str_split_i(id, "-", i = 1))
-#     
-#   
-#   max_mes = interval(df$data |> min() |> as_date(), df$data |> max() |> as_date()) %/% months(1) + 1
-#   logradouros <- df |>
-#     filter(data_implementacao < max_mes - meses,
-#            data_implementacao != 0) |>
-#     distinct(logr) |>
-#     pull(logr)
-#   
-#   if (ate) {
-#     df.reg <- df |>
-#       filter(!(logr %in% logradouros))
-#   } else { 
-#     df.reg <- df |>
-#       filter(logr %in% logradouros | data_implementacao == 0)
-#   }
-#   
-#   fit_csdid_full(df.reg, cohort, titulo, filename, apenas_km, ylim, yname, clustervars, control_group, 
-#                  idname, base_period, weightsname, est_method, formula)
-# }
+het_csdid_num_faixas <- function(
+    df, por_km = TRUE,
+    yname = "sinistros", clustervars = c("id"), control_group = "nevertreated", 
+    idname = "id", base_period = "universal", weightsname = NULL, est_method = "dr",
+    formula = ~ tipo_via + limite_velocidade + amenidades + intersec + radar_proximo,
+    num_faixas = 2, ate = TRUE) {
+  
+  if (ate) {
+    df.reg <- df |>
+      filter(faixas <= num_faixas)
+  } else {
+    df.reg <- df |>
+      filter(faixas > num_faixas)
+  }
+  
+  fit_csdid(df.reg, por_km, yname, clustervars, control_group, idname, 
+            base_period, weightsname, est_method, formula)
+}
+
+
+het_csdid_tipo_vias <- function(
+    df, por_km = TRUE,
+    yname = "sinistros", clustervars = c("id"), control_group = "nevertreated", 
+    idname = "id", base_period = "universal", weightsname = NULL, est_method = "dr",
+    formula = ~ faixas + limite_velocidade + amenidades + intersec + radar_proximo,
+    tipo_vias = c("primary", "trunk")) {
+  
+  df.reg <- df |>
+    filter(tipo_via %in% tipo_vias)
+  
+  fit_csdid(df.reg, por_km, yname, clustervars, control_group, idname, 
+            base_period, weightsname, est_method, formula)
+}
+
+
+het_csdid_vel_maxima <- function(
+    df, por_km = TRUE,
+    yname = "sinistros", clustervars = c("id"), control_group = "nevertreated", 
+    idname = "id", base_period = "universal", weightsname = NULL, est_method = "dr",
+    formula = ~ faixas + amenidades + intersec + radar_proximo,
+    vel_maxima = 40, ate = TRUE) {
+  
+  if (ate) {
+    df.reg <- df |>
+      filter(limite_velocidade <= vel_maxima)
+  } else {
+    df.reg <- df |>
+      filter(limite_velocidade > vel_maxima)
+  }
+  
+  fit_csdid(df.reg, por_km, yname, clustervars, control_group, idname, 
+            base_period, weightsname, est_method, formula)
+}
+
+
+het_csdid_grupos <- function(
+    df, por_km = TRUE,
+    yname = "sinistros", clustervars = c("id"), control_group = "nevertreated", 
+    idname = "id", base_period = "universal", weightsname = NULL, est_method = "dr",
+    formula = ~ tipo_via + faixas + limite_velocidade + amenidades + intersec + radar_proximo,
+    grupos = 37:46) {
+  
+  df <- df |>
+    mutate(logr = str_split_i(id, "-", i = 1))
+  
+  # max_mes = interval(df$data |> min() |> as_date(), df$data |> max() |> as_date()) %/% months(1) + 1
+  # logradouros <- df |>
+  #   filter(data_implementacao < max_mes - meses,
+  #          data_implementacao != 0) |>
+  #   distinct(logr) |>
+  #   pull(logr)
+  # 
+  # if (ate) {
+  #   df.reg <- df |>
+  #     filter(!(logr %in% logradouros))
+  # } else {
+  #   df.reg <- df |>
+  #     filter(logr %in% logradouros | data_implementacao == 0)
+  # }
+  
+  logradouros <- df |>
+    filter(data_implementacao %in% grupos) |>
+    distinct(logr) |>
+    pull(logr)
+  
+  df.reg <- df |>
+    filter(logr %in% logradouros | data_implementacao == 0)
+  
+  fit_csdid(df.reg, por_km, yname, clustervars, control_group, idname, 
+            base_period, weightsname, est_method, formula)
+}
