@@ -141,7 +141,8 @@ dado_agregado_mes <- function(sinistros, match, id_trechos, trechos_agregado, ti
     filter(year(data) >= 2019) |> 
     select(id_sinistro, data, hora, contains("veiculo"), contains("gravidade"), tipo_acidente) |> #quantidade_envolvidos
     mutate(across(matches("veiculo|gravidade"), ~ replace_na(.x, 0)),
-           qtd_envolvidos = gravidade_leve + gravidade_grave + gravidade_fatal + gravidade_nao_disponivel) |> 
+           qtd_envolvidos = gravidade_leve + gravidade_grave + gravidade_fatal + gravidade_nao_disponivel,
+           qtd_feridos = gravidade_leve + gravidade_grave + gravidade_fatal) |> 
     
     # dummy de veiculo envolvido
     mutate(across(starts_with("veiculo_"), ~ . > 0, .names = "sinistros_{.col}"),
@@ -178,6 +179,9 @@ dado_agregado_mes <- function(sinistros, match, id_trechos, trechos_agregado, ti
            sinistros_gravidade_grave_moto = sinistros_gravidade_grave & sinistros_veiculo_motocicleta,
            sinistros_gravidade_leve_moto  = sinistros_gravidade_leve  & sinistros_veiculo_motocicleta) |> 
     
+    mutate(sinistros_feridos = qtd_feridos > 0,
+           sinistros_feridos_moto = sinistros_feridos & sinistros_veiculo_motocicleta) |> 
+    
     # dummy de horário
     mutate(sinistros_hora_05_10 = hora >= 5  & hora <= 10,
            sinistros_hora_11_16 = hora >= 11 & hora <= 16,
@@ -207,7 +211,11 @@ dado_agregado_mes <- function(sinistros, match, id_trechos, trechos_agregado, ti
     summarize(sinistros = n(),
               qtd_envolvidos = sum(qtd_envolvidos),
               across(matches("sinistros_|veiculo|acidente|gravidade"), sum)) |>
-    ungroup() 
+    ungroup() |> 
+    mutate(taxa_fatalidade = if_else(sinistros != 0, sinistros_gravidade_fatal / sinistros, 0),
+           taxa_fatalidade_moto = if_else(sinistros != 0, sinistros_gravidade_fatal_moto / sinistros, 0),
+           taxa_feridos = if_else(sinistros != 0, sinistros_feridos / sinistros, 0),
+           taxa_feridos_moto = if_else(sinistros != 0, sinistros_feridos_moto / sinistros, 0))
   
   
   if (tipo_join == "completo") {
@@ -222,15 +230,15 @@ dado_agregado_mes <- function(sinistros, match, id_trechos, trechos_agregado, ti
   
   zero_cols <- c(
     "sinistros", "qtd_envolvidos",
-    grep("^veiculo_|^acidente_|^gravidade_|^sinistros_", names(df), value = TRUE)
+    grep("^veiculo_|^acidente_|^gravidade_|^sinistros_|^taxa_", names(df), value = TRUE)
   )
   
   fill_list <- as.list(setNames(rep(0, length(zero_cols)), zero_cols))
   
   df <- df |>
     complete(data, id_trecho_agregado, golden_match, fill = fill_list) |> # Painel balanceado
-    select(data, id_trecho_agregado, golden_match, qtd_envolvidos, contains("sinistros"),
-           contains("veiculo"), contains("acidente"), contains("gravidade"))
+    select(data, id_trecho_agregado, golden_match, qtd_envolvidos, 
+           matches("sinistros|veiculo|acidente|gravidade|taxa"))
   
   return(df)
 }
@@ -241,9 +249,9 @@ prepara_agregado_did <- function(dado_did, trechos_agregado, filtrar_por = c(gol
     group_by(id_trecho_agregado, data) |>
     summarize(sinistros = sum(sinistros),
               qtd_envolvidos = sum(qtd_envolvidos),
-              across(matches("sinistros_|veiculo|acidente|gravidade"), ~ sum(.x, na.rm = TRUE))) |>
+              across(matches("sinistros_|veiculo|acidente|gravidade|taxa"), ~ sum(.x, na.rm = TRUE))) |>
     select(data, id_trecho_agregado, sinistros, qtd_envolvidos, 
-           matches("sinistros_|veiculo|acidente|gravidade")) |>
+           matches("sinistros_|veiculo|acidente|gravidade|taxa")) |>
     left_join(trechos_agregado) |>
     
     #trasformacao da data em valor numerico (na ordem)
@@ -462,7 +470,8 @@ consolida_trecho_did <- function(did_trecho, meses = 1) {
 }
 
 
-psm_agregados <- function(agregados, id_agregados, sinistros, match, file, inclui_medias = FALSE) {
+psm_agregados <- function(agregados, id_agregados, sinistros, match, file, 
+                          inclui_medias = FALSE, filtro_min = NULL) {
   
   obitos <- id_agregados |> 
     unnest(id_osm) |> 
@@ -523,6 +532,11 @@ psm_agregados <- function(agregados, id_agregados, sinistros, match, file, inclu
     mutate(resultado_match = PSM$weights,
            propensity_score = PSM$distance)
   
+  if (!is.null(filtro_min)) {
+    resultado <- resultado |> 
+      mutate(resultado_match = if_else(propensity_score <= 0.05, 0, resultado_match))
+  }
+  
   # Gráfico com o as distribuições de propensity score ----
   gg <- bind_rows(
     resultado |> filter(resultado_match == 1) |> mutate(matched = "b) Pós PSM"),
@@ -546,7 +560,7 @@ psm_agregados <- function(agregados, id_agregados, sinistros, match, file, inclu
 }
 
 
-prepara_psm_agregados_did <- function(dado, psm) {
+prepara_psm_agregados_did <- function(dado, psm, file) {
   dado <- dado |> 
     semi_join(psm |> 
                 filter(resultado_match == 1), 
@@ -554,15 +568,20 @@ prepara_psm_agregados_did <- function(dado, psm) {
   
   dado |> 
     mutate(id = as.integer(as_factor(id))) |> 
-    write_csv(file = "dados_tratados/df_did_psm.csv")
+    write_csv(file = paste0("dados_tratados/", file, "_psm.csv"))
   
   dado |> 
     mutate(id = as.integer(as_factor(id)),
            across(c(matches("sinistro|gravidade|acidente"),  qtd_envolvidos, intersec, amenidades), 
                   ~ .x * 1000 / comprimento)) |> 
-    write_csv(file = "dados_tratados/df_did-km_psm.csv")
+    write_csv(file = paste0("dados_tratados/", file, "-km_psm.csv"))
   
   return(dado)
+}
+
+
+dado_sinistro_mes <- function() {
+  
 }
 
 

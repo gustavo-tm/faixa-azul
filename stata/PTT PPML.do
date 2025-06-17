@@ -120,7 +120,7 @@ end
 
 
 bootstrap imput=e(imput_effect) apt=e(apt_effect) att=e(att_level) scale=e(scale_factor), ///
-    reps(100) cluster(id) seed(12345): static_imput_boot
+    reps(500) cluster(id) seed(12345): static_imput_boot
 
 * Store bootstrap results
 estimates store static_imputation
@@ -259,7 +259,7 @@ end
 // matrix list e(b)
 
 * If the above works, then run with bootstrap
-bootstrap, reps(100) cluster(id) idcluster(newid): dynamic_imput_boot
+bootstrap, reps(500) cluster(id) idcluster(newid): dynamic_imput_boot
 
 * Store results
 estimates store dynamic_imputation

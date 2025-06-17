@@ -11,6 +11,7 @@ if $por_km == 1 {
 	import delimited "C:\Dev\faixa-azul\dados_tratados\df_did-km_psm.csv"
 }
 
+
 gen Y = sinistros_hora_05_10
 gen month = mes
 gen group = data_implementacao
@@ -29,3 +30,28 @@ estat plot, pstyle1(p1) xtitle("Meses") ytitle("Efeito") legend(off) // ylabel(-
 
 graph save "C:\Dev\faixa-azul\stata\plots\jwdid\gravidade\fatal-todos.gph", replace
 graph export "C:\Dev\faixa-azul\stata\plots\jwdid\gravidade\fatal-todos.png", replace
+
+
+
+
+
+
+
+
+
+clear all
+program drop _all
+
+import delimited "C:\Dev\faixa-azul\dados_tratados\df_did_1000_psm.csv"
+
+gen Y = taxa_feridos
+gen month = mes
+gen group = data_implementacao
+
+
+jwdid Y , ivar(id) tvar(month) gvar(group) never method(logit)
+
+
+estat simple
+
+estat event, window(-12, 12)

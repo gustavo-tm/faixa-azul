@@ -4,4 +4,4 @@ library(targets)
 # renv::restore()
 # renv::install()
 
-tar_make()
+tar_make(starts_with("dado_did"))
