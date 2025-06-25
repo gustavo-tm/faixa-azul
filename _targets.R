@@ -166,6 +166,7 @@ list(
   tar_target(did_tabela_file, "dados_tratados/did_tabela.csv", format = "file"),
   tar_target(did_tabela, did_tabela_file |> read_csv() |> limpar_tabela_did()),
   
+  # 7.1. Base de segmentos ----
   # Criação das tabelas de segmento por nível
   tar_target(name = did_segmento_combinado, 
              bind_rows(dado_trechos |> mutate(segmento = "trechos"), 
@@ -197,6 +198,37 @@ list(
                           match = dado_match, 
                           rodarPSM = did_tabela_segmento_PSM$rodarPSM, 
                           min_score_cut = did_tabela_segmento_PSM$PSM_corte_minimo),
-             pattern = map(did_tabela_segmento_PSM))
-
+             pattern = map(did_tabela_segmento_PSM)),
+  
+  # 7.2. Base de sinistros ----
+  # Realizar filtros na base de sinistros
+  tar_group_by(did_tabela_sinistro_filtro, 
+               did_tabela, 
+               c(filtro_sinistros)),
+  tar_target(name = did_sinistros_filtrado,
+             sinistro_filtro(dado_sinistros, did_tabela_sinistro_filtro$filtro_sinistros),
+             pattern = map(did_tabela_sinistro_filtro)),
+  
+  # 7.3. Agregando para DID ----
+  tar_group_by(did_tabela_df, 
+               did_tabela, 
+               c(segmento_nivel, filtro_segmentos, rodarPSM, PSM_corte_minimo, intervalo_meses, filtrar_golden, filtro_sinistros)),
+  tar_target(name = did_df,
+             agrega_tempo(segmentos_filtrado = did_segmento_PSM, 
+                          sinistros_filtrado = did_sinistros_filtrado, 
+                          match = dado_match, 
+                          intervalo_meses = did_tabela_df$intervalo_meses,
+                          filtrar_golden = did_tabela_df$filtrar_golden),
+             pattern = map(did_tabela_df)),
+  
+  # 7.4. Run did ----
+  tar_group_by(did_tabela_fit, 
+               did_tabela, 
+               c(segmento_nivel, filtro_segmentos, rodarPSM, PSM_corte_minimo, intervalo_meses, filtrar_golden, filtro_sinistros)),
+  tar_target(name = did_fit,
+             fit_did(did_df),
+             pattern = map(did_tabela_fit))
+  
+  
+  
 )

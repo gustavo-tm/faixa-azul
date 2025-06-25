@@ -14,8 +14,9 @@ tabela_periodos_datetime <- tibble(
 limpar_tabela_did <- function(did_tabela){
   did_tabela |> 
     mutate(across(c(filtro_sinistros, filtro_segmentos), ~ .x |> as.character() |> replace_na("TRUE")),
-           across(c(rodarPSM), ~ .x |> as.logical() |> replace_na(TRUE)),
-           across(c(PSM_corte_minimo), ~ .x |> as.numeric() |> replace_na(0)))
+           across(c(rodarPSM, filtrar_golden), ~ .x |> as.logical() |> replace_na(TRUE)),
+           across(c(PSM_corte_minimo), ~ .x |> as.numeric() |> replace_na(0)),
+           across(c(intervalo_meses), ~ .x |> as.numeric() |> replace_na(1)))
 }
 
 
