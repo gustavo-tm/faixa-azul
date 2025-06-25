@@ -183,13 +183,28 @@ match_dados <- function(sinistros, sinistros_token, trechos, trechos_token){
 }
 
 
-golden_match <- function(match) {
-  match |> 
+match_ids <- function(match_bind, trechos, id_agregados, id_logradouros) {
+  match <- match_bind |> 
+    mutate(numero_zero = replace_na(numero_zero, TRUE)) |> 
     mutate(golden_match =
              similaridade > .85 &
              distancia_geografica < 150 &
              (match_titulo == TRUE | match_tipo == TRUE) & 
-             numero_zero == FALSE)
+             numero_zero == FALSE) |> 
+    select(id_sinistro, id_osm, golden_match)
+  
+  match |> 
+    semi_join(trechos |> 
+                st_drop_geometry() |> 
+                filter(tipo_via %in% c("primary", "secondary", "trunk"))) |> 
+    left_join(id_agregados |> 
+                unnest(id_osm) |> 
+                select(contains("id"))) |> 
+    left_join(id_logradouros |> 
+                unnest(id_osm = trechos) |> 
+                select(contains("id"))) |> 
+    select(id_sinistro, id_osm, id_trecho_agregado, id_logradouro, golden_match) |> 
+    ungroup()
 }
 
 

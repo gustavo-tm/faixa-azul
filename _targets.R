@@ -45,57 +45,60 @@ list(
     name = dado_osm,
     command = download_osm()),
   tar_target(
-    name = dado_trechos,
-    command = tidy_trechos(dado_osm)),
+    name = dado_trechos_bruto,
+    command = tidy_trechos_bruto(dado_osm)),
   tar_target(
     name = dado_radar,
-    command = calcular_radares(dado_trechos)),
+    command = calcular_radares(dado_trechos_bruto)),
   tar_target(
     name = dado_amenidades,
-    command = calcular_amenidades(dado_trechos)),
+    command = calcular_amenidades(dado_trechos_bruto)),
   tar_target(
     name = dado_interseccao,
-    command = calcular_interseccao(dado_trechos, dado_token_osm)),
+    command = calcular_interseccao(dado_trechos_bruto, dado_token_osm)),
   tar_target(
     name = dado_trechos_complemento,
-    command = tidy_complemento_trecho(dado_trechos, dado_radar, dado_interseccao, dado_amenidades)),
-
+    command = tidy_complemento_trecho(dado_trechos_bruto, dado_radar, dado_interseccao, dado_amenidades)),
+  
+  tar_target(
+    name = dado_trechos,
+    command = tidy_trechos(dado_trechos_bruto, dado_trechos_complemento, dado_faixa_azul)),
 
 
   # 3. Agregação de trechos ----
   # 3.1. Logradouro ----
   tar_target(
     name = dado_id_logradouros,
-    command = agrupar_logradouros(dado_trechos, dado_token_osm)),
+    command = agrupar_logradouros(dado_trechos_bruto, dado_token_osm)),
   tar_target(
     name = dado_logradouros,
-    command = tidy_logradouros(dado_id_logradouros, dado_trechos, dado_trechos_complemento, dado_faixa_azul)),
+    command = tidy_logradouros(dado_id_logradouros, dado_trechos_bruto, dado_trechos_complemento, dado_faixa_azul)),
 
   # 3.2. Trechos ----
   tar_target(
     name = dado_id_agregados,
-    command = agregar_trechos(dado_trechos, dado_faixa_azul, metros = 500)),
+    command = agregar_trechos(dado_trechos_bruto, dado_faixa_azul, metros = 500)),
   tar_target(
     name = dado_agregados,
-    command = tidy_agregados(dado_id_agregados, dado_trechos, dado_trechos_complemento, dado_faixa_azul)),
+    command = tidy_agregados(dado_id_agregados, dado_trechos_bruto, dado_trechos_complemento, dado_faixa_azul)),
   
   tar_target(
     name = dado_id_agregados_1000,
-    command = agregar_trechos(dado_trechos, dado_faixa_azul, metros = 1000)),
+    command = agregar_trechos(dado_trechos_bruto, dado_faixa_azul, metros = 1000)),
   tar_target(
     name = dado_agregados_1000,
-    command = tidy_agregados(dado_id_agregados_1000, dado_trechos, dado_trechos_complemento, dado_faixa_azul)),
+    command = tidy_agregados(dado_id_agregados_1000, dado_trechos_bruto, dado_trechos_complemento, dado_faixa_azul)),
 
   # 4. FAIXA AZUL ----
   tar_target(
     name = dado_faixa_azul,
-    command = tidy_faixa_azul(dado_trechos)),
+    command = tidy_faixa_azul(dado_trechos_bruto)),
   tar_target(
     name = dado_vizinhos_150,
-    command = tidy_vizinhos(dado_trechos, dado_id_logradouros, dado_faixa_azul, 150)),
+    command = tidy_vizinhos(dado_trechos_bruto, dado_id_logradouros, dado_faixa_azul, 150)),
   tar_target(
     name = dado_vizinhos_500,
-    command = tidy_vizinhos(dado_trechos, dado_id_logradouros, dado_faixa_azul, 500)),
+    command = tidy_vizinhos(dado_trechos_bruto, dado_id_logradouros, dado_faixa_azul, 500)),
 
 
   # 5. MATCH ----
@@ -104,7 +107,7 @@ list(
     command = tokenizar_infosiga(dado_sinistros)),
   tar_target(
     name = dado_token_osm,
-    command = tokenizar_osm(dado_trechos)),
+    command = tokenizar_osm(dado_trechos_bruto)),
 
   tar_target(
     name = dado_sinistros_chunks,
@@ -114,7 +117,7 @@ list(
     name = dado_match_chunks,
     command = match_dados(dado_sinistros_chunks,
                           sinistros_token = dado_token_infosiga,
-                          trechos = dado_trechos,
+                          trechos = dado_trechos_bruto,
                           trechos_token = dado_token_osm),
     pattern = NULL,
     iteration = "group"),
@@ -124,7 +127,7 @@ list(
     command = bind_rows(dado_match_chunks)),
   tar_target(
     name = dado_match,
-    command = golden_match(dado_match_bind)),
+    command = match_ids(dado_match_bind, dado_trechos_bruto, dado_id_agregados, dado_id_logradouros)),
 
   # 6. DESCRITIVAS ----
   tar_target(
@@ -132,13 +135,13 @@ list(
     command = plot_datas_FA(dado_logradouros, dado_id_logradouros, dado_match, dado_sinistros)),
   tar_target(
     name = descritiva_datas_trechos,
-    command = plot_datas_trechos(dado_faixa_azul, dado_trechos, dado_token_osm)),
+    command = plot_datas_trechos(dado_faixa_azul, dado_trechos_bruto, dado_token_osm)),
   tar_target(
     name = descritiva_obitos_tempo,
     command = plot_obitos_tempo(dado_sinistros, dado_match, dado_faixa_azul, dado_logradouros, dado_id_logradouros)),
   tar_target(
     name = descritiva_tamanho_FA,
-    command = plot_tamanho_FA(dado_id_logradouros, dado_logradouros, dado_faixa_azul, dado_trechos)),
+    command = plot_tamanho_FA(dado_id_logradouros, dado_logradouros, dado_faixa_azul, dado_trechos_bruto)),
   tar_target(
     name = descritiva_hora_sinistro,
     command = plot_hora_sinistro(dado_sinistros)),
@@ -147,22 +150,22 @@ list(
     command = plot_qualidade_match(dado_sinistros, dado_match)),
   tar_target(
     name = descritiva_agregados,
-    command = plot_agregacao_trechos(dado_trechos, dado_id_logradouros, dado_agregados)),
+    command = plot_agregacao_trechos(dado_trechos_bruto, dado_id_logradouros, dado_agregados)),
   tar_target(
     name = descritiva_mapas,
-    command = plot_mapas(dado_sinistros, dado_trechos, dado_faixa_azul)),
+    command = plot_mapas(dado_sinistros, dado_trechos_bruto, dado_faixa_azul)),
   tar_target(
     name = descritiva_obitos_ano,
     command = plot_obitos_ano(dado_sinistros)),
   tar_target(
     name = descritiva_proporcao_grupos,
-    command = plot_proporcao_grupos(dado_trechos, dado_faixa_azul)),
+    command = plot_proporcao_grupos(dado_trechos_bruto, dado_faixa_azul)),
   tar_target(
     name = descritiva_tratados_periodo,
     command = plot_trechos_vias_periodo(dado_faixa_azul, dado_logradouros)),
   tar_target(
     name = descritiva_comprimento_trechos,
-    command = plot_comprimento_trechos(dado_trechos)),
+    command = plot_comprimento_trechos(dado_trechos_bruto)),
   tar_target(
     name = descritiva_sinistros_comprimento,
     command = plot_sinistros_comprimento(dado_did_trecho_golden)),

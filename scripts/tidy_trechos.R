@@ -44,7 +44,7 @@ download_osm <- function(){
 
 
 
-tidy_trechos <- function(osm){
+tidy_trechos_bruto <- function(osm){
   
   # Interpolação 
   logradouro <- osm |> 
@@ -94,6 +94,20 @@ tidy_trechos <- function(osm){
   
   # trechos |> 
   #   st_write("banco_dados/trechos.gpkg")
+}
+
+
+tidy_trechos <- function(trechos_bruto, trechos_complemento, faixa_azul) {
+  trechos_bruto |> 
+    st_drop_geometry() |> 
+    left_join(trechos_complemento) |> 
+    left_join(faixa_azul) |> 
+    select(-contains("log")) |> 
+    filter(tipo_via %in% c("primary", "secondary", "trunk")) |> 
+    mutate(trechos = 1,
+           across(c(faixas, limite_velocidade, radar_proximo), as.numeric)) |> 
+    select(id_osm, trechos, comprimento, data_implementacao, faixas, limite_velocidade,
+           amenidades, intersec, tipo_via, radar_proximo, mao_unica, superficie)
 }
 
 
@@ -168,6 +182,7 @@ tidy_logradouros <- function(id_logradouros, trechos, trechos_complemento, faixa
         ~ fct_infreq(.x) |> levels() |> first()),
       radar_proximo = max(radar_proximo),
       trechos = n())
+  
   return(logradouros)
 }
 
@@ -350,6 +365,10 @@ tidy_agregados <- function(id_agregados, trechos, trechos_complemento, faixa_azu
       across(
         c(mao_unica, superficie, tipo_via),
         ~ fct_infreq(.x) |> levels() |> first()),
-      radar_proximo = max(radar_proximo))
+      radar_proximo = max(radar_proximo)) |> 
+    ungroup() |> 
+    select(id_trecho_agregado, trechos, comprimento, data_implementacao, faixas, limite_velocidade,
+           amenidades, intersec, tipo_via, radar_proximo, mao_unica, superficie)
+  
   return(trechos_agregado)
 }
