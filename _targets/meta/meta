@@ -226,7 +226,6 @@ did_agregado_qtd_envolvidos_fatal|stem|de844173f6a3940d|cb517be5f6791468|7b80af9
 gerar_tabela_cohort|function|c43661af439bc449|||||||||||||||
 preparar_grafico_did|function|7ebe37f2e28563f0|||||||||||||||
 trechos|object|31717936fd810641|||||||||||||||
-fit_did|function|4655f9678ebe6e9b|||||||||||||||
 fit_did_all|function|a33ff2cc6a5e17cf|||||||||||||||
 fit_csdid_full|function|3b6978ce18d70460|||||||||||||||
 did_het_vel_maxima|function|f9739cbf219648c3|||||||||||||||
@@ -338,30 +337,8 @@ res_agregado_completo_todos_km|stem||6e354269b055c85f|1b97cd8f8c42f4b1|404645787
 res_agregado_completo_moto_km|stem||4023d0386b582af8|998bacec247a7621|210100550||t20251.6539058649s||0|qs|local|vector|||25.437|cannot open file Cgitfaixaazuloutputdidagregadocompletomotokmtabelacohort.png No such file or directory. An error occurred Error in filecon, wb cannot open the connection. path1An error occurred Error in filecon, wb cannot open the connection A sintaxe do nome do arquivo, do nome do diretório ou do rótulo do volume está incorreta|Cannot find directory outputdid.ℹ Please supply an existing directory or use create.dir  TRUE.
 res_agregado_hora_11_16_moto|stem||29a647968c633b06|53cb12be86edc682|158534104||t20251.6544405561s||0|qs|local|vector|||14.921|cannot open file Cgitfaixaazuloutputdidagregadohethorario11_16motokmtabelacohort.png No such file or directory. An error occurred Error in filecon, wb cannot open the connection. path1An error occurred Error in filecon, wb cannot open the connection A sintaxe do nome do arquivo, do nome do diretório ou do rótulo do volume está incorreta|Cannot find directory outputdid.ℹ Please supply an existing directory or use create.dir  TRUE.
 res_agregado_hora_12_22_moto|stem||33078b64a4dfa7a5|42e7bb7186c5ca9f|2075154378||t20251.6546276103s||0|qs|local|vector|||15.438|cannot open file Cgitfaixaazuloutputdidagregadohethorario12_22motokmtabelacohort.png No such file or directory. An error occurred Error in filecon, wb cannot open the connection. path1An error occurred Error in filecon, wb cannot open the connection A sintaxe do nome do arquivo, do nome do diretório ou do rótulo do volume está incorreta|Cannot find directory outputdid.ℹ Please supply an existing directory or use create.dir  TRUE.
-dado_sinistros|stem|29c9e31d7874d147|9b879429a4c0ae63|917a5f884404511d|1977916615||t20251.7362109041s|s8022498b|8022498|qs|local|vector|||8||
-dado_osm|stem|714b52cf9fdab242|aaf9d484cc38786f|c8c02eca62c7c3a4|1660670857||t20251.7578420115s|s34281617b|34281617|qs|local|vector|||1867.75||
-dado_sinistros_chunks|stem|b24e558809b4f1f7|378d9d21219f72d1|056a3efe8e31169d|-60872853||t20251.7578507215s|s5530918b|5530918|qs|local|vector|||0.29||
-dado_token_infosiga|stem|1f144f78e975ba53|1fc934ea9fa7b57c|213b7918621781db|805661047||t20251.7617023301s|s4180489b|4180489|qs|local|vector|||332.48||
-descritiva_obitos_ano|stem|8cc51ec9ccdf7736|5ba2aeb4a02af778|cb24dd1afb2d1afc|1151249243||t20251.7617198611s|s102b|102|qs|local|vector|||1.36||
-descritiva_hora_sinistro|stem|605551a83c7dad3a|73509ebd72c52bf1|77a8034a0b4a8f6f|1569173501||t20251.7617303634s|s106b|106|qs|local|vector|||0.71|Removed 64 rows containing missing values or values outside the scale range (`geom_tile()`).|
-dado_trechos|stem|d224093877a88d4d|e918b5f920ab8d46|420ad6385a337d75|997544507||t20251.763860095s|s34357987b|34357987|qs|local|vector|||182.25||
-dado_token_osm|stem|3df27ae8a00ef6e8|6d52c844f5070652|d8e8dbb0e9db0045|-1588809096||t20251.7694133695s|s4654823b|4654823|qs|local|vector|||478.66||
-dado_faixa_azul|stem|fbe4b8fb63cb7376|f92202c4633685cc|1fdbbe8327ad15ee|-1803019463||t20251.7694273805s|s4818b|4818|qs|local|vector|||0.08||
-dado_amenidades|stem|c845a8b0d01c3582|bd19fe0523875bec|57b5f5b47a7ddb13|-121141636||t20251.775095337s|s92978b|92978|qs|local|vector|||488.69||
-dado_radar|stem|0581efb32e93c652|9deeb95e156831ed|4ce6a0389b211bd0|-2078235472||t20251.7753850451s|s602622b|602622|qs|local|vector|||24.22||
-descritiva_comprimento_trechos|stem|2813b4d3bb0b7078|84fd522f2842fa91|9598739c6488d162|1328266992||t20251.7754003094s|s111b|111|qs|local|vector|||0.45|Removed 10795 rows containing non-finite outside the scale range (`stat_density()`).|
-dado_interseccao|stem|8450bef62547b1cb|b10f95f014105ec3|0f59d28fbbd5b6e7|-1336837285||t20251.776076216s|s598885b|598885|qs|local|vector|||56.3||
-dado_id_logradouros|stem|222e88a05e4b046c|89b8720e1718e53d|121cc69c62ae0aef|2067594147||t20251.7855846744s|s164552b|164552|qs|local|vector|||820||
-dado_match_chunks|stem|8b5846cdff72d2d8|39fdb0b9ba60606d|7287c57f8119f875|-697987259||t20251.8483578988s|s3458589b|3458589|qs|local|group|||5421.29|Detected an unexpected many-to-many relationship between `x` and `y`. ℹ Row 7 of `x` matches multiple rows in `y`. ℹ Row 112078 of `y` matches multiple rows in `x`. ℹ If a many-to-many relationship is expected, set `relationship =   'many-to-many'` to silence this warning.|
-dado_id_agregados|stem|571c5c8dc996dc51|f356e74e9d4180e8|face81822261caac|-59879367||t20251.850575894s|s236654b|236654|qs|local|vector|||190.76||
 descritiva_datas_trechos|stem|e29eff4550891516|228af331d6a334cd|55611a68944a48b4|-1130768564||t20251.8506525295s|s113b|113|qs|local|vector|||5.09||
 descritiva_mapas|stem|049be00c72728919|02d1709cbf1ee33b|4aa09be7eafdb3be|996910975||t20251.8585671897s|s64b|64|qs|local|vector|||681.94|attribute variables are assumed to be spatially constant throughout all geometries. attribute variables are assumed to be spatially constant throughout all geometries. Computation failed in `stat_binhex()`. Caused by error in `compute_group()`: ! The package 'hexbin' is required for `stat_bin_hex()`.|
-descritiva_proporcao_grupos|stem|c76fed6cc5ad8659|810779a6a9390711|6a1c654266781ca8|-361439265||t20251.8585876111s|s106b|106|qs|local|vector|||0.6|Detected an unexpected many-to-many relationship between `x` and `y`. ℹ Row 1 of `x` matches multiple rows in `y`. ℹ Row 1 of `y` matches multiple rows in `x`. ℹ If a many-to-many relationship is expected, set `relationship =   'many-to-many'` to silence this warning.. Removed 106 rows containing missing values or values outside the scale range (`geom_label()`).|
-dado_trechos_complemento|stem|640d3d5aa9024f62|abc46bb0cbf88ed6|1258a2e4d394ca71|-1968360811||t20251.8586079969s|s778268b|778268|qs|local|vector|||0.49||
-dado_match_bind|stem|8b5846cdff72d2d8|bb45580cf25d2769|f64030404d89098e|-308979808||t20251.8586150223s|s3458589b|3458589|qs|local|vector|||0.17||
-dado_logradouros|stem|fa51262765194229|e2d25b393c7d0f09|06fe1c5cbac3e6b1|751837765||t20251.8586824803s|s131702b|131702|qs|local|vector|||4.15||
-dado_agregados|stem|aa6fa98ba6648715|d46ff32b4106bd54|608a0b7f8feb3acd|-1225402994||t20251.8588294869s|s178004b|178004|qs|local|vector|||11.34||
-dado_match|stem|1605a48d8af2a8bf|bd0c437b8195c5ba|8fdfd5a222118cb6|747176591||t20251.858869152s|s3490356b|3490356|qs|local|vector|||3.05||
 descritiva_tamanho_FA|stem|34030fca7bb0d14b|53866b7f0c676f6f|d50130e6a74d3c57|218788181||t20251.8588894757s|s102b|102|qs|local|vector|||0.48||
 descritiva_tratados_periodo|stem|4c39787d37c45dfb|eb62c30980e90b28|e5bf54a330ee34df|802836||t20251.8589065623s|s111b|111|qs|local|vector|||1.41||
 descritiva_agregados|stem|8ef35af22a1f4883|c79a8a7419a590df|63ef2e0b238f48b0|-1187124519||t20251.8589316725s|s109b|109|qs|local|vector|||1.12||
@@ -371,7 +348,6 @@ descritiva_datas_FA|stem|f30e79b0a9985538|e1c4df07a0496d84|cd53c27b392032ae|-147
 descritiva_qualidade_match|stem|1736396629b99ecd|dcbd431ead198823|3b8fb7cc797b7b64|1827488715||t20251.8589962709s|s102b|102|qs|local|vector|||0.42||
 dado_did_trecho_mes|stem|f382f05b27fbbec9|fa4656d1999c0a34|1c6fcdf2aa34a0b0|854387777||t20251.8592676655s|s5206719b|5206719|qs|local|vector|||20.77||
 dado_did_trecho_golden|stem|1b3839f0d9d7861d|35596bd126eaea80|d03d9ff226dd4ec6|842595155||t20251.8624721776s|s2604645b|2604645|qs|local|vector|||273.81||
-descritiva_sinistros_comprimento|stem|283d4a0ec81efb44|458f5aed3ec99f30|d2e65901f6a5e87f|-336925888||t20251.8625386768s|s114b|114|qs|local|vector|||5.26|Removed 151 rows containing non-finite outside the scale range (`stat_density()`).. Removed 548 rows containing non-finite outside the scale range (`stat_density()`).. Removed 16 rows containing missing values or values outside the scale range (`geom_col()`).. Removed 16 rows containing missing values or values outside the scale range (`geom_col()`).|
 did_agregado_psm_todos_km_w|stem|4b53a2ea06cc9e55|35a2d602b764c337|a927590eb9de1281|-1788846980||t20251.868800798s|s37906261b|37906261|qs|local|vector|||52.33|Be aware that there are some small groups in your dataset.   Check groups: 63,73.. Not returning pre-test Wald statistic due to singular covariance matrix. dropped 1444 rows from original data due to missing data. Be aware that there are some small groups in your dataset.   Check groups: 37,58,63,73.. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabil|
 did_agregado_psm_hora_11_16_moto|stem|21834a28c2879f50|0de123f1f7dd1c14|a927590eb9de1281|-757044889||t20251.8692317656s|s34823605b|34823605|qs|local|vector|||37.02|Be aware that there are some small groups in your dataset.   Check groups: 63,73.. Not returning pre-test Wald statistic due to singular covariance matrix. dropped 1444 rows from original data due to missing data. Be aware that there are some small groups in your dataset.   Check groups: 37,58,63,73.. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabil|
 did_agregado_psm_acidente_colisao_apenas_moto|stem|59b87a631c2c8473|23908765a4edc234|a927590eb9de1281|-583079858||t20251.869640872s|s13366008b|13366008|qs|local|vector|||34.92|Be aware that there are some small groups in your dataset.   Check groups: 63,73.. Not returning pre-test Wald statistic due to singular covariance matrix. Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.. dropped 1444 rows from original data due to missing data. Be aware that there are some small groups in your dataset.   Check groups: 37,58,63,73.. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades ajustadas numericamente 0 ou 1 ocorreu. glm.fit: probabilidades a|
@@ -737,7 +713,6 @@ res_agregado_psm_min_todos|stem|694be125bd5fbb6c|0f577b51b8607a8b|7918e4f8c3814c
 res_agregado_psm_min_moto_km|stem|ff3ef19bb7fcb69f|2a0ad4de592b2954|820178376a732943|-1618165162||t20256.0710292484s|s119b|119|qs|local|vector|||9.12|Removed 2 rows containing missing values or values outside the scale range (`geom_segment()`).|
 res_agregado_psm_min_moto|stem|f7af2acee32868b8|92475b900ccc7a6c|68c3bfefb3df61ca|-1304017702||t20256.0711366145s|s120b|120|qs|local|vector|||8.88|Removed 2 rows containing missing values or values outside the scale range (`geom_segment()`).|
 res_agregado_psm_min_todos_km|stem|922a6d5bc3827d8f|9f48ec87364e6921|38fa0065b4d62572|-1650519496||t20256.0712437638s|s119b|119|qs|local|vector|||9.09|Removed 2 rows containing missing values or values outside the scale range (`geom_segment()`).|
-dado_id_agregados_1000|stem|479237811af2bb7d|29a8e20de2880724|face81822261caac|1589021676||t20256.1181731752s|s208993b|208993|qs|local|vector|||156.56||
 dado_vizinhos_150|stem|928ddda5c1745fcd|4dbddf4a47087f1a|679250c5d5402bda|-1957962120||t20256.1185257587s|s15313b|15313|qs|local|vector|||29.3||
 dado_vizinhos_500|stem|9fd492827e8dd976|7b5d8ed3af5e9315|679250c5d5402bda|-532825134||t20256.1188986313s|s30371b|30371|qs|local|vector|||30.2||
 dado_agregados_1000|stem|8fca96c22301cc7a|e4689d8e8b6dec01|74fd2cc5869b43bf|-1157895843||t20256.1190010216s|s117997b|117997|qs|local|vector|||7.77||
@@ -780,63 +755,156 @@ res_agregado_psm_taxa_fatalidade_moto|stem|b345294c1fd5eb0b|ea7f007c7ea18ff0|926
 res_agregado_psm_taxa_fatalidade_todos|stem|c12c24db22402425|2d5878b65e155ecf|b482206067bf3ff6|-424155422||t20256.1757735361s|s132b|132|qs|local|vector|||9.9|Removed 2 rows containing missing values or values outside the scale range (`geom_segment()`).|
 res_agregado_psm_taxa_feridos_moto|stem|b97edda88081e31b|b7cfb40b9c97ac3a|4c0e11187433d081|1246010101||t20256.1762338348s|s131b|131|qs|local|vector|||12.27|Removed 2 rows containing missing values or values outside the scale range (`geom_segment()`).|
 res_agregado_psm_taxa_feridos_todos|stem|99653054472ff37e|0ffa49e3fbce0388|da70249045114f06|-1064651577||t20256.1763720398s|s133b|133|qs|local|vector|||11.52|Removed 2 rows containing missing values or values outside the scale range (`geom_segment()`).|
-plot_datas_FA|function|4e4eafa6e42eeed9
-limpar|function|40c2a3b526f64268
-golden_match|function|f5cbf75a600c24c7
-tidy_logradouros|function|1fb919fa5050a506
-tidy_agregados|function|f7446be21972d76b
-plot_mapas|function|a8fa6074a05ce836
-plot_proporcao_grupos|function|cb6de13b0f06a49e
-tidy_sinistros|function|0fe6a7b5d22f8d02
-plot_agregacao_trechos|function|15b0ded8740b95cb
-.Random.seed|object|8fe9707dd3fe66d5
-plot_hora_sinistro|function|b58a1974c299f37c
-definir_cohort_vizinho|function|34b5db34c57b22b0
-plot_sinistros_comprimento|function|ee986ab10b901d06
-fit_csdid|function|308ef1bdeefe43dc
-tidy_trechos|function|615ce4e6786e1218
-dado_sinistro_mes|function|aa14bdc81a65f8cb
-agregar_trechos|function|b0f20f500b6b6b7f
-calcular_amenidades|function|f0a239287b604e40
+golden_match|function|f5cbf75a600c24c7|||||||||||||||
+res_agregado_psm_taxa_feridos_moto_w2|stem|60c7e4fd836725ca|2d71ff7e999e9969|94b83e23e4e71efc|1947762525||t20256.1768491448s|s139b|139|qs|local|vector|||12.19|Removed 2 rows containing missing values or values outside the scale range (`geom_segment()`).|
+res_agregado_psm_taxa_feridos_todos_w2|stem|290078ceedcc9e46|45f943bfdaba22b9|c1c69f5cbf6fd279|1483668353||t20256.1769768109s|s141b|141|qs|local|vector|||10.53|Removed 2 rows containing missing values or values outside the scale range (`geom_segment()`).|
+prepara_trecho_did|function|995d8e37302f3fce|||||||||||||||
+fit_csdid|function|308ef1bdeefe43dc|||||||||||||||
+dado_sinistro_mes|function|aa14bdc81a65f8cb|||||||||||||||
+prepara_grafico_csdid|function|7ebe37f2e28563f0|||||||||||||||
+tabela_cohort_csdid|function|f779dccf039ad418|||||||||||||||
+dado_logradouro_mes|function|fb60f1aaca4883bf|||||||||||||||
+prepara_logradouro_did|function|4e3376728bba01e2|||||||||||||||
+definir_cohort|function|d99a806351e73f0b|||||||||||||||
+prepara_agregado_did|function|1032ac3935ce9254|||||||||||||||
+dado_agregado_mes|function|69b4dc9365c24c0a|||||||||||||||
+dado_trecho_mes|function|e1364fd2dd32e6e8|||||||||||||||
+prepara_psm_agregados_did|function|17ca16772179744b|||||||||||||||
+consolida_trecho_did|function|bac32e429e0f84a0|||||||||||||||
+psm_agregados|function|99f99e81d3546bed|||||||||||||||
+definir_cohort_vizinho|function|34b5db34c57b22b0|||||||||||||||
+het_csdid_vel_maxima|function|d63d5f3140f04489|||||||||||||||
+het_csdid_comprimento|function|bf8c7d2955210617|||||||||||||||
+het_csdid_num_faixas|function|da9ac732d95da068|||||||||||||||
+het_csdid_grupos|function|20e289946fd85a90|||||||||||||||
+het_csdid_tipo_vias|function|26917a1bca531401|||||||||||||||
+res_csdid|function|735336a88fb4bc9b|||||||||||||||
+dado_sinistros|stem|19cc6a4591409aef|9b879429a4c0ae63|917a5f884404511d|1977916615||t20264.5413123591s|s8025175b|8025175|qs|local|vector|||7.125|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+dado_osm|stem|9bdb87ea3bf77231|aaf9d484cc38786f|c8c02eca62c7c3a4|1660670857||t20264.5720557376s|s34301208b|34301208|qs|local|vector|||2655.282||
+dado_token_infosiga|stem|993293a98dea2639|1fc934ea9fa7b57c|fe32e7445bdf35a9|805661047||t20264.5755383857s|s4009415b|4009415|qs|local|vector|||300.75||
+dado_trechos_bruto|stem|5637588be099adaf|20172ba8643cd8ab|0476a019ceaf8d93|539379514||t20264.5770988175s|s34377131b|34377131|qs|local|vector|||133.578||
+dado_faixa_azul|stem|62acff1d586dc5b2|3a349e4dc0075c1b|622a681ab48325a6|-1803019463||t20264.5771015479s|s4818b|4818|qs|local|vector|||0.125||
+dado_amenidades|stem|184cd4c79556b2d1|58b0217bccdb82b1|14132a049f3f01e7|-121141636||t20264.5825987134s|s93182b|93182|qs|local|vector|||474.938||
+descritiva_sinistros_comprimento|stem|283d4a0ec81efb44|458f5aed3ec99f30|17d1a780a3969daf|-336925888||t20251.8625386768s||114|qs|local|vector|||2.281|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|object dado_did_trecho_golden not found
+descritiva_obitos_ano|stem|8c9f8099f3662820|5ba2aeb4a02af778|19f46f27a764e0fa|1151249243||t20264.5860889424s|s102b|102|qs|local|vector|||0.969||
+descritiva_hora_sinistro|stem|474140f0ad177f40|73509ebd72c52bf1|c61f8e51083939fa|1569173501||t20264.5861024137s|s110b|110|qs|local|vector|||1.156|Removed 64 rows containing missing values or values outside the scale rangegeom_tile.|
+dado_token_osm|stem|2d3a12f3de38c9e7|796a7d7cf2bceef4|d93ec9ded2544cc6|-1588809096||t20264.5901011031s|s4657317b|4657317|qs|local|vector|||343.344||
+descritiva_comprimento_trechos|stem|3b037cc6a0bc8fc0|7d66defd3101584e|da9a50016fd303de|1328266992||t20264.5901035684s|s111b|111|qs|local|vector|||0.187|Removed 10797 rows containing nonfinite outside the scale rangestat_density.|
+dado_radar|stem|942520605a5f6627|f2bbe8f2ce0f9c1f|0efe4e17b84b28a8|-2078235472||t20264.5904571974s|s603183b|603183|qs|local|vector|||30.516||
+descritiva_proporcao_grupos|stem|a72c261244d75383|2026fe033bfebf7b|c43d0d1fa9ff4172|-361439265||t20264.5904655508s|s106b|106|qs|local|vector|||0.703|Detected an unexpected manytomany relationship between x and y.ℹ Row 1 of x matches multiple rows in y.ℹ Row 1 of y matches multiple rows in x.ℹ If a manytomany relationship is expected, set relationship   manytomany to silence this warning.. Removed 106 rows containing missing values or values outside the scale rangegeom_label.|
+dado_id_agregados|stem|a7fa81a0115ab14f|8fa182c83cf5a8cb|44b32d19546a3f06|-59879367||t20264.592133431s|s237065b|237065|qs|local|vector|||144.063||
+dado_id_agregados_1000|stem|e471dd2e1f41aa8b|aa606bc5c637f2be|44b32d19546a3f06|1589021676||t20264.5941211417s|s210015b|210015|qs|local|vector|||171.703||
+plot_comprimento_trechos|function|3abb46abc3f9b65e|||||||||||||||
+plot_datas_FA|function|4e4eafa6e42eeed9|||||||||||||||
+plot_sinistros_comprimento|function|ee986ab10b901d06|||||||||||||||
+plot_hora_sinistro|function|b58a1974c299f37c|||||||||||||||
+plot_agregacao_trechos|function|15b0ded8740b95cb|||||||||||||||
+plot_mapas|function|a8fa6074a05ce836|||||||||||||||
+plot_tamanho_FA|function|51d707b97cdf9289|||||||||||||||
+plot_obitos_tempo|function|f3d14f0d79b2afc3|||||||||||||||
+plot_datas_trechos|function|d33a0b941046099f|||||||||||||||
+plot_staggered_descritivo|function|058d3a1f6b22a89d|||||||||||||||
+plot_proporcao_grupos|function|cb6de13b0f06a49e|||||||||||||||
+plot_trechos_vias_periodo|function|1e5380d81a90e5eb|||||||||||||||
+plot_qualidade_match|function|3a08c971aa99d521|||||||||||||||
+plot_obitos_ano|function|2bd146d6358e2b53|||||||||||||||
+dado_sinistros_chunks|stem|85d0b7bca6827420|378d9d21219f72d1|96b65e464f1a056d|-60872853||t20264.5984777335s|s5440704b|5440704|qs|local|vector|||3.156|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+dado_interseccao|stem|c7ba601ab3cf1f3f|14edda6d7b45f9af|74d1ac23071a50d8|-1336837285||t20264.5988359645s|s599555b|599555|qs|local|vector|||27.984|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+dado_trechos_complemento|stem|fc1a5c6fe9e23392|63cbd9634b52448f|fa20eb8301cd1a1b|-1968360811||t20264.5988640877s|s779210b|779210|qs|local|vector|||0.797|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+dado_trechos|stem|67412d2d827b00a4|0afc713fa17d9b82|31396ee705f47016|997544507||t20264.5988904648s|s386536b|386536|qs|local|vector|||0.782|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+dado_id_logradouros|stem|9c017e5cf524faf4|c4b5621775f127a0|de76fc0d2e05d8cf|2067594147||t20264.6069311646s|s164768b|164768|qs|local|vector|||691.485|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+dado_logradouros|stem|47cc19892cf3ee86|c2322138ff299a4c|d9b83da7eb2a095a|751837765||t20264.6069929394s|s131697b|131697|qs|local|vector|||3.172|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+dado_agregados|stem|5af9442a52c16569|6545c25c0e067269|bbd4322ccd81694b|-1225402994||t20264.6071160932s|s142926b|142926|qs|local|vector|||8.593|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+dado_match_chunks|stem|d82f525cbbc8dc50|f0e5da286461702c|25a8c93a866293ac|-697987259||t20264.6807169172s|s3519562b|3519562|qs|local|group|||7100.031|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 7 of x matches multiple rows in y.36mℹ39m Row 112219 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.|
+dado_match_bind|stem|d82f525cbbc8dc50|bb45580cf25d2769|b54e138350321a52|-308979808||t20264.6807268602s|s3519562b|3519562|qs|local|vector|||0.5|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+dado_match|stem|1ed80bf3f50f4151|449389bac3836190|3e24e4075390d78a|747176591||t20264.6808277802s|s1445432b|1445432|qs|local|vector|||7.109|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22munnest has a new interface. See unnest for details.36mℹ39m Try df  unnestcid_osm, with mutate if needed.|
+teste|stem|19cc6a4591409aef|e17b1b186db0d322|70ecc5d84205f230|-1638544619||t20264.9006639263s|s8025175b|8025175|qs|local|vector|||2.438|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+segmento_combinar|function|089d342b317931e8|||||||||||||||
+did_segmento_combinado|stem|2c1ff0db9db01d50|9895760e616d5a2b|348bf74c72bde729|1549081359||t20264.9074480902s|s622264b|622264|qs|local|vector|||2.484|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_1b5160cb5dc06a02|branch|1b30c018db75c282|8d7e6f01fade26da|231b11663c3f1caa|1329383517||t20264.9088506065s|s2482b|2482|qs|local|vector|did_segmento||2.609|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_tabela_segmento|stem|c4a056f3db6d2ad9|5d528d62ed12fcaf|3b311e5eb6fee75c|1239935944||t20264.9110610597s|s608b|608|qs|local|group||did_tabela_segmento_14876f64ceb5feff*did_tabela_segmento_565454b9fcddc750*did_tabela_segmento_73ac157accb85faf|0.344|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_a9cbf210b3c6f145|branch|052cf0aebdf152a4|8d7e6f01fade26da|231b11663c3f1caa|1349330309||t20264.9110822425s|s172104b|172104|qs|local|vector|did_segmento||0.281|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_8f372b8c620c8991|branch|58c56699d03b2e2d|8d7e6f01fade26da|231b11663c3f1caa|-1346977942||t20264.9110857815s|s94544b|94544|qs|local|vector|did_segmento||0.281|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_5fc65659171b530f|branch|a5828ff0458b1fdc|8d7e6f01fade26da|231b11663c3f1caa|-680691768||t20264.9110899041s|s415329b|415329|qs|local|vector|did_segmento||0.281|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento|pattern|81e545c459972cbc|8d7e6f01fade26da||1136069169||||681977|qs|local|vector||did_segmento_a9cbf210b3c6f145*did_segmento_8f372b8c620c8991*did_segmento_5fc65659171b530f|0.843||
+did_segmento_nivel_78c9e1a97f20d651|branch|052cf0aebdf152a4|08d2db07dc913d8e|231b11663c3f1caa|1153102369||t20264.9164608027s|s172104b|172104|qs|local|vector|did_segmento_nivel||0.265|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel_44864f2f8dbad801|branch|58c56699d03b2e2d|08d2db07dc913d8e|231b11663c3f1caa|2072324457||t20264.9164643922s|s94544b|94544|qs|local|vector|did_segmento_nivel||0.281|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel_d623653b76ee4ca1|branch|a5828ff0458b1fdc|08d2db07dc913d8e|231b11663c3f1caa|-185726786||t20264.9164685051s|s415329b|415329|qs|local|vector|did_segmento_nivel||0.281|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel_3895a294a631ec16|branch|052cf0aebdf152a4|08d2db07dc913d8e|231b11663c3f1caa|1359473678||t20264.9206968338s|s172104b|172104|qs|local|vector|did_segmento_nivel||0.297|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel_4aaccd03b7aa9bf8|branch|58c56699d03b2e2d|08d2db07dc913d8e|231b11663c3f1caa|-323093307||t20264.9207004653s|s94544b|94544|qs|local|vector|did_segmento_nivel||0.297|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel_495d528109ad1c59|branch|a5828ff0458b1fdc|08d2db07dc913d8e|231b11663c3f1caa|1763575880||t20264.9207045962s|s415329b|415329|qs|local|vector|did_segmento_nivel||0.266|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_7ee82a9afd36d8d4|branch|51122e526eb5ca6f|5bc269d3437dcd7d|a137a1760998370c|-1657083707||t20264.9258744321s|s635060b|635060|qs|local|vector|did_segmento_filtrado||2.64|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_4867a7e24cbaf371|branch|51122e526eb5ca6f|5bc269d3437dcd7d|a137a1760998370c|1209844572||t20264.9258759687s|s635060b|635060|qs|local|vector|did_segmento_filtrado||2.625|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_e749f4109adc07c8|branch|51122e526eb5ca6f|5bc269d3437dcd7d|a137a1760998370c|1237729330||t20264.9258794491s|s635060b|635060|qs|local|vector|did_segmento_filtrado||0.266|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel_b347129d57f4dc81|branch|052cf0aebdf152a4|08d2db07dc913d8e|231b11663c3f1caa|1051579117||t20264.9308157644s|s172104b|172104|qs|local|vector|did_segmento_nivel||0.266|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel_ab5de360a303c2b1|branch|58c56699d03b2e2d|08d2db07dc913d8e|231b11663c3f1caa|-1661292862||t20264.9308196056s|s94544b|94544|qs|local|vector|did_segmento_nivel||0.281|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel_2487db180b3b5e8e|branch|a5828ff0458b1fdc|08d2db07dc913d8e|231b11663c3f1caa|2013819298||t20264.9308238031s|s415329b|415329|qs|local|vector|did_segmento_nivel||0.281|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_54e10d58f57768ba|branch|51122e526eb5ca6f|5bc269d3437dcd7d|b0b708604c23b9fe|829081218||t20264.930829795s|s635060b|635060|qs|local|vector|did_segmento_filtrado||0.344|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_523a9de00cd46b85|branch|adaff9823b0a6697|5bc269d3437dcd7d|b0b708604c23b9fe|-1107181604||t20264.9308341388s|s211764b|211764|qs|local|vector|did_segmento_filtrado||0.36|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_c304bba76e2a288d|branch|51122e526eb5ca6f|5bc269d3437dcd7d|b0b708604c23b9fe|1305609736||t20264.9308386996s|s635060b|635060|qs|local|vector|did_segmento_filtrado||0.282|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_5bf047fe48d6bde3|branch|51122e526eb5ca6f|5bc269d3437dcd7d|b0b708604c23b9fe|517284569||t20264.9308449969s|s635060b|635060|qs|local|vector|did_segmento_filtrado||0.468|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_e24ab3ae28637145|branch|adaff9823b0a6697|5bc269d3437dcd7d|b0b708604c23b9fe|726193083||t20264.9308483122s|s211764b|211764|qs|local|vector|did_segmento_filtrado||0.266|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_tabela_file|stem|1cf12ac8979a8247|1056044afa62946b|2c530c1562a7fbd1|369917553|dados_tratados/did_tabela.csv|t20264.9332351289s|s373b|373|file|local|vector|||2.438|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel_d36f5fd33501ca01|branch|052cf0aebdf152a4|08d2db07dc913d8e|231b11663c3f1caa|1602101955||t20264.9364956439s|s172104b|172104|qs|local|vector|did_segmento_nivel||0.281|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel_4237ec97db8e782c|branch|58c56699d03b2e2d|08d2db07dc913d8e|231b11663c3f1caa|1320725871||t20264.9364993103s|s94544b|94544|qs|local|vector|did_segmento_nivel||0.281|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel_b6a3a08630c8c035|branch|a5828ff0458b1fdc|08d2db07dc913d8e|231b11663c3f1caa|-1141338072||t20264.9365033798s|s415329b|415329|qs|local|vector|did_segmento_nivel||0.282|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_c680a64cd3ab5406|branch|51122e526eb5ca6f|5bc269d3437dcd7d|0dab6c76ce6294cb|-1424074778||t20264.9365088011s|s635060b|635060|qs|local|vector|did_segmento_filtrado||0.297|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_535a9105dc4c61ba|branch|adaff9823b0a6697|5bc269d3437dcd7d|0dab6c76ce6294cb|-1667904432||t20264.9365131704s|s211764b|211764|qs|local|vector|did_segmento_filtrado||0.282|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_db4b4c78c9409136|branch|51122e526eb5ca6f|5bc269d3437dcd7d|0dab6c76ce6294cb|115268508||t20264.9365178338s|s635060b|635060|qs|local|vector|did_segmento_filtrado||0.312|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_c27aad6084d43ad9|branch|51122e526eb5ca6f|5bc269d3437dcd7d|0dab6c76ce6294cb|107006166||t20264.9365221778s|s635060b|635060|qs|local|vector|did_segmento_filtrado||0.297|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_febf632b77e5732e|branch|adaff9823b0a6697|5bc269d3437dcd7d|0dab6c76ce6294cb|714552287||t20264.9365258769s|s211764b|211764|qs|local|vector|did_segmento_filtrado||0.296|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_PSM_564d971ccc6f6342|branch||70e8ee6ae013c0dd|265589cabdaf7185|-290104188||t20264.9365464739s||0|qs|local|vector|did_segmento_PSM||0.313|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|the condition has length  1
+did_segmento_PSM_e147d5c4113792d0|branch|267e923c2c97467b|70e8ee6ae013c0dd|265589cabdaf7185|-2118510814||t20264.936578604s|s1327368b|1327368|qs|local|vector|did_segmento_PSM||2.516|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+tidy_trechos_bruto|function|615ce4e6786e1218
+.Random.seed|object|c5abc64d7ebe8a20
 tidy_vizinhos|function|d0f93bfa0103e010
-plot_comprimento_trechos|function|3abb46abc3f9b65e
-tabela_cohort_csdid|function|f779dccf039ad418
-prepara_psm_agregados_did|function|17ca16772179744b
-match_dados_split|function|af75f651a24093b2
-definir_cohort|function|d99a806351e73f0b
-prepara_grafico_csdid|function|7ebe37f2e28563f0
-consolida_trecho_did|function|bac32e429e0f84a0
-plot_qualidade_match|function|3a08c971aa99d521
-plot_obitos_ano|function|2bd146d6358e2b53
-plot_obitos_tempo|function|f3d14f0d79b2afc3
-plot_trechos_vias_periodo|function|1e5380d81a90e5eb
-calcular_interseccao|function|17f841c3d15d30e9
-plot_tamanho_FA|function|51d707b97cdf9289
-agrupar_logradouros|function|a08b34d44f702fb9
-workers|object|195dadb6d6a0c78f
-plot_datas_trechos|function|d33a0b941046099f
-match_dados|function|fe61c3b1f0f678ee
-calcular_radares|function|ae1a4b0872d7f70d
+limpar|function|40c2a3b526f64268
 tidy_faixa_azul|function|61df77465bfe63f4
+calcular_interseccao|function|17f841c3d15d30e9
+match_dados_split|function|af75f651a24093b2
+segmento_filtro|function|473754bc8bf29680
 download_osm|function|27f429f2b0c059b3
+tabela_periodos_datetime|object|b819b3059226d39e
+calcular_radares|function|ae1a4b0872d7f70d
+fit_did|function|9a0b220589407678
+agrupar_logradouros|function|a08b34d44f702fb9
+agregar_trechos|function|b0f20f500b6b6b7f
+tidy_trechos|function|9fdec8fd7951eee2
+tidy_agregados|function|525ca3bf389d3698
+workers|object|1f35528bd840b63d
+limpar_tabela_did|function|710714365dc502bd
+tidy_sinistros|function|0fe6a7b5d22f8d02
 tidy_complemento_trecho|function|156977f0aa46e9ed
+segmento_psm|function|d82ad8777c8ed9f8
+calcular_amenidades|function|f0a239287b604e40
+match_ids|function|0ce47efc6b12aecb
+match_dados|function|fe61c3b1f0f678ee
+sinistro_filtro|function|1b585c6a1cfbcfd8
+tidy_logradouros|function|1fb919fa5050a506
+segmento_nivel|function|6ef8eb1f94d82c61
 padronizar|function|b21b399378d20536
-dado_trecho_mes|function|6296a43e798718a3
-dado_agregado_mes|function|b3e4683f2405bf7f
-prepara_trecho_did|function|bb35b0fb4bcf0db1
-psm_agregados|function|60eb7b8ee15d1245
-prepara_logradouro_did|function|e74713ee0a64b273
-dado_logradouro_mes|function|7ea77623e1f59cb5
-prepara_agregado_did|function|4856163c12eaae4c
-plot_staggered_descritivo|function|9206db8877d70a45
-het_csdid_vel_maxima|function|d63d5f3140f04489
-het_csdid_tipo_vias|function|26917a1bca531401
-het_csdid_comprimento|function|bf8c7d2955210617
-het_csdid_num_faixas|function|da9ac732d95da068
-het_csdid_grupos|function|20e289946fd85a90
-res_csdid|function|735336a88fb4bc9b
+agrega_tempo|function|6c65be968c5db502
 tokenizar|function|d23d1654c66d3364
 tokenizar_infosiga|function|55faefc5a3947345
 tokenizar_osm|function|4ed9c22e6854db7b
-res_agregado_psm_taxa_feridos_moto_w2|stem|60c7e4fd836725ca|2d71ff7e999e9969|94b83e23e4e71efc|1947762525||t20256.1768491448s|s139b|139|qs|local|vector|||12.19|Removed 2 rows containing missing values or values outside the scale range (`geom_segment()`).|
-res_agregado_psm_taxa_feridos_todos_w2|stem|290078ceedcc9e46|45f943bfdaba22b9|c1c69f5cbf6fd279|1483668353||t20256.1769768109s|s141b|141|qs|local|vector|||10.53|Removed 2 rows containing missing values or values outside the scale range (`geom_segment()`).|
+did_tabela|stem|cda4a64f6b1feaf4|c4a21edb5a969de9|5b577259c61a6915|-744300569||t20264.9377806996s|s469b|469|qs|local|vector|||2.75|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_tabela_segmento_PSM|stem|5a28ea9a692d0f3a|cc8c4ebe75e51e91|61bee8ce9dac34b7|-1056819636||t20264.9377858528s|s486b|486|qs|local|group||did_tabela_segmento_PSM_d30103129cbfbdce*did_tabela_segmento_PSM_a09e61bc6aacf32a*did_tabela_segmento_PSM_f29627f1b948d01d*did_tabela_segmento_PSM_18248d44f29795a0*did_tabela_segmento_PSM_7dab6c2e6121cc0c*did_tabela_segmento_PSM_fdd12483e74be438|0.406|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_tabela_segmento_filtro|stem|1fd1aa574db1851a|acb7994617fab0f0|61bee8ce9dac34b7|-174318268||t20264.9377892442s|s485b|485|qs|local|group||did_tabela_segmento_filtro_cbc055b9bf7348c4*did_tabela_segmento_filtro_f29627f1b948d01d*did_tabela_segmento_filtro_18248d44f29795a0*did_tabela_segmento_filtro_7dab6c2e6121cc0c*did_tabela_segmento_filtro_fdd12483e74be438|0.281|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_tabela_segmento_nivel|stem|02c55b1ed432f9cb|5d528d62ed12fcaf|61bee8ce9dac34b7|-720394866||t20264.9377925645s|s484b|484|qs|local|group||did_tabela_segmento_nivel_59698246e327d739*did_tabela_segmento_nivel_18248d44f29795a0*did_tabela_segmento_nivel_4a695a998dc2429f|0.266|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel_ab334e9ce9daa870|branch|052cf0aebdf152a4|08d2db07dc913d8e|231b11663c3f1caa|267403116||t20264.9377974583s|s172104b|172104|qs|local|vector|did_segmento_nivel||0.281|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel_4058e8b0c915c1aa|branch|58c56699d03b2e2d|08d2db07dc913d8e|231b11663c3f1caa|-831994679||t20264.9378008948s|s94544b|94544|qs|local|vector|did_segmento_nivel||0.265|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel_b70c85d085e55214|branch|a5828ff0458b1fdc|08d2db07dc913d8e|231b11663c3f1caa|1156226025||t20264.9378050813s|s415329b|415329|qs|local|vector|did_segmento_nivel||0.296|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_nivel|pattern|b5d6f8f5452e699c|08d2db07dc913d8e||958778313||||681977|qs|local|vector||did_segmento_nivel_ab334e9ce9daa870*did_segmento_nivel_4058e8b0c915c1aa*did_segmento_nivel_b70c85d085e55214|0.842||
+did_segmento_filtrado_7f90f20b58643a4c|branch|51122e526eb5ca6f|5bc269d3437dcd7d|34b4670e1283ab8f|930525344||t20264.9378102659s|s635060b|635060|qs|local|vector|did_segmento_filtrado||0.297|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_2180a1f4af784415|branch|adaff9823b0a6697|5bc269d3437dcd7d|34b4670e1283ab8f|2018762321||t20264.9378143379s|s211764b|211764|qs|local|vector|did_segmento_filtrado||0.282|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_36c40701202828e5|branch|51122e526eb5ca6f|5bc269d3437dcd7d|34b4670e1283ab8f|1574153267||t20264.9378188804s|s635060b|635060|qs|local|vector|did_segmento_filtrado||0.297|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_f6443e993d9f161b|branch|51122e526eb5ca6f|5bc269d3437dcd7d|34b4670e1283ab8f|-1790215600||t20264.9378229893s|s635060b|635060|qs|local|vector|did_segmento_filtrado||0.281|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado_36ac51a8bc3d618f|branch|adaff9823b0a6697|5bc269d3437dcd7d|34b4670e1283ab8f|26745471||t20264.9378268305s|s211764b|211764|qs|local|vector|did_segmento_filtrado||0.297|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_filtrado|pattern|56bf1275d3fd9c74|5bc269d3437dcd7d||-1510249852||||2328708|qs|local|vector||did_segmento_filtrado_7f90f20b58643a4c*did_segmento_filtrado_2180a1f4af784415*did_segmento_filtrado_36c40701202828e5*did_segmento_filtrado_f6443e993d9f161b*did_segmento_filtrado_36ac51a8bc3d618f|1.454||
+did_segmento_PSM_60fc2cbe0e29d1c0|branch|267e923c2c97467b|70e8ee6ae013c0dd|9199179720434f0a|-5256100||t20264.9378508723s|s1327368b|1327368|qs|local|vector|did_segmento_PSM||0.313|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_segmento_PSM_ea9e404f26c8069b|branch|042077e933830e73|70e8ee6ae013c0dd|9199179720434f0a|-710503685||t20264.9380951307s|s251077b|251077|qs|local|vector|did_segmento_PSM||19.734|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 1 of x matches multiple rows in y.36mℹ39m Row 1 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.. glm.fit fitted probabilities numerically 0 or 1 occurred. 1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 1 of x matches multiple rows in y.36mℹ39m Row 21 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.|
+did_segmento_PSM_d96140be55bfaed8|branch|042077e933830e73|70e8ee6ae013c0dd|9199179720434f0a|-1153333993||t20264.9381136525s|s251077b|251077|qs|local|vector|did_segmento_PSM||22.454|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 1 of x matches multiple rows in y.36mℹ39m Row 1 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.. glm.fit fitted probabilities numerically 0 or 1 occurred. 1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 1 of x matches multiple rows in y.36mℹ39m Row 21 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.|
+did_segmento_PSM_e15c1f04db025976|branch|042077e933830e73|70e8ee6ae013c0dd|9199179720434f0a|469059127||t20264.9383172329s|s251077b|251077|qs|local|vector|did_segmento_PSM||18.062|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 1 of x matches multiple rows in y.36mℹ39m Row 1 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.. glm.fit fitted probabilities numerically 0 or 1 occurred. 1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 1 of x matches multiple rows in y.36mℹ39m Row 21 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.|
+did_segmento_PSM_f287430f9fbc7900|branch|042077e933830e73|70e8ee6ae013c0dd|9199179720434f0a|1882830559||t20264.938327295s|s251077b|251077|qs|local|vector|did_segmento_PSM||17.578|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 1 of x matches multiple rows in y.36mℹ39m Row 1 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.. glm.fit fitted probabilities numerically 0 or 1 occurred. 1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 1 of x matches multiple rows in y.36mℹ39m Row 21 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.|
+did_segmento_PSM_e637d5da99e5723f|branch|042077e933830e73|70e8ee6ae013c0dd|9199179720434f0a|-2054384186||t20264.9384941188s|s251077b|251077|qs|local|vector|did_segmento_PSM||14.328|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 1 of x matches multiple rows in y.36mℹ39m Row 1 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.. glm.fit fitted probabilities numerically 0 or 1 occurred. 1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 1 of x matches multiple rows in y.36mℹ39m Row 21 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.|
+did_segmento_PSM|pattern|ca960fe0fe10b815|70e8ee6ae013c0dd||1894442914||||2582753|qs|local|vector||did_segmento_PSM_60fc2cbe0e29d1c0*did_segmento_PSM_d96140be55bfaed8*did_segmento_PSM_ea9e404f26c8069b*did_segmento_PSM_e15c1f04db025976*did_segmento_PSM_f287430f9fbc7900*did_segmento_PSM_e637d5da99e5723f|92.469||

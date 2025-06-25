@@ -1,0 +1,7 @@
+﻿filtro_sinistros,filtro_segmentos,segmento_nivel,rodarPSM,PSM_corte_minimo,intervalo_meses,filtrar_golden,por_km,log_delta,variavel_y,grupo_controle,pesos,remover_controle
+,tipo_via == 'primary',agregados,,,1,,TRUE,,sinistros,,,
+,,agregados,,,,,,,,,,
+,,agregados,FALSE,,,,,,,,,
+,tipo_via == 'primary',trechos,,,,,,,,,,
+,,trechos,,,,,,,,,,
+,,logradouros,,,,,,,,,,
