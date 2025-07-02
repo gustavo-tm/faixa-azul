@@ -1,7 +1,6 @@
 library(tidyverse)
-library(targets)
 library(sf)
-
+library(memoise)
 
 # Tabela para tornar os datetimes numéricos (por limitação do pacote did)
 tabela_periodos_datetime <- tibble(
@@ -21,96 +20,99 @@ limpar_tabela_did <- function(did_tabela){
 
 
 # Carrega uma base para cada especificação de nível de segmento 
-segmento_nivel <- function(segmentos, nivel){
+segmento_nivel <- memoise(function(segmentos, nivel){
   segmentos |> 
     filter(segmento == nivel)
-}
+})
 
 # Possibilita filtrar a base para fazer efeitos heterogêneos
 # Exemplo: "tipo_via == 'primary'"
-segmento_filtro <- function(segmentos, filtro){
+segmento_filtro <- memoise(function(segmentos, filtro){
   segmentos |> 
     filter(eval(parse(text = filtro))) 
-}
+})
+
 
 
 # Roda Propensity Score Matching, caso seja necessário
-segmento_psm <- function(segmentos, sinistros, match, rodarPSM = TRUE, min_score_cut = 0){
+segmento_psm <- memoise(function(segmentos, sinistros, match, rodarPSM = TRUE, min_score_cut = 0){
   
   if(rodarPSM == TRUE){
     # Cálculo sinistros e óbitos antes do tratamento por segmento, para entrar no logit
-    medias_pre <- segmentos |> 
-      mutate(ID = row_number()) |> 
-      left_join(match) |> 
-      left_join(sinistros |> 
+    medias_pre <- segmentos |>
+      mutate(ID = row_number()) |>
+      left_join(match) |>
+      left_join(sinistros |>
                   filter(year(data) >= 2019,
-                         year(data) <= 2021) |> 
-                  select(id_sinistro, gravidade_fatal)) |> 
-      filter(golden_match) |> 
-      mutate(sinistro_fatal = !is.na(gravidade_fatal) & gravidade_fatal > 0) |> 
-      group_by(ID) |> 
+                         year(data) <= 2021) |>
+                  select(id_sinistro, gravidade_fatal)) |>
+      filter(golden_match) |>
+      mutate(sinistro_fatal = !is.na(gravidade_fatal) & gravidade_fatal > 0) |>
+      group_by(ID) |>
       summarise(sinistros_fatais = sum(sinistro_fatal),
-                sinistros_total = n()) |> 
-      right_join(segmentos |>  
-                   mutate(ID = row_number()) |> 
-                   select(ID, starts_with("id"))) |> 
+                sinistros_total = n()) |>
+      right_join(segmentos |>
+                   mutate(ID = row_number()) |>
+                   select(ID, starts_with("id"))) |>
       select(-ID)
-    
+
     # Preparação da base para o PSM - criação de factors e arredondamentos para o logit
     df <- segmentos |>
-      left_join(medias_pre) |> 
-      filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
+      left_join(medias_pre) |>
+      filter(tipo_via %in% c("trunk", "primary", "secondary")) |>
       mutate(faixa_azul = as.integer(!is.na(data_implementacao)),
              across(c(faixas), ~ round(.x) |> as.character()),
              limite_velocidade = ((round(limite_velocidade / 10) * 10) |> as.character()),
              across(c(amenidades, intersec), ~ .x / comprimento),
              across(c(faixas, limite_velocidade, mao_unica), ~ ifelse(is.na(.x), "NA", .x)),
              across(c(sinistros_fatais, sinistros_total), ~ replace_na(.x, 0)))
-    
+
     # Propensity score matching
     PSM <- df |>
-      matchit(faixa_azul ~ trechos + comprimento + faixas + limite_velocidade + amenidades + 
+      matchit(faixa_azul ~ trechos + comprimento + faixas + limite_velocidade + amenidades +
                 intersec + tipo_via + radar_proximo + sinistros_fatais + sinistros_total,
               data = _,
               method = "nearest",
               distance = "glm", link = "logit")
-    
+
     # Agrupando resultados do PSM em uma tabela
-    resultado <- df |> 
-      select(starts_with("id"), faixa_azul) |> 
-      
+    resultado <- df |>
+      select(starts_with("id"), faixa_azul) |>
+
       # Quando encontra um vizinho, resultado_match = 1, caso contrário 0 (deve ser removido)
       mutate(resultado_match = PSM$weights,
-             propensity_score = PSM$distance) |> 
-      
+             propensity_score = PSM$distance) |>
+
       # Quando for especificado um propensity mínimo, remover os que não passam no critério
       mutate(resultado_match = if_else(propensity_score <= min_score_cut, 0, resultado_match))
-    
+
     # Devolver a base do segmento filtrada
-    segmentos_filtrado <- resultado |> 
-      filter(resultado_match == 1) |> 
-      select(starts_with("id")) |> 
+    segmentos_filtrado <- resultado |>
+      filter(resultado_match == 1) |>
+      select(starts_with("id")) |>
       left_join(segmentos)
+    
     return(segmentos_filtrado)
-  }else{
-    return(segmentos)
-  }
-  
-}
+  } else{return(segmentos)}
+})
 
 # Possibilita filtrar a base para fazer efeitos heterogêneos
 # Exemplo: "tp_veiculo_motocicleta > 0" 
-sinistro_filtro <- function(sinistros, filtro){
+sinistro_filtro <- memoise(function(sinistros, filtro){
   sinistros |> 
-    filter(eval(parse(text = filtro)))
-}
+    filter(eval(parse(text = filtro))) |> 
+    select(id_sinistro, data, starts_with("gravidade"))
+})
 
 # Prepara a base para o did, agrega no nível período/segmento
 # Intervalo meses: 1 mensal, 2 bimestral, 3 trimestral...
-agrega_tempo <- function(segmentos_filtrado, sinistros_filtrado, match, 
+agrega_tempo <- memoise(function(segmentos_filtrado, sinistros_filtrado, match, 
                          intervalo_meses = 1, filtrar_golden = TRUE){
   
   segmentos <- segmentos_filtrado |>
+    pivot_longer(starts_with("id")) |> 
+    drop_na(value) |> 
+    pivot_wider(id_cols = everything(), names_from = name, values_from = value) |> 
     mutate(ID = row_number())
   
   segmentos |>
@@ -155,7 +157,7 @@ agrega_tempo <- function(segmentos_filtrado, sinistros_filtrado, match,
                     rename(coorte = periodo), 
                   by = join_by(data_implementacao == data)) |> 
         mutate(coorte = ((coorte - 1) %/% intervalo_meses + 1) |> replace_na(0)))
-}
+})
 
 # Roda Callaway-Sant'Anna (did staggered)
 fit_did <- function(
@@ -206,6 +208,12 @@ fit_did <- function(
     weightsname = weightsname)
   
   return(fit)
+}
+
+plot_did <- function(did){
+  did |> 
+    aggte(type = "dynamic", min_e = -12, max_e = 12) |> 
+    ggdid()
 }
 
 

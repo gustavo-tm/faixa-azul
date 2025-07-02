@@ -172,63 +172,60 @@ list(
              bind_rows(dado_trechos |> mutate(segmento = "trechos"), 
                        dado_agregados |> mutate(segmento = "agregados"), 
                        dado_logradouros |> mutate(segmento = "logradouros"))),
+  tar_target(name = did_segmento_nivel,
+             command = segmento_nivel(
+               segmentos = did_segmento_combinado, 
+               nivel = did_tabela$segmento_nivel),
+             pattern = map(did_tabela)),
   
-  tar_group_by(did_tabela_segmento_nivel, 
-               did_tabela, 
-               segmento_nivel),
-  tar_target(did_segmento_nivel,
-             segmento_nivel(did_segmento_combinado, did_tabela_segmento_nivel$segmento_nivel),
-             pattern = map(did_tabela_segmento_nivel)),
-  
-  # Realizar filtros na base de segmento
-  tar_group_by(did_tabela_segmento_filtro, 
-               did_tabela, 
-               c(segmento_nivel, filtro_segmentos)),
+  # Realizando filtros/efeitos heterogeneos em segmentos
   tar_target(name = did_segmento_filtrado,
-             segmento_filtro(did_segmento_nivel, did_tabela_segmento_filtro$filtro_segmentos),
-             pattern = map(did_tabela_segmento_filtro)),
+             command = segmento_filtro(
+               segmentos = did_segmento_nivel, 
+               filtro = did_tabela$filtro_segmentos),
+             pattern = map(did_segmento_nivel, did_tabela)),
   
-  # Realizar PSM na base de segmento
-  tar_group_by(did_tabela_segmento_PSM, 
-               did_tabela, 
-               c(segmento_nivel, filtro_segmentos, rodarPSM, PSM_corte_minimo)),
+  # Roda PSM, quando necessário
   tar_target(name = did_segmento_PSM,
-             segmento_psm(segmentos = did_segmento_filtrado, 
-                          sinistros = dado_sinistros, 
-                          match = dado_match, 
-                          rodarPSM = did_tabela_segmento_PSM$rodarPSM, 
-                          min_score_cut = did_tabela_segmento_PSM$PSM_corte_minimo),
-             pattern = map(did_tabela_segmento_PSM)),
+             command = segmento_psm(
+               segmentos = did_segmento_filtrado, 
+               sinistros = dado_sinistros, 
+               match = dado_match, 
+               rodarPSM = did_tabela$rodarPSM, 
+               min_score_cut = did_tabela$PSM_corte_minimo),
+             pattern = map(did_segmento_filtrado, did_tabela)),
   
   # 7.2. Base de sinistros ----
-  # Realizar filtros na base de sinistros
-  tar_group_by(did_tabela_sinistro_filtro, 
-               did_tabela, 
-               c(filtro_sinistros)),
-  tar_target(name = did_sinistros_filtrado,
-             sinistro_filtro(dado_sinistros, did_tabela_sinistro_filtro$filtro_sinistros),
-             pattern = map(did_tabela_sinistro_filtro)),
+  # Realizando filtros/efeitos heterogeneos em sinistros
+  tar_target(name = did_sinistro_filtrado,
+             command = sinistro_filtro(
+               sinistros = dado_sinistros, 
+               filtro = did_tabela$filtro_sinistros),
+             pattern = map(did_tabela)),
   
-  # 7.3. Agregando para DID ----
-  tar_group_by(did_tabela_df, 
-               did_tabela, 
-               c(segmento_nivel, filtro_segmentos, rodarPSM, PSM_corte_minimo, intervalo_meses, filtrar_golden, filtro_sinistros)),
+  # 7.2. Base agregada ----
   tar_target(name = did_df,
-             agrega_tempo(segmentos_filtrado = did_segmento_PSM, 
-                          sinistros_filtrado = did_sinistros_filtrado, 
-                          match = dado_match, 
-                          intervalo_meses = did_tabela_df$intervalo_meses,
-                          filtrar_golden = did_tabela_df$filtrar_golden),
-             pattern = map(did_tabela_df)),
+             command = agrega_tempo(
+               segmentos_filtrado = did_segmento_PSM,
+               sinistros_filtrado = did_sinistro_filtrado,
+               match = dado_match,
+               intervalo_meses = did_tabela$intervalo_meses,
+               filtrar_golden = did_tabela$filtrar_golden),
+             pattern = map(did_segmento_PSM, did_sinistro_filtrado, did_tabela)),
   
-  # 7.4. Run did ----
-  tar_group_by(did_tabela_fit, 
-               did_tabela, 
-               c(segmento_nivel, filtro_segmentos, rodarPSM, PSM_corte_minimo, intervalo_meses, filtrar_golden, filtro_sinistros)),
+  # 7.3. DID
+  # Fit
   tar_target(name = did_fit,
-             fit_did(did_df),
-             pattern = map(did_tabela_fit))
-  
+             command = fit_did(
+               df = did_df),
+             pattern = map(did_df, did_tabela),
+             iteration = "list"),
+  # Plot
+  tar_target(name = did_plot,
+             command = plot_did(
+               did = did_fit),
+             pattern = map(did_fit),
+             iteration = "list")
   
   
 )

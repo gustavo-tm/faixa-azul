@@ -2,6 +2,7 @@
 ,tipo_via != 'secondary',agregados,,,1,,TRUE,,sinistros,,,
 ,,agregados,,,,,,,,,,
 ,,agregados,FALSE,,,,,,,,,
+tp_veiculo_motocicleta > 0,,agregados,FALSE,,,,,,,,,
 ,tipo_via != 'secondary',trechos,,,,,,,,,,
 ,,trechos,,,,,,,,,,
 ,,logradouros,,,,,,,,,,
