@@ -90,8 +90,7 @@ dado_trecho_mes <- function(sinistros, match, trechos, tipo_vias = c("trunk", "p
   return(df)
 }
 
-prepara_trecho_did <- function(dado_did, trechos, trechos_complemento, faixa_azul, filtrar_por = c(golden_match),
-                               vizinhos = FALSE) {
+prepara_trecho_did <- function(dado_did, trechos, trechos_complemento, faixa_azul, filtrar_por = c(golden_match)) {
   dado_did <- dado_did |> 
     filter(if_all({{ filtrar_por }}, ~ .x == TRUE)) |> 
     group_by(id_osm, data) |>
@@ -99,33 +98,17 @@ prepara_trecho_did <- function(dado_did, trechos, trechos_complemento, faixa_azu
               qtd_envolvidos = sum(qtd_envolvidos),
               across(matches("sinistros_|veiculo|acidente|gravidade"), ~ sum(.x, na.rm = TRUE))) |>
     select(data, id_osm, sinistros, qtd_envolvidos, 
-           matches("sinistros_|veiculo|acidente|gravidade")) 
-  
-  if (vizinhos) {
-    dado_did <- dado_did |>
-      left_join(trechos |>
-                  st_drop_geometry() |> 
-                  left_join(trechos_complemento) |>
-                  left_join(faixa_azul |> distinct(id_osm_vizinho, data_implementacao),
-                            by = join_by(id_osm == id_osm_vizinho))) |> 
-      anti_join(faixa_azul, by = join_by(id_osm == id_osm_tratado))
-  } else {
-    dado_did <- dado_did |>
-      left_join(trechos |>
-                  st_drop_geometry() |> 
-                  left_join(trechos_complemento) |>
-                  left_join(faixa_azul |> distinct(id_osm, data_implementacao)))
-  }
-  
-  # transformacao da data em valor numerico (na ordem)
-  dado_did <- dado_did |> 
+           matches("sinistros_|veiculo|acidente|gravidade")) |> 
+    left_join(trechos) |> 
+
+    # transformacao da data em valor numerico (na ordem)
     mutate(mes = data) |>
     pivot_longer(c(mes, data_implementacao)) |>
     mutate(value = value |> reorder(value) |> factor() |> as.numeric()) |>
     pivot_wider(names_from = name, values_from = value) |>
     mutate(data_implementacao = replace_na(data_implementacao, 0),
            id_osm = as.numeric(id_osm),
-           across(c(tipo_via:elevado, radar_proximo), ~ factor(.x))) |>
+           across(c(tipo_via:superficie), ~ factor(.x))) |>
     ungroup() |> 
     rename(id = id_osm)
   
@@ -263,7 +246,7 @@ prepara_agregado_did <- function(dado_did, trechos_agregado, filtrar_por = c(gol
            comprimento_sqrt = sqrt(comprimento),
            comprimento_cbrt = comprimento^(1/3),
            # id_trecho_agregado = as.numeric(id_trecho_agregado),
-           across(c(mao_unica:radar_proximo), ~ factor(.x))) |>
+           across(c(tipo_via:superficie), ~ factor(.x))) |>
     ungroup() |> 
     rename(id = id_trecho_agregado)
 }
@@ -373,7 +356,7 @@ prepara_logradouro_did <- function(dado_did, logradouros, filtrar_por = c(golden
     pivot_wider(names_from = name, values_from = value) |>
     mutate(data_implementacao = replace_na(data_implementacao, 0),
            id_logradouro = as.numeric(id_logradouro),
-           across(c(mao_unica:radar_proximo), ~ factor(.x))) |>
+           across(c(tipo_via:superficie), ~ factor(.x))) |>
     ungroup() |> 
     rename(id = id_logradouro)
 }

@@ -4111,112 +4111,112 @@ list(
       cohort = dado_cohort_agregado,
       titulo = "Log sinistros de moto",
       filename = "bimestral/agregado-psm/log/moto",
-      ylim = 2)),
+      ylim = 2))
   
   ## ----
 
   # 7.6    Efeitos spillover ----
   
-  tar_target(
-    name = dado_did_trecho_mes_vias,
-    command = dado_trecho_mes(dado_sinistros, dado_match, dado_trechos,
-                              tipo_vias = c("trunk", "trunk_link", "motorway", "motorway_link",
-                                            "primary", "primary_link", "secondary", "tertiary", "residencial"))),
-  
-  tar_target(
-    name = dado_did_trecho_golden_vizinhos_150,
-    command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento,
-                                 faixa_azul = dado_vizinhos_150,
-                                 vizinhos = TRUE,
-                                 filtrar_por = golden_match)),
-  tar_target(
-    name = dado_did_trecho_golden_vizinhos_150_vias,
-    command = prepara_trecho_did(dado_did_trecho_mes_vias, dado_trechos, dado_trechos_complemento,
-                                 faixa_azul = dado_vizinhos_150,
-                                 vizinhos = TRUE,
-                                 filtrar_por = golden_match)),
-  tar_target(
-    name = dado_did_trecho_golden_vizinhos_500,
-    command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento,
-                                 faixa_azul = dado_vizinhos_500,
-                                 vizinhos = TRUE,
-                                 filtrar_por = golden_match)),
-  
-  tar_target(
-    name = dado_cohort_trecho_vizinhos_150,
-    command = definir_cohort_vizinho(
-      dado_did_trecho_golden_vizinhos_150,
-      faixa_azul = dado_vizinhos_150,
-      trechos = dado_trechos,
-      logradouros = dado_logradouros,
-      por_logradouro = FALSE)),
-  tar_target(
-    name = dado_cohort_trecho_vizinhos_150_vias,
-    command = definir_cohort_vizinho(
-      dado_did_trecho_golden_vizinhos_150_vias,
-      faixa_azul = dado_vizinhos_150,
-      trechos = dado_trechos,
-      logradouros = dado_logradouros,
-      por_logradouro = FALSE)),
-  tar_target(
-    name = dado_cohort_trecho_vizinhos_500,
-    command = definir_cohort_vizinho(
-      dado_did_trecho_golden_vizinhos_500,
-      faixa_azul = dado_vizinhos_500,
-      trechos = dado_trechos,
-      logradouros = dado_logradouros,
-      por_logradouro = FALSE)),
-  
-  
-  tar_target(
-    name = did_vizinhos_150_todos_golden,
-    command = fit_did_all(
-      df = dado_did_trecho_golden_vizinhos_150,
-      cohorts = dado_cohort_trecho_vizinhos_150,
-      yname = "sinistros",
-      titulo = "Todos os sinistros, efeito spillover, golden",
-      filename = "trecho/vizinhos/150-todos-golden")),
-  tar_target(
-    name = did_vizinhos_150_moto_golden,
-    command = fit_did_all(
-      df = dado_did_trecho_golden_vizinhos_150,
-      cohorts = dado_cohort_trecho_vizinhos_150,
-      yname = "sinistros_veiculo_motocicleta",
-      titulo = "Sinistros de moto, efeito spillover, golden",
-      filename = "trecho/vizinhos/150-moto-golden")),
-  
-  tar_target(
-    name = did_vizinhos_150_vias_todos_golden,
-    command = fit_did_all(
-      df = dado_did_trecho_golden_vizinhos_150_vias,
-      cohorts = dado_cohort_trecho_vizinhos_150_vias,
-      yname = "sinistros",
-      titulo = "Todos os sinistros, efeito spillover (todas as vias), golden",
-      filename = "trecho/vizinhos/150_vias-todos-golden")),
-  tar_target(
-    name = did_vizinhos_150_vias_moto_golden,
-    command = fit_did_all(
-      df = dado_did_trecho_golden_vizinhos_150_vias,
-      cohorts = dado_cohort_trecho_vizinhos_150_vias,
-      yname = "sinistros_veiculo_motocicleta",
-      titulo = "Sinistros de moto, efeito spillover (todas as vias), golden",
-      filename = "trecho/vizinhos/150_vias-moto-golden")),
-  
-  tar_target(
-    name = did_vizinhos_500_todos_golden,
-    command = fit_did_all(
-      df = dado_did_trecho_golden_vizinhos_500,
-      cohorts = dado_cohort_trecho_vizinhos_500,
-      yname = "sinistros",
-      titulo = "Todos os sinistros, efeito spillover, golden",
-      filename = "trecho/vizinhos/500-todos-golden")),
-  tar_target(
-    name = did_vizinhos_500_moto_golden,
-    command = fit_did_all(
-      df = dado_did_trecho_golden_vizinhos_500,
-      cohorts = dado_cohort_trecho_vizinhos_500,
-      yname = "sinistros_veiculo_motocicleta",
-      titulo = "Sinistros de moto, efeito spillover, golden",
-      filename = "trecho/vizinhos/500-moto-golden"))
+  # tar_target(
+  #   name = dado_did_trecho_mes_vias,
+  #   command = dado_trecho_mes(dado_sinistros, dado_match, dado_trechos,
+  #                             tipo_vias = c("trunk", "trunk_link", "motorway", "motorway_link",
+  #                                           "primary", "primary_link", "secondary", "tertiary", "residencial"))),
+  # 
+  # tar_target(
+  #   name = dado_did_trecho_golden_vizinhos_150,
+  #   command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento,
+  #                                faixa_azul = dado_vizinhos_150,
+  #                                vizinhos = TRUE,
+  #                                filtrar_por = golden_match)),
+  # tar_target(
+  #   name = dado_did_trecho_golden_vizinhos_150_vias,
+  #   command = prepara_trecho_did(dado_did_trecho_mes_vias, dado_trechos, dado_trechos_complemento,
+  #                                faixa_azul = dado_vizinhos_150,
+  #                                vizinhos = TRUE,
+  #                                filtrar_por = golden_match)),
+  # tar_target(
+  #   name = dado_did_trecho_golden_vizinhos_500,
+  #   command = prepara_trecho_did(dado_did_trecho_mes, dado_trechos, dado_trechos_complemento,
+  #                                faixa_azul = dado_vizinhos_500,
+  #                                vizinhos = TRUE,
+  #                                filtrar_por = golden_match)),
+  # 
+  # tar_target(
+  #   name = dado_cohort_trecho_vizinhos_150,
+  #   command = definir_cohort_vizinho(
+  #     dado_did_trecho_golden_vizinhos_150,
+  #     faixa_azul = dado_vizinhos_150,
+  #     trechos = dado_trechos,
+  #     logradouros = dado_logradouros,
+  #     por_logradouro = FALSE)),
+  # tar_target(
+  #   name = dado_cohort_trecho_vizinhos_150_vias,
+  #   command = definir_cohort_vizinho(
+  #     dado_did_trecho_golden_vizinhos_150_vias,
+  #     faixa_azul = dado_vizinhos_150,
+  #     trechos = dado_trechos,
+  #     logradouros = dado_logradouros,
+  #     por_logradouro = FALSE)),
+  # tar_target(
+  #   name = dado_cohort_trecho_vizinhos_500,
+  #   command = definir_cohort_vizinho(
+  #     dado_did_trecho_golden_vizinhos_500,
+  #     faixa_azul = dado_vizinhos_500,
+  #     trechos = dado_trechos,
+  #     logradouros = dado_logradouros,
+  #     por_logradouro = FALSE)),
+  # 
+  # 
+  # tar_target(
+  #   name = did_vizinhos_150_todos_golden,
+  #   command = fit_did_all(
+  #     df = dado_did_trecho_golden_vizinhos_150,
+  #     cohorts = dado_cohort_trecho_vizinhos_150,
+  #     yname = "sinistros",
+  #     titulo = "Todos os sinistros, efeito spillover, golden",
+  #     filename = "trecho/vizinhos/150-todos-golden")),
+  # tar_target(
+  #   name = did_vizinhos_150_moto_golden,
+  #   command = fit_did_all(
+  #     df = dado_did_trecho_golden_vizinhos_150,
+  #     cohorts = dado_cohort_trecho_vizinhos_150,
+  #     yname = "sinistros_veiculo_motocicleta",
+  #     titulo = "Sinistros de moto, efeito spillover, golden",
+  #     filename = "trecho/vizinhos/150-moto-golden")),
+  # 
+  # tar_target(
+  #   name = did_vizinhos_150_vias_todos_golden,
+  #   command = fit_did_all(
+  #     df = dado_did_trecho_golden_vizinhos_150_vias,
+  #     cohorts = dado_cohort_trecho_vizinhos_150_vias,
+  #     yname = "sinistros",
+  #     titulo = "Todos os sinistros, efeito spillover (todas as vias), golden",
+  #     filename = "trecho/vizinhos/150_vias-todos-golden")),
+  # tar_target(
+  #   name = did_vizinhos_150_vias_moto_golden,
+  #   command = fit_did_all(
+  #     df = dado_did_trecho_golden_vizinhos_150_vias,
+  #     cohorts = dado_cohort_trecho_vizinhos_150_vias,
+  #     yname = "sinistros_veiculo_motocicleta",
+  #     titulo = "Sinistros de moto, efeito spillover (todas as vias), golden",
+  #     filename = "trecho/vizinhos/150_vias-moto-golden")),
+  # 
+  # tar_target(
+  #   name = did_vizinhos_500_todos_golden,
+  #   command = fit_did_all(
+  #     df = dado_did_trecho_golden_vizinhos_500,
+  #     cohorts = dado_cohort_trecho_vizinhos_500,
+  #     yname = "sinistros",
+  #     titulo = "Todos os sinistros, efeito spillover, golden",
+  #     filename = "trecho/vizinhos/500-todos-golden")),
+  # tar_target(
+  #   name = did_vizinhos_500_moto_golden,
+  #   command = fit_did_all(
+  #     df = dado_did_trecho_golden_vizinhos_500,
+  #     cohorts = dado_cohort_trecho_vizinhos_500,
+  #     yname = "sinistros_veiculo_motocicleta",
+  #     titulo = "Sinistros de moto, efeito spillover, golden",
+  #     filename = "trecho/vizinhos/500-moto-golden"))
   
 )
