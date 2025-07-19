@@ -1,8 +1,8 @@
-﻿filtro_sinistros,filtro_segmentos,segmento_nivel,rodarPSM,PSM_corte_minimo,intervalo_meses,filtrar_golden,por_km,log_delta,variavel_y,grupo_controle,pesos,remover_controle
-,tipo_via != 'secondary',agregados,,,1,,TRUE,,sinistros,,,
-,,agregados,,,,,,,,,,
-,,agregados,FALSE,,,,,,,,,
-tp_veiculo_motocicleta > 0,,agregados,FALSE,,,,,,,,,
-,tipo_via != 'secondary',trechos,,,,,,,,,,
-,,trechos,,,,,,,,,,
-,,logradouros,,,,,,,,,,
+﻿filtro_sinistros,filtro_segmentos,segmento_nivel,rodarPSM,PSM_corte_minimo,intervalo_meses,filtrar_golden,por_km,log_delta,variavel_y,grupo_controle,pesos,remover_controle,expand_grid,file,title
+,tipo_via != 'secondary',agregados,,,1,,TRUE,,sinistros,,,,,teste1,
+,,agregados,,,,,,,,,,,,teste2,
+,,agregados,FALSE,,,,,,,,,,,teste3,
+tp_veiculo_motocicleta > 0,,agregados,FALSE,,,,,,,,,,,teste4,
+,tipo_via != 'secondary',trechos,,,,,,,,,,,,teste5,
+,,trechos,,,,,,,,,,,,teste6,
+,,logradouros,,,,,,,,,,,,teste7,

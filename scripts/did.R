@@ -18,7 +18,8 @@ limpar_tabela_did <- function(did_tabela){
            across(c(PSM_corte_minimo), ~ .x |> as.numeric() |> replace_na(0)),
            across(c(intervalo_meses), ~ .x |> as.numeric() |> replace_na(1)),
            variavel_y = variavel_y |> as.character() |> replace_na("sinistros"),
-           grupo_controle = grupo_controle |> as.character() |> replace_na("nevertreated"))
+           grupo_controle = grupo_controle |> as.character() |> replace_na("nevertreated"),
+           expand_grid = expand_grid |> as.numeric() |> replace_na(.5))
 }
 
 
@@ -216,10 +217,23 @@ fit_did <- function(
   return(fit)
 }
 
-plot_did <- function(did){
-  did |> 
+plot_did <- function(did, file, title = NULL, expand_grid = .5){
+  
+  if (is.na(title)){title <- NULL}
+  plot <- did |> 
     aggte(type = "dynamic", min_e = -12, max_e = 12, na.rm = TRUE) |> 
-    ggdid()
+    ggdid() +
+    scale_y_continuous(expand = expansion(mult = expand_grid)) +
+    scale_x_continuous("Meses até data da implementação", breaks = c(0:9-4)*3) +
+    scale_colour_manual(values = c("red", "blue"), labels = c("Pré faixa azul", "Pós faixa azul")) +
+    labs(title = title) +
+    theme_minimal()
+  
+  ggsave(paste0("output/did/", file, ".png"), plot, 
+         width = 8, height = 4, 
+         bg = "white",
+         create.dir = TRUE)
+  return(plot)
 }
 
 

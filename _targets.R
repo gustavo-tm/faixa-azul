@@ -225,8 +225,8 @@ list(
                filtrar_golden = did_tabela_sinistros$filtrar_golden),
              pattern = map(did_segmento_PSM, did_sinistro_filtrado, did_tabela_sinistros)),
   
-  # 7.3. DID ----
-  tar_target(did_tabela_did, 
+  # 7.3. Fit ----
+  tar_target(did_tabela_fit, 
              did_tabela |> select(por_km, 
                                   log_delta,
                                   variavel_y,
@@ -237,19 +237,28 @@ list(
   tar_target(name = did_fit,
              command = fit_did(
                df = did_df,
-               por_km = did_tabela_did$por_km, 
-               log_delta = did_tabela_did$log_delta,
-               yname = did_tabela_did$variavel_y,
-               control_group = did_tabela_did$grupo_controle,
-               weightsname = did_tabela_did$pesos,
-               remover_formula = did_tabela_did$remover_controle),
-             pattern = map(did_df, did_tabela_did),
+               por_km = did_tabela_fit$por_km, 
+               log_delta = did_tabela_fit$log_delta,
+               yname = did_tabela_fit$variavel_y,
+               control_group = did_tabela_fit$grupo_controle,
+               weightsname = did_tabela_fit$pesos,
+               remover_formula = did_tabela_fit$remover_controle),
+             pattern = map(did_df, did_tabela_fit),
              iteration = "list"),
+  
+  # 7.4. Plot ----
+  tar_target(did_tabela_plot, 
+             did_tabela |> select(expand_grid,
+                                  file,
+                                  title)),
   # Plot
   tar_target(name = did_plot,
              command = plot_did(
-               did = did_fit),
-             pattern = map(did_fit),
+               did = did_fit,
+               expand_grid = did_tabela_plot$expand_grid,
+               file = did_tabela_plot$file,
+               title = did_tabela_plot$title),
+             pattern = map(did_fit, did_tabela_plot),
              iteration = "list")
   
   
