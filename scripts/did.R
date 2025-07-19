@@ -14,8 +14,11 @@ limpar_tabela_did <- function(did_tabela){
   did_tabela |> 
     mutate(across(c(filtro_sinistros, filtro_segmentos), ~ .x |> as.character() |> replace_na("TRUE")),
            across(c(rodarPSM, filtrar_golden), ~ .x |> as.logical() |> replace_na(TRUE)),
+           across(c(por_km), ~ .x |> as.logical() |> replace_na(FALSE)),
            across(c(PSM_corte_minimo), ~ .x |> as.numeric() |> replace_na(0)),
-           across(c(intervalo_meses), ~ .x |> as.numeric() |> replace_na(1)))
+           across(c(intervalo_meses), ~ .x |> as.numeric() |> replace_na(1)),
+           variavel_y = variavel_y |> as.character() |> replace_na("sinistros"),
+           grupo_controle = grupo_controle |> as.character() |> replace_na("nevertreated"))
 }
 
 
@@ -156,7 +159,8 @@ agrega_tempo <- memoise(function(segmentos_filtrado, sinistros_filtrado, match,
         left_join(tabela_periodos_datetime |> 
                     rename(coorte = periodo), 
                   by = join_by(data_implementacao == data)) |> 
-        mutate(coorte = ((coorte - 1) %/% intervalo_meses + 1) |> replace_na(0)))
+        mutate(coorte = ((coorte - 1) %/% intervalo_meses + 1) |> replace_na(0))) |> 
+    select(-data_implementacao)
 })
 
 # Roda Callaway-Sant'Anna (did staggered)
@@ -165,13 +169,15 @@ fit_did <- function(
   df, 
   
   # Modificadores
-  por_km = FALSE, log_delta = NULL,
+  por_km = FALSE, log_delta = NA,
   
   # Parâmetros do did
   yname = "sinistros", control_group = "nevertreated", 
-  weightsname = NULL, remover_formula = NA
+  weightsname = NA, remover_formula = NA
 ){
   
+  if (is.na(log_delta)){log_delta <- NULL}
+  if (is.na(weightsname)){weightsname <- NULL}
   
   # Modificar fórmula controles, caso necessário
   # Exemplo: "intersec, faixas"
@@ -212,7 +218,7 @@ fit_did <- function(
 
 plot_did <- function(did){
   did |> 
-    aggte(type = "dynamic", min_e = -12, max_e = 12) |> 
+    aggte(type = "dynamic", min_e = -12, max_e = 12, na.rm = TRUE) |> 
     ggdid()
 }
 
