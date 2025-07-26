@@ -25,9 +25,9 @@ O projeto é organizado da seguinte forma:
 ### 3. Fontes de Dados
 Os dados utilizados neste projeto incluem:
 
-* **Dados de Sinistros Viários (Infosiga) **: Informações detalhadas sobre sinistros em São Paulo, incluindo localização, data, hora, tipo de veículo envolvido e gravidade.
+* **Dados de Sinistros Viários (Infosiga)**: Informações detalhadas sobre sinistros em São Paulo, incluindo localização, data, hora, tipo de veículo envolvido e gravidade.
 * **Dados de Vias (OpenStreetMap)**: Informações geográficas e atributos das vias, como limites de velocidade ou número de faixas.
-* **Dados de Faixa Azul (autoral) **: Levantamento sobre a localização e data de implementação das Faixas Azuis.
+* **Dados de Faixa Azul (autoral)**: Levantamento sobre a localização e data de implementação das Faixas Azuis.
 
 ### 4. Reprodutibilidade e Transparência
 

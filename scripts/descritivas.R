@@ -269,72 +269,6 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
   
 }
 
-
-# 
-# 
-# 
-# 
-# sinistros |> 
-#   filter(tipo == "SINISTRO FATAL", year(data) > 2015) |> 
-#   left_join(match, by = join_by(id_sinistro)) |> 
-#   group_by(ano = year(data)) |> 
-#   summarize(mortes = sum(gravidade_fatal)) |> 
-#   ggplot(aes(x = factor(ano))) +
-#   geom_col(aes(y = mortes), fill = rgb(.05,.1,.3)) +
-#   geom_text(aes(y = mortes, label = mortes), vjust = -0.5) +
-#   theme_minimal() +
-#   labs(x = NULL, y = "Óbitos",
-#        title = "Óbitos totais - todas as vias")
-# ggsave("output/comparacao_panfleto/obitos_tempo_trecho_todos.pdf", width = 8, height = 5)
-# ggsave("output/comparacao_panfleto/obitos_tempo_trecho_todos.png", width = 8, height = 7, dpi = 400)
-
-# 
-# sinistros |> 
-#   filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |> 
-#   left_join(match, by = join_by(id_sinistro)) |> 
-#   group_by(ano = year(data)) |> 
-#   summarize(mortes = sum(gravidade_fatal)) |> 
-#   ggplot(aes(x = factor(ano))) +
-#   geom_col(aes(y = mortes), fill = rgb(.05,.1,.3)) +
-#   geom_text(aes(y = mortes, label = mortes), vjust = -0.5) +
-#   theme_minimal() +
-#   labs(x = NULL, y = "Óbitos",
-#        title = "Óbitos em sinistros com moto - todas as vias")
-# ggsave("output/comparacao_panfleto/obitos_tempo_trecho_todos_moto.pdf", width = 8, height = 5)
-# ggsave("output/comparacao_panfleto/obitos_tempo_trecho_todos_moto.png", width = 8, height = 7, dpi = 400)
-
-
-
-# TAMANHO DA FROTA ----
-# 
-# frota <- read_csv("dados_tratados/frota_sp.csv")
-# 
-# left_join(
-#   sinistros |>
-#     filter(tipo == "SINISTRO FATAL", year(data) > 2015, motocicletas != 0) |>
-#     group_by(ano = year(data)) |>
-#     summarize(mortes = sum(quantidade_envolvidos)),
-#   frota |>
-#     filter(mes == 12, tipo_veiculo %in% c("motocicleta", "motoneta")) |>
-#     group_by(ano) |>
-#     summarize(motocicletas = sum(quantidade))) |>
-#   pivot_longer(mortes:motocicletas) |>
-#   group_by(name) |>
-#   mutate(num_indice = (value / first(value)) * 100) |>
-#   ggplot(aes(x = factor(ano), y = num_indice)) +
-#   geom_line(aes(group = name, colour = name)) +
-#   geom_point(colour = "grey50") +
-#   theme_minimal() +
-#   # scale_y_continuous(labels = scales::percent) +
-#   scale_colour_manual(NULL, values = c(rgb(.3, .05, .1), rgb(.9, .8, .5)),
-#                       labels = c("Óbitos em sinistros fatais que envolveram motocicleta", "Frota total de motocicletas e motonetas")) +
-#   theme(legend.position = "top",) +
-#   labs(y = "Variação (2016 = 100)", x = NULL) +
-#   guides(colour=guide_legend(nrow=2,byrow=TRUE))
-# 
-# ggsave("output/comparacao_panfleto/frota_vs_mortes.pdf", width = 6, height = 5)
-# 
-# 
 # SINISTROS EM CADA HORA DO DIA ----
 
 plot_hora_sinistro <- function(sinistros){
@@ -568,7 +502,6 @@ plot_mapas <- function(sinistros, trechos, faixa_azul){
 
 
 # distribuicao dos tamanhos dos trechos e outro grafico com a distribuicao de sinistros por km, 
-# talvez com um facet wrap em cortes do comprimento, tipo um pra vias <50m, 250m, 500m, > 1km
 plot_comprimento_trechos <- function(trechos) {
   p <- trechos |> 
     ggplot() +
@@ -579,121 +512,6 @@ plot_comprimento_trechos <- function(trechos) {
     theme_minimal()
   ggsave("output/plot_comprimento_trechos.pdf", p, width = 10, height = 7)
 }
-
-
-# variância do numero de sinistros por km (eixo y) em diferentes thresholds de comprimento minimo (eixo x)
-# Esse pode ser bem legal pra discutir quanto da “variancia intrinseca” é mais por causa desses trechinhos de merda
-plot_sinistros_comprimento <- function(df) {
-  p <- df |> 
-    mutate(corte_comprimento = case_when(
-      comprimento <= 50   ~ "<50m",
-      comprimento > 50  & comprimento <= 100  ~ "<100m",
-      comprimento > 100 & comprimento <= 250  ~ "<250m",
-      comprimento > 250 & comprimento <= 500  ~ "<500m",
-      comprimento > 500 & comprimento <= 1000 ~ "<1000m",
-      comprimento > 1000  ~ ">1000m") |> as_factor() |> fct_reorder(comprimento)) |> 
-    ggplot() + 
-    geom_density(aes(x = sinistros)) +
-    facet_wrap(~corte_comprimento) +
-    xlim(c(0, 5)) +
-    labs(title = "Densidade de sinistros, por comprimento do trecho") +
-    theme_minimal()
-  ggsave("output/plot_densidade_sinistros.pdf", p, width = 10, height = 7)
-  
-  p <- df |> 
-    mutate(corte_comprimento = case_when(
-      comprimento <= 50 ~ "<50m",
-      comprimento > 50  & comprimento <= 100  ~ "<100m",
-      comprimento > 100 & comprimento <= 250  ~ "<250m",
-      comprimento > 250 & comprimento <= 500  ~ "<500m",
-      comprimento > 500 & comprimento <= 1000 ~ "<1000m",
-      comprimento > 1000  ~ ">1000m") |> as_factor() |> fct_reorder(comprimento)) |> 
-    mutate(sinistros = sinistros / comprimento * 1000) |> 
-    ggplot() + 
-    geom_density(aes(x = sinistros)) +
-    facet_wrap(~corte_comprimento) +
-    xlim(c(0, 100)) +
-    labs(title = "Densidade de sinistros por km",
-         x = "Sinistros por km", y = "Densidade") +
-    theme_minimal()
-  ggsave("output/plot_densidade_sinistros_km.pdf", p, width = 10, height = 7)
-  
-  
-  p <- df |> 
-    mutate(corte_comprimento = (comprimento %/% 25 + 1) * 25) |> 
-    group_by(corte_comprimento) |> 
-    summarise(sd = sd(sinistros)) |> 
-    ggplot() + 
-    geom_col(aes(x = corte_comprimento, y = sd)) +
-    xlim(c(0, 2000)) +
-    labs(title = "Desvio padrão de sinistros (por comprimento)",
-         x = "Comprimento (m)", y = "Desvio Padrão") +
-    theme_minimal()
-  ggsave("output/plot_variancia_sinistros.pdf", p, width = 10, height = 7)
-  
-  p <- df |> 
-    mutate(sinistros = sinistros / comprimento * 1000) |> 
-    mutate(corte_comprimento = (comprimento %/% 25 + 1) * 25) |> 
-    group_by(corte_comprimento) |> 
-    summarise(sd = sd(sinistros)) |> 
-    ggplot() + 
-    geom_col(aes(x = corte_comprimento, y = sd)) +
-    xlim(c(0, 2000)) +
-    labs(title = "Desvio padrão de sinistros por km (por comprimento)",
-         x = "Comprimento (m)", y = "Desvio Padrão") +
-    theme_minimal()
-  ggsave("output/plot_variancia_sinistros_km.pdf", p, width = 10, height = 7)
-  
-}
-
-
-# quais vias aumentaram, diminuiram, continuaram igual o numero de mortes ou sinistros de 23-24
-# Comparar o % com vias nao tratadas primarias e truncais
-# plot_comparacao_sinisitros_ano <- function(sinistros, trechos, match) {
-#   df <- match |> 
-#     select(id_osm, id_sinistro) |> 
-#     left_join(sinistros) |> 
-#     filter(motocicletas > 0) |> 
-#     group_by(id_osm, ano = year(data)) |> 
-#     summarize(fatalidades = sum(gravidade_fatal)) |> 
-#     ungroup() |> 
-#     mutate(fatalidades = replace_na(fatalidades, 0)) |> 
-#     filter(ano %in% 2023:2024) |> 
-#     complete(id_osm, ano, fill = list(fatalidades = 0)) |> 
-#     right_join(logradouros_id |> 
-#                  unnest(trechos) |> 
-#                  rename(id_osm = trechos)) |> 
-#     semi_join(trechos |> 
-#                 st_drop_geometry() |> 
-#                 filter(tipo_via %in% c("trunk", "primary", "secondary")) |> 
-#                 select(id_osm)) |> 
-#     group_by(id_logradouro, ano) |> 
-#     summarize(fatalidades = sum(fatalidades)) |>
-#     ungroup() |> 
-#     complete(id_logradouro, ano, fill = list(fatalidades = 0)) |> 
-#     drop_na() |> 
-#     pivot_wider(names_from = ano, values_from = fatalidades, id_cols = id_logradouro,
-#                 names_prefix = "ano_") |> 
-#     mutate(aumentou = ano_2024 > ano_2023,
-#            diminuiu = ano_2024 < ano_2023) |> 
-#     left_join(logradouros |> 
-#                 mutate(fa_2024 = year(data_implementacao) == 2024) |> 
-#                 select(id_logradouro, fa_2024, data_implementacao)) |> 
-#     mutate(grupo = case_when(is.na(fa_2024) ~ "Controle",
-#                              fa_2024 ~ "Recebeu faixa azul em 2024",
-#                              !fa_2024 ~ "Recebeu faixa azul em outro período",
-#                              TRUE ~ "Erro"))
-#   
-#   df |> 
-#     group_by(grupo) |> 
-#     summarize(aumentou = scales::percent(mean(aumentou)),
-#               diminuiu = scales::percent(mean(diminuiu))) |> 
-#     rename("Percentual de vias onde houve aumento de sinistro entre 2023 e 2024" = aumentou)
-#   
-# }
-# 
-
-
 
 
 # ⁠grafico com os meses no eixo x e um stacked col plot que mostra quantos
@@ -814,43 +632,3 @@ plot_staggered_descritivo <- function(sinistros, match, faixa_azul){
 }
 
 
-
-
-# MAGNITUDE DO TRATAMENTO----
-# 
-# df <- match |>
-#   mutate(golden_match =
-#            similaridade > .85 &
-#            distancia_geografica < 150 &
-#            (match_titulo == TRUE | match_tipo == TRUE) & 
-#            numero_zero == FALSE) |>
-#   filter(golden_match) |> 
-#   select(id_sinistro, id_osm) |> 
-#   anti_join(faixa_azul) |> 
-#   semi_join(trechos |>
-#               st_drop_geometry() |> 
-#               filter(tipo_via %in% c("trunk", "primary", "secondary"))) |> 
-#   left_join(sinistros) |> 
-#   mutate(sinistro = 1,
-#          sinistro_moto = motocicletas > 0) |> 
-#   group_by(id_osm, ano = year(data), mes = month(data)) |> 
-#   summarize(sinistros = sum(sinistro),
-#             sinistro_moto = sum(sinistro_moto),
-#             fatalidades = sum(gravidade_fatal)) |> 
-#   ungroup() |> 
-#   pivot_longer(sinistros:fatalidades, names_to = "variavel", values_to = "valor") |> 
-#   mutate(valor = replace_na(valor, 0)) |> 
-#   complete(id_osm, ano, mes, variavel, fill = list(valor = 0)) |> 
-#   left_join(trechos |> 
-#               st_drop_geometry() |> 
-#               select(id_osm, comprimento)) |> 
-#   mutate(valor_km = valor * 1000 / comprimento)
-# 
-# 
-# df |> 
-#   group_by(ano, variavel) |> 
-#   summarize(valor_km = mean(valor_km)) |>
-#   mutate(valor_CET = valor_km * (1 - 0.472),
-#          diff = valor_km - valor_CET) |> 
-#   filter(ano %in% 2022:2024) 
-# 

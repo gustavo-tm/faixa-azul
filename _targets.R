@@ -29,7 +29,7 @@ tar_source("scripts/tidy_trechos.R")
 tar_source("scripts/trechos_complemento.R")
 tar_source("scripts/tidy_faixa_azul.R")
 tar_source("scripts/match.R")
-# tar_source("scripts/descritivas.R")
+tar_source("scripts/descritivas.R")
 tar_source("scripts/did.R")
 
 
@@ -115,49 +115,46 @@ list(
     name = dado_match,
     command = match_ids(dado_match_bind, dado_trechos_bruto, dado_id_agregados, dado_id_logradouros)),
 
-  # # 6. DESCRITIVAS ----
-  # tar_target(
-  #   name = descritiva_datas_FA,
-  #   command = plot_datas_FA(dado_logradouros, dado_id_logradouros, dado_match, dado_sinistros)),
-  # tar_target(
-  #   name = descritiva_datas_trechos,
-  #   command = plot_datas_trechos(dado_faixa_azul, dado_trechos_bruto, dado_token_osm)),
-  # tar_target(
-  #   name = descritiva_obitos_tempo,
-  #   command = plot_obitos_tempo(dado_sinistros, dado_match, dado_faixa_azul, dado_logradouros, dado_id_logradouros)),
-  # tar_target(
-  #   name = descritiva_tamanho_FA,
-  #   command = plot_tamanho_FA(dado_id_logradouros, dado_logradouros, dado_faixa_azul, dado_trechos_bruto)),
-  # tar_target(
-  #   name = descritiva_hora_sinistro,
-  #   command = plot_hora_sinistro(dado_sinistros)),
-  # tar_target(
-  #   name = descritiva_qualidade_match,
-  #   command = plot_qualidade_match(dado_sinistros, dado_match)),
-  # tar_target(
-  #   name = descritiva_agregados,
-  #   command = plot_agregacao_trechos(dado_trechos_bruto, dado_id_logradouros, dado_agregados)),
-  # tar_target(
-  #   name = descritiva_mapas,
-  #   command = plot_mapas(dado_sinistros, dado_trechos_bruto, dado_faixa_azul)),
-  # tar_target(
-  #   name = descritiva_obitos_ano,
-  #   command = plot_obitos_ano(dado_sinistros)),
-  # tar_target(
-  #   name = descritiva_proporcao_grupos,
-  #   command = plot_proporcao_grupos(dado_trechos_bruto, dado_faixa_azul)),
-  # tar_target(
-  #   name = descritiva_tratados_periodo,
-  #   command = plot_trechos_vias_periodo(dado_faixa_azul, dado_logradouros)),
-  # tar_target(
-  #   name = descritiva_comprimento_trechos,
-  #   command = plot_comprimento_trechos(dado_trechos_bruto)),
-  # tar_target(
-  #   name = descritiva_sinistros_comprimento,
-  #   command = plot_sinistros_comprimento(dado_did_trecho_golden)),
-  # tar_target(
-  #   name = descritiva_staggered_descritivo,
-  #   command = plot_staggered_descritivo(dado_sinistros, dado_match, dado_faixa_azul)),
+# 6. DESCRITIVAS ----
+tar_target(
+  name = descritiva_datas_FA,
+  command = plot_datas_FA(dado_logradouros, dado_id_logradouros, dado_match, dado_sinistros)),
+tar_target(
+  name = descritiva_datas_trechos,
+  command = plot_datas_trechos(dado_faixa_azul, dado_trechos_bruto, dado_token_osm)),
+tar_target(
+  name = descritiva_obitos_tempo,
+  command = plot_obitos_tempo(dado_sinistros, dado_match, dado_faixa_azul, dado_logradouros, dado_id_logradouros)),
+tar_target(
+  name = descritiva_tamanho_FA,
+  command = plot_tamanho_FA(dado_id_logradouros, dado_logradouros, dado_faixa_azul, dado_trechos_bruto)),
+tar_target(
+  name = descritiva_hora_sinistro,
+  command = plot_hora_sinistro(dado_sinistros)),
+tar_target(
+  name = descritiva_qualidade_match,
+  command = plot_qualidade_match(dado_sinistros, dado_match_bind)),
+tar_target(
+  name = descritiva_agregados,
+  command = plot_agregacao_trechos(dado_trechos_bruto, dado_id_logradouros, dado_agregados)),
+tar_target(
+  name = descritiva_mapas,
+  command = plot_mapas(dado_sinistros, dado_trechos_bruto, dado_faixa_azul)),
+tar_target(
+  name = descritiva_obitos_ano,
+  command = plot_obitos_ano(dado_sinistros)),
+tar_target(
+  name = descritiva_proporcao_grupos,
+  command = plot_proporcao_grupos(dado_trechos_bruto, dado_faixa_azul)),
+tar_target(
+  name = descritiva_tratados_periodo,
+  command = plot_trechos_vias_periodo(dado_faixa_azul, dado_logradouros)),
+tar_target(
+  name = descritiva_comprimento_trechos,
+  command = plot_comprimento_trechos(dado_trechos_bruto)),
+tar_target(
+  name = descritiva_staggered_descritivo,
+  command = plot_staggered_descritivo(dado_sinistros, dado_match, dado_faixa_azul)),
   
   
   # 7. DID ----
