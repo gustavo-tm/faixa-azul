@@ -6,28 +6,35 @@ library(paletteer)
 library(gganimate)
 
 
-plot_obitos_ano <- function(sinistros){
-  gg <- sinistros |> 
-    filter(tipo == "SINISTRO FATAL", year(data) %in% 2015:2024) |> 
-    group_by(data = make_date(year = year(data)), moto = replace_na(tp_veiculo_motocicleta, 0) > 0) |> 
-    summarize(obitos = sum(gravidade_fatal)) |> 
-    group_by(data) |> 
-    mutate(moto = replace_na(moto, FALSE),
-           y = ifelse(moto == TRUE, obitos, sum(obitos)),
-           label = ifelse(moto == TRUE, scales::percent(obitos / sum(obitos)), sum(obitos))) |> 
-    ungroup() |> 
+plot_obitos_ano <- function(sinistros, vitimas){
+  gg <- vitimas |> 
+    left_join(sinistros |> select(id_infosiga, data)) |> 
+    filter(gravidade_lesao == "FATAL", year(data) >= 2015, year(data) <= 2024) |> 
+    mutate(tipo_veiculo_vitima = str_to_upper(tipo_veiculo_vitima),
+           veiculo = fct_collapse(tipo_veiculo_vitima,
+                                  other_level = "outros",
+                                  motocicleta = "MOTOCICLETA",
+                                  nao_disponivel = "NAO DISPONIVEL") |>
+             factor(levels = c("outros", "nao_disponivel", "motocicleta"))) |> 
+    group_by(data = make_date(year = year(data)), veiculo) |> 
+    summarize(obitos = n()) |>
+    mutate(y = case_when(veiculo == "motocicleta" ~ obitos, 
+                         veiculo == "outros" ~ sum(obitos)),
+           label = case_when(veiculo == "motocicleta" ~ scales::percent(obitos / sum(obitos)), 
+                             veiculo == "outros" ~ sum(obitos) |> as.character())) |> 
     ggplot(aes(x = data)) +
-    geom_col(aes(y = obitos, fill = moto), colour = "white") +
+    geom_col(aes(y = obitos, fill = veiculo), colour = "white") +
     geom_text(aes(y = y, label = label), nudge_y = -30, colour = "white") +
-    scale_fill_manual("Veículo", 
-                      values = c(adjustcolor("darkblue", blue.f = 1.1, alpha.f = .9), 
-                                 adjustcolor("darkblue", blue.f = .7, alpha.f = .9)), 
-                      labels = c("Outros", "Motocicletas")) +
+    scale_fill_manual("Modal de transporte\nda vítima", 
+                      values = c(adjustcolor("darkblue", blue.f = 1.2, alpha.f = .9), 
+                                 "grey80", 
+                                 adjustcolor("darkblue", blue.f = .5, alpha.f = .9)), 
+                      labels = c("Outros", "Não disponível", "Motocicleta")) +
     scale_x_date(NULL, date_breaks = "years", date_labels = "%Y") +
     labs(y = "Total de óbitos em decorrência de sinistros fatais") +
     theme_minimal()
   
-  ggsave("output/plot_obitos_ano.pdf", gg, width = 10, height = 6)
+  ggsave("output/plot_obitos_ano.pdf", gg, width = 9, height = 5)
 }
 
 

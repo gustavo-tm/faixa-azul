@@ -38,6 +38,9 @@ list(
   tar_target(
     name = dado_sinistros,
     command = tidy_sinistros()),
+  tar_target(
+    name = dado_vitimas,
+    command = tidy_vitimas()),
 
   # 2. TRECHOS ----
   tar_target(
@@ -142,7 +145,7 @@ tar_target(
   command = plot_mapas(dado_sinistros, dado_trechos_bruto, dado_faixa_azul)),
 tar_target(
   name = descritiva_obitos_ano,
-  command = plot_obitos_ano(dado_sinistros)),
+  command = plot_obitos_ano(dado_sinistros, dado_vitimas)),
 tar_target(
   name = descritiva_proporcao_grupos,
   command = plot_proporcao_grupos(dado_trechos_bruto, dado_faixa_azul)),

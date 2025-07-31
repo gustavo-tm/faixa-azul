@@ -1072,6 +1072,19 @@ did_plot|pattern|600e6eeca2d22dfe|52e3d6136142466c||1227722852||||1393544|qs|loc
 plot_sinistros_comprimento|function|ee986ab10b901d06|||||||||||||||
 did_tabela_file|stem|ae550e2779cdec53|1056044afa62946b|2c530c1562a7fbd1|369917553|dados_tratados/did_tabela.csv|t20288.8785282744s|s517b|517|file|local|vector|||2.484|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
 descritiva_sinistros_comprimento|stem|283d4a0ec81efb44|458f5aed3ec99f30|2c530c1562a7fbd1|-336925888||t20251.8625386768s||114|qs|local|vector|||13.047|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|could not find function plot_sinistros_comprimento
+tidy_vizinhos|function|d0f93bfa0103e010|||||||||||||||
+descritiva_hora_sinistro|stem|474140f0ad177f40|73509ebd72c52bf1|c61f8e51083939fa|1569173501||t20295.6899732535s|s110b|110|qs|local|vector|||4.453|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mRemoved 64 rows containing missing values or values outside the scale rangegeom_tile.|
+descritiva_staggered_descritivo|stem|719232584fe45db8|1027f6aeabf29101|2e021b23837cbfda|-596489076||t20295.6899926759s|s108b|108|qs|local|vector|||1.172|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+descritiva_qualidade_match|stem|2d7aedb86500c6e7|ce6026d4c14525fd|c66842191ad3a365|1827488715||t20295.6900137534s|s107b|107|qs|local|vector|||1.297|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+descritiva_comprimento_trechos|stem|3b037cc6a0bc8fc0|7d66defd3101584e|da9a50016fd303de|1328266992||t20295.6900343895s|s111b|111|qs|local|vector|||4.235|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mRemoved 10797 rows containing nonfinite outside the scale rangestat_density.|
+descritiva_proporcao_grupos|stem|a72c261244d75383|2026fe033bfebf7b|c43d0d1fa9ff4172|-361439265||t20295.6900755713s|s106b|106|qs|local|vector|||2.516|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 1 of x matches multiple rows in y.36mℹ39m Row 1 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.. 1m22mRemoved 106 rows containing missing values or values outside the scale rangegeom_label.|
+descritiva_tamanho_FA|stem|95d59d5e7508d430|ce5338a4b8f34df2|397942e221d5685a|218788181||t20295.6900851993s|s102b|102|qs|local|vector|||1.016|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+descritiva_datas_trechos|stem|cb9e7eb5a6dc1a77|216ff588afa8fb63|a0a0dbc056ea82a0|-1130768564||t20295.6901711454s|s118b|118|qs|local|vector|||4.11|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+descritiva_datas_FA|stem|15e31c44e8438c9b|e1c4df07a0496d84|c4c39e406ba62707|-1476594544||t20295.6901860446s|s107b|107|qs|local|vector|||0.907|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mRemoved 460 rows containing missing values or values outside the scale rangegeom_point.|
+descritiva_agregados|stem|f55ff6789641af85|268c830d19acfab5|9ef5f08160d1ff35|-1187124519||t20295.6902282911s|s109b|109|qs|local|vector|||1.078|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+descritiva_obitos_tempo|stem|d478786c1a4edfb3|71b757aeb4b1ec09|35077be543741658|-1643841388||t20295.6902708083s|s117b|117|qs|local|vector|||2.172|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mRemoved 20 rows containing missing values or values outside the scale rangegeom_text.. 1m22mRemoved 20 rows containing missing values or values outside the scale rangegeom_text.|
+descritiva_tratados_periodo|stem|bdbdddd064cfaa9e|eb62c30980e90b28|31af037f353fb17a|802836||t20295.6902842583s|s116b|116|qs|local|vector|||1.125|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+descritiva_mapas|stem|4fe06b53fe4d1adb|7107406efeab34e7|40e167e4e2b16a29|996910975||t20295.6966031304s|s64b|64|qs|local|vector|||561.391|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. attribute variables are assumed to be spatially constant throughout all geometries. attribute variables are assumed to be spatially constant throughout all geometries|
 plot_comprimento_trechos|function|3abb46abc3f9b65e
 plot_datas_FA|function|4e4eafa6e42eeed9
 plot_did|function|9681e754909b3d31
@@ -1079,7 +1092,8 @@ tidy_faixa_azul|function|61df77465bfe63f4
 sinistro_filtro|function|68fcf45f8ca3ce87
 tidy_logradouros|function|1fb919fa5050a506
 segmento_psm|function|3ac21c1c50c63bb4
-.Random.seed|object|26cc4323a1c707f7
+.Random.seed|object|337af0f90795eff6
+tidy_vitimas|function|4d2897e385510def
 workers|object|1f35528bd840b63d
 plot_hora_sinistro|function|b58a1974c299f37c
 plot_agregacao_trechos|function|15b0ded8740b95cb
@@ -1109,8 +1123,7 @@ plot_trechos_vias_periodo|function|1e5380d81a90e5eb
 agregar_trechos|function|b0f20f500b6b6b7f
 plot_qualidade_match|function|3a08c971aa99d521
 tidy_trechos_bruto|function|615ce4e6786e1218
-tidy_vizinhos|function|d0f93bfa0103e010
-plot_obitos_ano|function|2bd146d6358e2b53
+plot_obitos_ano|function|a3099ab9013dfa86
 match_dados_split|function|af75f651a24093b2
 match_ids|function|0ce47efc6b12aecb
 limpar_tabela_did|function|ee3e569e55fbe82a
@@ -1118,16 +1131,5 @@ padronizar|function|b21b399378d20536
 tokenizar|function|d23d1654c66d3364
 tokenizar_osm|function|4ed9c22e6854db7b
 tokenizar_infosiga|function|55faefc5a3947345
-descritiva_hora_sinistro|stem|474140f0ad177f40|73509ebd72c52bf1|c61f8e51083939fa|1569173501||t20295.6899732535s|s110b|110|qs|local|vector|||4.453|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mRemoved 64 rows containing missing values or values outside the scale rangegeom_tile.|
-descritiva_staggered_descritivo|stem|719232584fe45db8|1027f6aeabf29101|2e021b23837cbfda|-596489076||t20295.6899926759s|s108b|108|qs|local|vector|||1.172|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
-descritiva_qualidade_match|stem|2d7aedb86500c6e7|ce6026d4c14525fd|c66842191ad3a365|1827488715||t20295.6900137534s|s107b|107|qs|local|vector|||1.297|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
-descritiva_comprimento_trechos|stem|3b037cc6a0bc8fc0|7d66defd3101584e|da9a50016fd303de|1328266992||t20295.6900343895s|s111b|111|qs|local|vector|||4.235|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mRemoved 10797 rows containing nonfinite outside the scale rangestat_density.|
-descritiva_proporcao_grupos|stem|a72c261244d75383|2026fe033bfebf7b|c43d0d1fa9ff4172|-361439265||t20295.6900755713s|s106b|106|qs|local|vector|||2.516|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mDetected an unexpected manytomany relationship between x and y.36mℹ39m Row 1 of x matches multiple rows in y.36mℹ39m Row 1 of y matches multiple rows in x.36mℹ39m If a manytomany relationship is expected, set relationship   manytomany to silence this warning.. 1m22mRemoved 106 rows containing missing values or values outside the scale rangegeom_label.|
-descritiva_tamanho_FA|stem|95d59d5e7508d430|ce5338a4b8f34df2|397942e221d5685a|218788181||t20295.6900851993s|s102b|102|qs|local|vector|||1.016|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
-descritiva_datas_trechos|stem|cb9e7eb5a6dc1a77|216ff588afa8fb63|a0a0dbc056ea82a0|-1130768564||t20295.6901711454s|s118b|118|qs|local|vector|||4.11|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
-descritiva_datas_FA|stem|15e31c44e8438c9b|e1c4df07a0496d84|c4c39e406ba62707|-1476594544||t20295.6901860446s|s107b|107|qs|local|vector|||0.907|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mRemoved 460 rows containing missing values or values outside the scale rangegeom_point.|
-descritiva_agregados|stem|f55ff6789641af85|268c830d19acfab5|9ef5f08160d1ff35|-1187124519||t20295.6902282911s|s109b|109|qs|local|vector|||1.078|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
-descritiva_obitos_ano|stem|8c9f8099f3662820|5ba2aeb4a02af778|19f46f27a764e0fa|1151249243||t20295.6902410514s|s102b|102|qs|local|vector|||0.703|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
-descritiva_obitos_tempo|stem|d478786c1a4edfb3|71b757aeb4b1ec09|35077be543741658|-1643841388||t20295.6902708083s|s117b|117|qs|local|vector|||2.172|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mRemoved 20 rows containing missing values or values outside the scale rangegeom_text.. 1m22mRemoved 20 rows containing missing values or values outside the scale rangegeom_text.|
-descritiva_tratados_periodo|stem|bdbdddd064cfaa9e|eb62c30980e90b28|31af037f353fb17a|802836||t20295.6902842583s|s116b|116|qs|local|vector|||1.125|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
-descritiva_mapas|stem|4fe06b53fe4d1adb|7107406efeab34e7|40e167e4e2b16a29|996910975||t20295.6966031304s|s64b|64|qs|local|vector|||561.391|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. attribute variables are assumed to be spatially constant throughout all geometries. attribute variables are assumed to be spatially constant throughout all geometries|
+dado_vitimas|stem|19624a06a7dac451|d9d4524f79615bfb|7f3b851fbeb9e93c|2094328090||t20300.8371119526s|s17851718b|17851718|qs|local|vector|||5.735|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+descritiva_obitos_ano|stem|8c9f8099f3662820|1cfaf26696286637|cfce3be5aa11268e|1151249243||t20300.8371734905s|s102b|102|qs|local|vector|||1.625|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mRemoved 10 rows containing missing values or values outside the scale rangegeom_text.|
