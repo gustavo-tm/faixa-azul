@@ -159,7 +159,7 @@ plot_tamanho_FA <- function(logradouros_id, logradouros, faixa_azul, trechos){
 
 # PANFLETO CET ----
 
-plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logradouros){
+plot_obitos_tempo <- function(sinistros, vitimas, match, faixa_azul, logradouros, id_logradouros, agregados, id_agregados){
   gg <- sinistros |> 
     filter(tipo == "SINISTRO FATAL", year(data) > 2015) |> 
     left_join(match, by = join_by(id_sinistro)) |> 
@@ -182,7 +182,7 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     theme_minimal() +
     labs(x = NULL, fill = "Local do sinistro", y = "Óbitos",
          title = "Óbitos totais - por tipo de via")
-  ggsave("output/plot_obitos_tempo_total.pdf", gg, width = 8, height = 5)
+  ggsave("output/comparacao_panfleto/plot_obitos_tempo_total.pdf", gg, width = 8, height = 5)
   
   gg <- sinistros |> 
     filter(tipo == "SINISTRO FATAL", year(data) > 2015, !is.na(tp_veiculo_motocicleta)) |> 
@@ -206,7 +206,7 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     theme_minimal() +
     labs(x = NULL, fill = "Local do sinistro", y = "Óbitos",
          title = "Óbitos em sinistros com moto - por tipo de via")
-  ggsave("output/plot_obitos_tempo_moto.pdf", gg, width = 8, height = 5)
+  ggsave("output/comparacao_panfleto/plot_obitos_tempo_moto.pdf", gg, width = 8, height = 5)
   
   gg <- sinistros |> 
     filter(tipo == "SINISTRO FATAL", year(data) > 2015) |> 
@@ -220,7 +220,7 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     theme_minimal() +
     labs(x = NULL, y = "Óbitos",
          title = "Óbitos totais - trechos que receberam Faixa Azul")
-  ggsave("output/plot_obitos_tempo_FA.pdf", gg, width = 8, height = 5)
+  ggsave("output/comparacao_panfleto/plot_obitos_tempo_FA.pdf", gg, width = 8, height = 5)
   
   
   gg <- sinistros |> 
@@ -235,7 +235,7 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     theme_minimal() +
     labs(x = NULL, y = "Óbitos",
          title = "Óbitos em sinistros com moto - trechos que receberam Faixa Azul")
-  ggsave("output/plot_obitos_tempo_FA_moto.pdf", gg, width = 8, height = 5)
+  ggsave("output/comparacao_panfleto/plot_obitos_tempo_FA_moto.pdf", gg, width = 8, height = 5)
   
   gg <- sinistros |> 
     filter(tipo == "SINISTRO FATAL", year(data) > 2015) |> 
@@ -253,7 +253,7 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     labs(x = NULL, y = "Óbitos",
          title = "Óbitos totais - vias que receberam Faixa Azul") +
     theme_minimal()
-  ggsave("output/plot_obitos_tempo_FA_logradouro.pdf", gg, width = 8, height = 5)
+  ggsave("output/comparacao_panfleto/plot_obitos_tempo_FA_logradouro.pdf", gg, width = 8, height = 5)
   
   gg <- sinistros |> 
     filter(tipo == "SINISTRO FATAL", year(data) > 2015, !is.na(tp_veiculo_motocicleta)) |> 
@@ -271,9 +271,38 @@ plot_obitos_tempo <- function(sinistros, match, faixa_azul, logradouros, id_logr
     labs(x = NULL, y = "Óbitos",
          title = "Óbitos em sinistros com moto - vias que receberam Faixa Azul") +
     theme_minimal()
-  ggsave("output/plot_obitos_tempo_FA_logradouro_moto.pdf", gg, width = 8, height = 5)
+  ggsave("output/comparacao_panfleto/plot_obitos_tempo_FA_logradouro_moto.pdf", gg, width = 8, height = 5)
   
-  
+  gg <- vitimas |>
+    left_join(sinistros) |> 
+    filter(gravidade_lesao == "FATAL", year(data) > 2015, year(data) < 2025) |> 
+    left_join(match, by = join_by(id_sinistro)) |> 
+    left_join(agregados) |> 
+    filter(!is.na(data_implementacao)) |> 
+    mutate(tipo_veiculo_vitima = str_to_upper(tipo_veiculo_vitima),
+           veiculo = fct_collapse(tipo_veiculo_vitima,
+                                  other_level = "outros",
+                                  motocicleta = "MOTOCICLETA",
+                                  nao_disponivel = "NAO DISPONIVEL") |>
+             factor(levels = c("outros", "nao_disponivel", "motocicleta"))) |> 
+    group_by(data = make_date(year = year(data)), veiculo) |> 
+    summarize(obitos = n()) |> 
+    mutate(y = case_when(veiculo == "motocicleta" ~ obitos, 
+                         veiculo == "outros" ~ sum(obitos)),
+           label = case_when(veiculo == "motocicleta" ~ scales::percent(obitos / sum(obitos)), 
+                             veiculo == "outros" ~ sum(obitos) |> as.character())) |> 
+    ggplot(aes(x = data)) +
+    geom_col(aes(y = obitos, fill = veiculo), colour = "white") +
+    geom_text(aes(y = y, label = label), nudge_y = -3, colour = "white") +
+    scale_fill_manual("Modal de transporte\nda vítima", 
+                      values = c(adjustcolor("darkblue", blue.f = 1.2, alpha.f = .9), 
+                                 "grey80", 
+                                 adjustcolor("darkblue", blue.f = .5, alpha.f = .9)), 
+                      labels = c("Outros", "Não disponível", "Motocicleta")) +
+    scale_x_date(NULL, date_breaks = "years", date_labels = "%Y") +
+    labs(y = "Total de óbitos em decorrência de sinistros fatais") +
+    theme_minimal()
+  ggsave("output/comparacao_panfleto/plot_obitos_tempo_FA_agregados_stagg.pdf", gg, width = 9, height = 5)
 }
 
 # SINISTROS EM CADA HORA DO DIA ----

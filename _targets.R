@@ -127,7 +127,9 @@ tar_target(
   command = plot_datas_trechos(dado_faixa_azul, dado_trechos_bruto, dado_token_osm)),
 tar_target(
   name = descritiva_obitos_tempo,
-  command = plot_obitos_tempo(dado_sinistros, dado_match, dado_faixa_azul, dado_logradouros, dado_id_logradouros)),
+  command = plot_obitos_tempo(dado_sinistros, dado_vitimas, dado_match, dado_faixa_azul, 
+                              dado_logradouros, dado_id_logradouros,
+                              dado_agregados, dado_id_agregados)),
 tar_target(
   name = descritiva_tamanho_FA,
   command = plot_tamanho_FA(dado_id_logradouros, dado_logradouros, dado_faixa_azul, dado_trechos_bruto)),
