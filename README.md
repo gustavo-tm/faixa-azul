@@ -18,9 +18,9 @@ O projeto é organizado da seguinte forma:
     * `match.R`: Contém funções para padronizar e realizar o casamento (matching) de logradouros entre diferentes bases de dados (sinistros e trechos viários), utilizando técnicas de fuzzy matching para garantir a correta associação geográfica.
     * `did.R`: Prepara os dados para a análise de Diferenças-em-Diferenças (DiD), incluindo o emparelhamento por Propensity Score, e implementa o modelo DiD, realizando as estimativas de impacto.
     * `descritivas.R`: Gera gráficos e estatísticas descritivas para explorar os dados e visualizar os resultados.
-* `dados_brutos/`: Diretório para os dados brutos de entrada (não incluídos no repositório para privacidade/tamanho).
-* `dados_tratados/`: Diretório para os dados intermediários e finais gerados pelos scripts (gerados pelo `targets`).
-* `output/`: Diretório para os gráficos e relatórios finais (gerados pelo `targets`).
+* `dados_brutos/`: Diretório para os dados brutos de entrada (não incluídos no repositório por exceder o limite de 100MB do GitHub).
+* `dados_tratados/`: Diretório para os dados intermediários e finais gerados pelos scripts.
+* `output/`: Diretório para os gráficos e relatórios finais.
 
 ### 3. Fontes de Dados
 Os dados utilizados neste projeto incluem:
@@ -50,4 +50,4 @@ Para reproduzir este projeto, basta ter o R instalado e seguir os passos de exec
 
 Devido à natureza complexa do processamento de dados geográficos e à extensão das análises realizadas (incluindo operações de matching e modelos de Diferenças-em-Diferenças), a execução completa da pipeline deste projeto pode levar um tempo considerável, potencialmente excedendo 5 horas, dependendo das especificações do hardware.
 
-Para otimizar o tempo de execução, o projeto utiliza o pacote targets, que suporta computação paralela. É possível configurar o número de workers (processos paralelos) diretamente no script `_targets.R` (na seção `tar_option_set`). Aumentar o número de workers pode reduzir significativamente o tempo total de processamento, aproveitando múltiplos núcleos da CPU."
+Para otimizar o tempo de execução, o projeto utiliza o pacote targets, que suporta computação paralela. É possível configurar o número de workers (processos paralelos) diretamente no script `_targets.R` (na seção `tar_option_set`). Aumentar o número de workers pode reduzir significativamente o tempo total de processamento, aproveitando múltiplos núcleos da CPU.
