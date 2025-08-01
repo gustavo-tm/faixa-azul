@@ -1,6 +1,8 @@
 library(tidyverse)
 library(sf)
 library(memoise)
+# library(patchwork)
+# library(gt)
 
 # Tabela para tornar os datetimes numéricos (por limitação do pacote did)
 tabela_periodos_datetime <- tibble(
@@ -220,6 +222,8 @@ fit_did <- function(
 plot_did <- function(did, file, title = NULL, expand_grid = .5){
   
   if (is.na(title)){title <- NULL}
+  
+  # gráfico
   plot <- did |> 
     aggte(type = "dynamic", min_e = -12, max_e = 12, na.rm = TRUE) |> 
     ggdid() +
@@ -227,31 +231,50 @@ plot_did <- function(did, file, title = NULL, expand_grid = .5){
     scale_x_continuous("Meses até data da implementação", breaks = c(0:9-4)*3) +
     scale_colour_manual(values = c("red", "blue"), labels = c("Pré faixa azul", "Pós faixa azul")) +
     labs(title = title) +
-    theme_minimal()
+    theme_minimal() +
+    theme(legend.position = "top")
   
-  ggsave(paste0("output/did/", file, ".png"), plot, 
-         width = 8, height = 4, 
-         bg = "white",
-         create.dir = TRUE)
+  # tabelas
+  
+  out <- aggte(did, type = "simple", min_e = -12, max_e = 12, na.rm = TRUE)
+  ATT <- out$overall.att
+  se <- out$overall.se
+  ci_low = ATT - se * 1.96
+  ci_high = ATT + se * 1.96
+  significance <- if(ci_low < 0 & ci_high > 0){""}else{"*"}
+  
+  # tabelinha resultados agregados
+  tabela1 <- tibble(ATT = ATT, 
+                    SE = se, 
+                    "IC (95%)" = paste0("[", round(ci_low, 2), ", ", round(ci_high, 2), "]"),
+                    Significante = if(ci_low < 0 & ci_high > 0){"Não"}else{"Sim"}) |> 
+    gt() |> 
+    fmt_number(decimals = 2) |> 
+    cols_align(align= "right") |> 
+    cols_width(everything() ~ 600/4)
+  
+  # tabelinha descritivas da base
+  tabela2 <- did$DIDparams$data |> 
+    as_tibble() |> 
+    summarize(Mínimo = min(sinistros),
+              Q1 = quantile(sinistros, .25),
+              Mediana = median(sinistros),
+              Média = mean(sinistros),
+              Q3 = quantile(sinistros, .75),
+              Max = max(sinistros)) |> 
+    gt() |> 
+    fmt_number(decimals = 2) |> 
+    cols_width(everything() ~ 100)
+  
+  figura <- (wrap_table(tabela1, space = "fixed") / plot / wrap_table(tabela2, space = "fixed"))
+  
+  ggsave(paste0("output/did/", file, ".pdf"), figura, 
+        width = 7, height = 6, 
+        bg = "white",
+        create.dir = TRUE)
+  
   return(plot)
 }
-
-
-# Gráfico
-# Tabela
-# Targets
-# Excel
-
-
-
-# 
-# 
-# agregado <- teste |> aggte(type = "dynamic", min_e = -12, max_e = 12) 
-# 
-# agregado |> 
-#   ggdid() + xlim(c(-12, 12)) + ylim(c(-0.5, 0.5))
-# 
-
 
 
 

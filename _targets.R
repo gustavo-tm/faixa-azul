@@ -16,7 +16,7 @@ assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
 tar_option_set(
   # circlize, webshot2, renv, targets, visNetwork, 
   packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "igraph", "gganimate",
-               "tidygraph", "ggraph", "qs2", "MatchIt"), 
+               "tidygraph", "ggraph", "qs2", "MatchIt", "patchwork"), 
   error = "trim",
   format = "qs", # Optionally set the default storage format. qs is fast.
 

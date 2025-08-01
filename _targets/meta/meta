@@ -1060,14 +1060,6 @@ dado_did_agregado_bimestral_1000|stem|d3909627385e34ef|53a33a42b17fef45|189dff44
 dado_did_agregado_psm_bimestral_1000|stem|376885d9cc0ef2fd|16850702f9298287|ca4584def72662fe|1321048427||t20278.0585465895s|s273706b|273706|qs|local|vector|||19.53||
 dado_did_agregado_psm_bimestral|stem|a70cdcc164643e3a|f7a8623a355a9d3f|f7a59d9ced2f211c|-1082806441||t20278.0587409384s|s278225b|278225|qs|local|vector|||16.65||
 =======|||||||||||||||||
-did_plot_9f468d4c4b6a9f09|branch|aa86a834bc79c8c4|52e3d6136142466c|5c3a67668f5ab3cf|-1264804945||t20288.8716317413s|s199001b|199001|qs|local|list|did_plot||3.671|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
-did_plot_77aefa422ff49ef1|branch|219afcb0dc2a9914|52e3d6136142466c|81e0178b636ae77b|-596575726||t20288.8716663939s|s199004b|199004|qs|local|list|did_plot||3.672|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
-did_plot_61f2e7c5190323bc|branch|51c4c329ca022f63|52e3d6136142466c|4a40439dfdecc133|-1234805584||t20288.871731085s|s198983b|198983|qs|local|list|did_plot||3.812|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
-did_plot_962222d933a6f978|branch|1d00b5e1a9c2f97c|52e3d6136142466c|4f11b009db711c70|485012480||t20288.8717618095s|s198988b|198988|qs|local|list|did_plot||1.672|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
-did_plot_7c0ab3c8b1afa297|branch|9d366ac642fdda4d|52e3d6136142466c|d4883a4b7b2db635|-1496406628||t20288.871767239s|s199550b|199550|qs|local|list|did_plot||3.766|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
-did_plot_1deec08515c1eb14|branch|e0184cbc5a66f4c8|52e3d6136142466c|6b36b8b67c505878|2104585940||t20288.8717795334s|s199015b|199015|qs|local|list|did_plot||0.844|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
-did_plot_e01208b2c1817302|branch|a5ec3034a4c709dc|52e3d6136142466c|3409b3490056a2e4|618667872||t20288.87178641s|s199003b|199003|qs|local|list|did_plot||1.453|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
-did_plot|pattern|600e6eeca2d22dfe|52e3d6136142466c||1227722852||||1393544|qs|local|list||did_plot_9f468d4c4b6a9f09*did_plot_77aefa422ff49ef1*did_plot_61f2e7c5190323bc*did_plot_7c0ab3c8b1afa297*did_plot_962222d933a6f978*did_plot_e01208b2c1817302*did_plot_1deec08515c1eb14|18.89||
 >>>>>>> newdid|||||||||||||||||
 plot_sinistros_comprimento|function|ee986ab10b901d06|||||||||||||||
 did_tabela_file|stem|ae550e2779cdec53|1056044afa62946b|2c530c1562a7fbd1|369917553|dados_tratados/did_tabela.csv|t20288.8785282744s|s517b|517|file|local|vector|||2.484|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
@@ -1086,14 +1078,15 @@ descritiva_tratados_periodo|stem|bdbdddd064cfaa9e|eb62c30980e90b28|31af037f353fb
 descritiva_mapas|stem|4fe06b53fe4d1adb|7107406efeab34e7|40e167e4e2b16a29|996910975||t20295.6966031304s|s64b|64|qs|local|vector|||561.391|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. attribute variables are assumed to be spatially constant throughout all geometries. attribute variables are assumed to be spatially constant throughout all geometries|
 dado_vitimas|stem|19624a06a7dac451|d9d4524f79615bfb|7f3b851fbeb9e93c|2094328090||t20300.8371119526s|s17851718b|17851718|qs|local|vector|||5.735|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
 descritiva_obitos_ano|stem|8c9f8099f3662820|1cfaf26696286637|cfce3be5aa11268e|1151249243||t20300.8371734905s|s102b|102|qs|local|vector|||1.625|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mRemoved 10 rows containing missing values or values outside the scale rangegeom_text.|
+descritiva_obitos_tempo|stem|a93f2e9b83a60602|aa14d9d25f80be3a|4b3c0aa6026614d0|-1643841388||t20300.8728169196s|s133b|133|qs|local|vector|||6.172|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mRemoved 20 rows containing missing values or values outside the scale rangegeom_text.. 1m22mRemoved 20 rows containing missing values or values outside the scale rangegeom_text.. 1m22mRemoved 2 rows containing missing values or values outside the scale rangegeom_text.|
 plot_comprimento_trechos|function|3abb46abc3f9b65e
 plot_datas_FA|function|4e4eafa6e42eeed9
-plot_did|function|9681e754909b3d31
+plot_did|function|aafec43cb646dc91
 tidy_faixa_azul|function|61df77465bfe63f4
 sinistro_filtro|function|68fcf45f8ca3ce87
 tidy_logradouros|function|1fb919fa5050a506
 segmento_psm|function|3ac21c1c50c63bb4
-.Random.seed|object|a025b716fb63a349
+.Random.seed|object|d128d5b8b89713c9
 tidy_vitimas|function|4d2897e385510def
 workers|object|1f35528bd840b63d
 plot_hora_sinistro|function|b58a1974c299f37c
@@ -1132,4 +1125,11 @@ padronizar|function|b21b399378d20536
 tokenizar|function|d23d1654c66d3364
 tokenizar_osm|function|4ed9c22e6854db7b
 tokenizar_infosiga|function|55faefc5a3947345
-descritiva_obitos_tempo|stem|a93f2e9b83a60602|aa14d9d25f80be3a|4b3c0aa6026614d0|-1643841388||t20300.8728169196s|s133b|133|qs|local|vector|||6.172|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3. 1m22mRemoved 20 rows containing missing values or values outside the scale rangegeom_text.. 1m22mRemoved 20 rows containing missing values or values outside the scale rangegeom_text.. 1m22mRemoved 2 rows containing missing values or values outside the scale rangegeom_text.|
+did_plot_9f468d4c4b6a9f09|branch|1e16f64df251abb2|52e3d6136142466c|669853946cfffebf|-1264804945||t20301.8266795724s|s204571b|204571|qs|local|list|did_plot||3.875|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_plot_77aefa422ff49ef1|branch|ef6b8b8287d9065f|52e3d6136142466c|ddf0ee60c1cadcbc|-596575726||t20301.8267112499s|s204576b|204576|qs|local|list|did_plot||3.907|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_plot_61f2e7c5190323bc|branch|fa7cc0412e4887ed|52e3d6136142466c|2794dcc35741b0fe|-1234805584||t20301.8267786072s|s204531b|204531|qs|local|list|did_plot||4.235|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_plot_7c0ab3c8b1afa297|branch|8bc7e26c4e3f146f|52e3d6136142466c|ec884b27120ed63e|-1496406628||t20301.8268075801s|s205131b|205131|qs|local|list|did_plot||4.437|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_plot_962222d933a6f978|branch|a022d873955cf68c|52e3d6136142466c|d721c472b34e15d7|485012480||t20301.8268152421s|s204558b|204558|qs|local|list|did_plot||2.11|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_plot_1deec08515c1eb14|branch|db0efb48752fd6ce|52e3d6136142466c|3537484e48c537ee|2104585940||t20301.8268293744s|s204585b|204585|qs|local|list|did_plot||1|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_plot_e01208b2c1817302|branch|d7eb143cc8b78efc|52e3d6136142466c|e2a1eb4e9c5f55c4|618667872||t20301.8268385056s|s204568b|204568|qs|local|list|did_plot||1.875|package tidygraph was built under R version 4.4.3. package ggraph was built under R version 4.4.3|
+did_plot|pattern|5f97be1c5f974ed4|52e3d6136142466c||1227722852||||1432520|qs|local|list||did_plot_9f468d4c4b6a9f09*did_plot_77aefa422ff49ef1*did_plot_61f2e7c5190323bc*did_plot_7c0ab3c8b1afa297*did_plot_962222d933a6f978*did_plot_e01208b2c1817302*did_plot_1deec08515c1eb14|21.439||
