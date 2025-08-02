@@ -1,6 +1,6 @@
-library(tidyverse)
-library(sf)
-library(memoise)
+# library(tidyverse)
+# library(sf)
+# library(memoise)
 # library(patchwork)
 # library(gt)
 
@@ -16,7 +16,7 @@ limpar_tabela_did <- function(did_tabela){
   did_tabela |> 
     mutate(across(c(filtro_sinistros, filtro_segmentos), ~ .x |> as.character() |> replace_na("TRUE")),
            across(c(rodarPSM, filtrar_golden), ~ .x |> as.logical() |> replace_na(TRUE)),
-           across(c(por_km), ~ .x |> as.logical() |> replace_na(FALSE)),
+           across(c(apenas_moto, por_km), ~ .x |> as.logical() |> replace_na(FALSE)),
            across(c(PSM_corte_minimo), ~ .x |> as.numeric() |> replace_na(0)),
            across(c(intervalo_meses), ~ .x |> as.numeric() |> replace_na(1)),
            variavel_y = variavel_y |> as.character() |> replace_na("sinistros"),
@@ -26,14 +26,14 @@ limpar_tabela_did <- function(did_tabela){
 
 
 # Carrega uma base para cada especificação de nível de segmento 
-segmento_nivel <- memoise(function(segmentos, nivel){
+segmento_nivel <- memoise::memoise(function(segmentos, nivel){
   segmentos |> 
     filter(segmento == nivel)
 })
 
 # Possibilita filtrar a base para fazer efeitos heterogêneos
 # Exemplo: "tipo_via == 'primary'"
-segmento_filtro <- memoise(function(segmentos, filtro){
+segmento_filtro <- memoise::memoise(function(segmentos, filtro){
   segmentos |> 
     filter(eval(parse(text = filtro))) 
 })
@@ -41,7 +41,7 @@ segmento_filtro <- memoise(function(segmentos, filtro){
 
 
 # Roda Propensity Score Matching, caso seja necessário
-segmento_psm <- memoise(function(segmentos, sinistros, match, rodarPSM = TRUE, min_score_cut = 0){
+segmento_psm <- memoise::memoise(function(segmentos, sinistros, match, rodarPSM = TRUE, min_score_cut = 0){
   
   if(rodarPSM == TRUE){
     # Cálculo sinistros e óbitos antes do tratamento por segmento, para entrar no logit
@@ -104,7 +104,9 @@ segmento_psm <- memoise(function(segmentos, sinistros, match, rodarPSM = TRUE, m
 
 # Possibilita filtrar a base para fazer efeitos heterogêneos
 # Exemplo: "tp_veiculo_motocicleta > 0" 
-sinistro_filtro <- memoise(function(sinistros, filtro){
+sinistro_filtro <- memoise::memoise(function(sinistros, filtro, apenas_moto = FALSE){
+  if(apenas_moto == TRUE){sinistros <- sinistros |> filter(tp_veiculo_motocicleta > 0)}
+
   sinistros |> 
     filter(eval(parse(text = filtro))) |> 
     select(id_sinistro, data, starts_with("gravidade"))
@@ -112,7 +114,7 @@ sinistro_filtro <- memoise(function(sinistros, filtro){
 
 # Prepara a base para o did, agrega no nível período/segmento
 # Intervalo meses: 1 mensal, 2 bimestral, 3 trimestral...
-agrega_tempo <- memoise(function(segmentos_filtrado, sinistros_filtrado, match, 
+agrega_tempo <- memoise::memoise(function(segmentos_filtrado, sinistros_filtrado, match, 
                          intervalo_meses = 1, filtrar_golden = TRUE){
   
   segmentos <- segmentos_filtrado |>
@@ -219,7 +221,7 @@ fit_did <- function(
   return(fit)
 }
 
-plot_did <- function(did, file, title = NULL, expand_grid = .5){
+plot_did <- function(did, file, tabela_summary, title = NULL, expand_grid = .5){
   
   if (is.na(title)){title <- NULL}
   
@@ -236,18 +238,8 @@ plot_did <- function(did, file, title = NULL, expand_grid = .5){
   
   # tabelas
   
-  out <- aggte(did, type = "simple", min_e = -12, max_e = 12, na.rm = TRUE)
-  ATT <- out$overall.att
-  se <- out$overall.se
-  ci_low = ATT - se * 1.96
-  ci_high = ATT + se * 1.96
-  significance <- if(ci_low < 0 & ci_high > 0){""}else{"*"}
-  
-  # tabelinha resultados agregados
-  tabela1 <- tibble(ATT = ATT, 
-                    SE = se, 
-                    "IC (95%)" = paste0("[", round(ci_low, 2), ", ", round(ci_high, 2), "]"),
-                    Significante = if(ci_low < 0 & ci_high > 0){"Não"}else{"Sim"}) |> 
+  tabela1 <- tabela_summary |> 
+    select(-nome) |> 
     gt() |> 
     fmt_number(decimals = 2) |> 
     cols_align(align= "right") |> 
@@ -274,6 +266,24 @@ plot_did <- function(did, file, title = NULL, expand_grid = .5){
         create.dir = TRUE)
   
   return(plot)
+}
+
+summary_tabelinha_did <- function(did, nome){
+  out <- aggte(did, type = "simple", min_e = -12, max_e = 12, na.rm = TRUE)
+  ATT <- out$overall.att
+  se <- out$overall.se
+  ci_low = ATT - se * 1.96
+  ci_high = ATT + se * 1.96
+  significance <- if(ci_low < 0 & ci_high > 0){""}else{"*"}
+  
+  # tabelinha resultados agregados
+  tabelinha <- tibble(
+    nome = nome, 
+    ATT = ATT, 
+    SE = se, 
+    "IC (95%)" = paste0("[", round(ci_low, 2), ", ", round(ci_high, 2), "]"),
+    Significante = if(ci_low < 0 & ci_high > 0){"Não"}else{"Sim"})
+  return(tabelinha)
 }
 
 

@@ -2,7 +2,7 @@ library(targets)
 library(visNetwork)
 library(tarchetypes) 
 
-workers <- 2
+workers <- 4
 
 # para garantir que osmdata vai funcionar
 assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
@@ -16,7 +16,7 @@ assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
 tar_option_set(
   # circlize, webshot2, renv, targets, visNetwork, 
   packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "igraph", "gganimate",
-               "tidygraph", "ggraph", "qs2", "MatchIt", "patchwork"), 
+               "tidygraph", "ggraph", "qs2", "MatchIt", "patchwork", "memoise"), 
   error = "trim",
   format = "qs", # Optionally set the default storage format. qs is fast.
 
@@ -206,28 +206,31 @@ tar_target(
   # 7.2. Base de sinistros ----
   tar_target(did_tabela_sinistros, 
              did_tabela |> select(filtro_sinistros, 
-                                  intervalo_meses,
-                                  filtrar_golden,
-                                  PSM_corte_minimo)),
+                                  apenas_moto)),
   
   # Realizando filtros/efeitos heterogeneos em sinistros
   tar_target(name = did_sinistro_filtrado,
              command = sinistro_filtro(
                sinistros = dado_sinistros, 
-               filtro = did_tabela_sinistros$filtro_sinistros),
+               filtro = did_tabela_sinistros$filtro_sinistros,
+               apenas_moto = did_tabela_sinistros$apenas_moto),
              pattern = map(did_tabela_sinistros)),
   
-  # 7.2. Base agregada ----
+  # 7.3. Base agregada ----
+  tar_target(did_tabela_agrega, 
+             did_tabela |> select(intervalo_meses,
+                                  filtrar_golden,
+                                  PSM_corte_minimo)),
   tar_target(name = did_df,
              command = agrega_tempo(
                segmentos_filtrado = did_segmento_PSM,
                sinistros_filtrado = did_sinistro_filtrado,
                match = dado_match,
-               intervalo_meses = did_tabela_sinistros$intervalo_meses,
-               filtrar_golden = did_tabela_sinistros$filtrar_golden),
-             pattern = map(did_segmento_PSM, did_sinistro_filtrado, did_tabela_sinistros)),
+               intervalo_meses = did_tabela_agrega$intervalo_meses,
+               filtrar_golden = did_tabela_agrega$filtrar_golden),
+             pattern = map(did_segmento_PSM, did_sinistro_filtrado, did_tabela_agrega)),
   
-  # 7.3. Fit ----
+  # 7.4. Fit ----
   tar_target(did_tabela_fit, 
              did_tabela |> select(por_km, 
                                   log_delta,
@@ -248,20 +251,34 @@ tar_target(
              pattern = map(did_df, did_tabela_fit),
              iteration = "list"),
   
-  # 7.4. Plot ----
+  # 7.5. Plot e resultados----
   tar_target(did_tabela_plot, 
              did_tabela |> select(expand_grid,
                                   file,
                                   title)),
+  # Tabelona de resultados
+  tar_target(name = did_summary_tabelinha,
+             command = summary_tabelinha_did(
+               did = did_fit,
+               nome = did_tabela_plot$file),
+             pattern = map(did_fit, did_tabela_plot),
+               iteration = "list"),
+
+  tar_target(name = did_summary_tabela,
+             command = bind_rows(did_summary_tabelinha)),
   # Plot
   tar_target(name = did_plot,
              command = plot_did(
                did = did_fit,
+               tabela_summary = did_summary_tabelinha,
                expand_grid = did_tabela_plot$expand_grid,
                file = did_tabela_plot$file,
                title = did_tabela_plot$title),
-             pattern = map(did_fit, did_tabela_plot),
+             pattern = map(did_fit, did_tabela_plot, did_summary_tabelinha),
              iteration = "list")
+
+
+
   
   
 )

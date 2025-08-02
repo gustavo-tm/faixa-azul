@@ -1,0 +1,12 @@
+﻿apenas_moto,filtro_sinistros,filtro_segmentos,segmento_nivel,rodarPSM,PSM_corte_minimo,intervalo_meses,filtrar_golden,por_km,log_delta,variavel_y,grupo_controle,pesos,remover_controle,expand_grid,file,title
+,hora >= 7 & hora < 10,,agregados,,,,,,,,,,,,pico manha,
+,hora >= 17 & hora < 20,,agregados,,,,,,,,,,,,pico tarde,
+,tipo_acidente == 'ATROPELAMENTO',,agregados,,,,,,,,,,,,atropelamento,
+,tipo  == 'SINISTRO FATAL',,agregados,,,,,,,,,,,,fatal,
+,gravidade_grave > 0,,agregados,,,,,,,,,,,,grave,
+,,amenidades >4,agregados,,,,,,,,,,,,amenidades+,
+,,amenidades <= 4,agregados,,,,,,,,,,,,amenidades-,
+,,intersec >= 20,agregados,,,,,,,,,,,,intersec+,
+,,intersec < 20,agregados,,,,,,,,,,,,intersec-,
+,,faixas > 3,agregados,,,,,,,,,,,,faixas+,
+,,faixas <= 3.2,agregados,,,,,,,,,,,,faixas-,
