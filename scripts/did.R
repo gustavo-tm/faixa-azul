@@ -279,12 +279,18 @@ summary_tabelinha_did <- function(did, nome){
   # tabelinha resultados agregados
   tabelinha <- tibble(
     nome = nome, 
-    ATT = ATT, 
-    SE = se, 
-    "IC (95%)" = paste0("[", round(ci_low, 2), ", ", round(ci_high, 2), "]"),
+    ATT = format(round(ATT, 3), nsmall = 3), 
+    SE = format(round(se, 3), nsmall = 3), 
+    "IC (95%)" = paste0("[", format(round(ci_low, 3), nsmall = 3), ", ", format(round(ci_high, 3), nsmall = 3), "]"),
     Significante = if(ci_low < 0 & ci_high > 0){"Não"}else{"Sim"})
   return(tabelinha)
 }
 
+save_tabela_agregada <- function(tabela){
+  tabela |> 
+    kable(format = "latex", booktabs = TRUE, longtable = TRUE, linesep = "", align = c("l", "r", "r", "c", "l"))|> 
+    kable_styling(latex_options = c("repeat_header")) |> 
+    write(file = "output/did/tabela_agregada.tex")
+}
 
 

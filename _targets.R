@@ -15,7 +15,7 @@ assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
 
 tar_option_set(
   # circlize, webshot2, renv, targets, visNetwork, 
-  packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "igraph", "gganimate",
+  packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "kableExtra", "igraph", "gganimate",
                "tidygraph", "ggraph", "qs2", "MatchIt", "patchwork", "memoise"), 
   error = "trim",
   format = "qs", # Optionally set the default storage format. qs is fast.
@@ -266,6 +266,10 @@ tar_target(
 
   tar_target(name = did_summary_tabela,
              command = bind_rows(did_summary_tabelinha)),
+  
+  tar_target(name = did_summary_tabela_save,
+             command = save_tabela_agregada(did_summary_tabela)),
+
   # Plot
   tar_target(name = did_plot,
              command = plot_did(
