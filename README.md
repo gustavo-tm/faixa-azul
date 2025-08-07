@@ -18,7 +18,7 @@ O projeto é organizado da seguinte forma:
     * `match.R`: Contém funções para padronizar e realizar o casamento (matching) de logradouros entre diferentes bases de dados (sinistros e trechos viários), utilizando técnicas de fuzzy matching para garantir a correta associação geográfica.
     * `did.R`: Prepara os dados para a análise de Diferenças-em-Diferenças (DiD), incluindo o emparelhamento por Propensity Score, e implementa o modelo DiD, realizando as estimativas de impacto.
     * `descritivas.R`: Gera gráficos e estatísticas descritivas para explorar os dados e visualizar os resultados.
-* `dados_brutos/`: Diretório para os dados brutos de entrada (não incluídos no repositório por exceder o limite de 100MB do GitHub).
+* `dados_brutos/`: Diretório para os dados brutos de entrada.
 * `dados_tratados/`: Diretório para os dados intermediários e finais gerados pelos scripts.
 * `output/`: Diretório para os gráficos e relatórios finais.
 
@@ -47,7 +47,7 @@ Para reproduzir este projeto, basta ter o R instalado e seguir os passos de exec
 
 3. **Dados Brutos**: Os dados brutos já estão incluídos no repositório na pasta `dados_brutos/`. Para atualizar os dados com versões mais recentes:
    - **Dados do InfoSiga**: Baixe a versão mais nova do site do InfoSiga
-   - **Dados de Vias**: Reutilize a API do OpenStreetMap para baixar dados atualizados das vias (as funções de download estão incluídas)
+   - **Dados de Vias**: Reutilize a API do OpenStreetMap para baixar dados atualizados das vias (as funções de download estão incluídas em `scripts/tidy_trechos.R`)
    - **Faixa Azul**: Atualize manualmente quais vias receberam faixa azul
 
 4. **Execute a Pipeline**: Na mesma sessão R, execute `targets::tar_make()`. Isso executará toda a pipeline, desde a limpeza dos dados até a geração dos resultados e gráficos. Os resultados estarão disponíveis na pasta `output/`.
