@@ -41,6 +41,9 @@ list(
   tar_target(
     name = dado_vitimas,
     command = tidy_vitimas()),
+  tar_target(
+    name = dado_mortes,
+    command = calcular_mortes(dado_vitimas)),
 
   # 2. TRECHOS ----
   tar_target(
@@ -212,6 +215,7 @@ tar_target(
   tar_target(name = did_sinistro_filtrado,
              command = sinistro_filtro(
                sinistros = dado_sinistros, 
+               vitimas = dado_mortes,
                filtro = did_tabela_sinistros$filtro_sinistros,
                apenas_moto = did_tabela_sinistros$apenas_moto),
              pattern = map(did_tabela_sinistros)),
@@ -254,6 +258,7 @@ tar_target(
   # 7.5. Plot e resultados----
   tar_target(did_tabela_plot, 
              did_tabela |> select(expand_grid,
+                                  variavel_y,
                                   file,
                                   title)),
   # Tabelona de resultados
@@ -274,6 +279,7 @@ tar_target(
   tar_target(name = did_plot,
              command = plot_did(
                did = did_fit,
+               variavel_y = did_tabela_plot$variavel_y,
                tabela_summary = did_summary_tabelinha,
                expand_grid = did_tabela_plot$expand_grid,
                file = did_tabela_plot$file,

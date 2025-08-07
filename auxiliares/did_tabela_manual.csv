@@ -1,0 +1,3 @@
+﻿apenas_moto,filtro_sinistros,filtro_segmentos,segmento_nivel,rodarPSM,PSM_corte_minimo,intervalo_meses,filtrar_golden,por_km,log_delta,variavel_y,grupo_controle,pesos,remover_controle,expand_grid,file,title
+,,,agregados,,,,,,,mortes_moto,,,,,obitos/motociclistas,
+,,,agregados,,,,,,,mortes_pedestre_bike,,,,,obitos/pedestre_bike,

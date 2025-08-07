@@ -37,3 +37,16 @@ tidy_vitimas <- function(){
     as_tibble() |> 
     select(id_infosiga = id_sinistro, 4:12)
 }
+
+calcular_mortes <- function(vitimas){
+  vitimas |> 
+    filter(gravidade_lesao == "FATAL") |> 
+    mutate(veiculo = fct_collapse(str_to_upper(tipo_veiculo_vitima),
+                                  motocicleta = "MOTOCICLETA",
+                                  pedestre_bike = c("PEDESTRE",  "BICICLETA"),
+                                  other_level = "outros")) |> 
+    group_by(id_infosiga, veiculo) |> 
+    summarize(mortes = n()) |> 
+    pivot_wider(id_cols = id_infosiga, names_from = veiculo, values_from = mortes, 
+                values_fill = 0, names_prefix = "mortes_")
+}

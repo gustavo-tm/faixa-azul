@@ -104,12 +104,16 @@ segmento_psm <- memoise::memoise(function(segmentos, sinistros, match, rodarPSM 
 
 # Possibilita filtrar a base para fazer efeitos heterogêneos
 # Exemplo: "tp_veiculo_motocicleta > 0" 
-sinistro_filtro <- memoise::memoise(function(sinistros, filtro, apenas_moto = FALSE){
+sinistro_filtro <- memoise::memoise(function(sinistros, vitimas, filtro, apenas_moto = FALSE){
+  
+  sinistros <- sinistros |> 
+    left_join(vitimas)
+  
   if(apenas_moto == TRUE){sinistros <- sinistros |> filter(tp_veiculo_motocicleta > 0)}
 
   sinistros |> 
     filter(eval(parse(text = filtro))) |> 
-    select(id_sinistro, data, starts_with("gravidade"))
+    select(id_sinistro, data, starts_with("gravidade"), starts_with("mortes_"))
 })
 
 # Prepara a base para o did, agrega no nível período/segmento
@@ -145,7 +149,9 @@ agrega_tempo <- memoise::memoise(function(segmentos_filtrado, sinistros_filtrado
               envolvidos_grave = sum(gravidade_grave, na.rm = T),
               envolvidos_leve = sum(gravidade_leve, na.rm = T),
               envolvidos_ileso = sum(gravidade_ileso, na.rm = T),
-              envolvidos_na = sum(gravidade_nao_disponivel, na.rm = T)) |> 
+              envolvidos_na = sum(gravidade_nao_disponivel, na.rm = T),
+              mortes_moto = sum(mortes_motocicleta, na.rm = T),
+              mortes_pedestre_bike = sum(mortes_pedestre_bike, na.rm = T)) |> 
     
     # Painel balanceado e retornar os trechos sempre zero sinistros
     ungroup() |> 
@@ -221,7 +227,7 @@ fit_did <- function(
   return(fit)
 }
 
-plot_did <- function(did, file, tabela_summary, title = NULL, expand_grid = .5){
+plot_did <- function(did, file, tabela_summary, variavel_y, title = NULL, expand_grid = .5){
   
   if (is.na(title)){title <- NULL}
   
@@ -248,12 +254,13 @@ plot_did <- function(did, file, tabela_summary, title = NULL, expand_grid = .5){
   # tabelinha descritivas da base
   tabela2 <- did$DIDparams$data |> 
     as_tibble() |> 
-    summarize(Mínimo = min(sinistros),
-              Q1 = quantile(sinistros, .25),
-              Mediana = median(sinistros),
-              Média = mean(sinistros),
-              Q3 = quantile(sinistros, .75),
-              Max = max(sinistros)) |> 
+    rename(y = !!variavel_y) |> 
+    summarize(Mínimo = min(y),
+              Q1 = quantile(y, .25),
+              Mediana = median(y),
+              Média = mean(y),
+              Q3 = quantile(y, .75),
+              Max = max(y)) |> 
     gt() |> 
     fmt_number(decimals = 2) |> 
     cols_width(everything() ~ 100)
