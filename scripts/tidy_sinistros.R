@@ -3,8 +3,8 @@ library(gt)
 
 tidy_sinistros <- function(){
     sinistros <- bind_rows(
-    data.table::fread("dados_brutos/sinistros_2015-2021.csv", encoding = "Latin-1"),
-    data.table::fread("dados_brutos/sinistros_2022-2025.csv", encoding = "Latin-1")) |> 
+    data.table::fread(unzip("dados_brutos/sinistros.zip", "sinistros_2015-2021.csv"), encoding = "Latin-1"),
+    data.table::fread(unzip("dados_brutos/sinistros.zip", "sinistros_2022-2025.csv"), encoding = "Latin-1")) |> 
     as_tibble() |> 
     filter(municipio == "SAO PAULO") |> 
     filter(!if_all(c(tipo_via, administracao, conservacao, jurisdicao), ~ . %in% c("NAO DISPONIVEL", ""))) |>
@@ -32,8 +32,8 @@ tidy_sinistros <- function(){
 }
 
 tidy_vitimas <- function(){
-  bind_rows(data.table::fread("dados_brutos/pessoas_2022-2025.csv", encoding = "Latin-1"),
-            data.table::fread("dados_brutos/pessoas_2015-2021.csv", encoding = "Latin-1")) |> 
+  bind_rows(data.table::fread("dados_brutos/pessoas_2022-2025.csv", unzip("dados_brutos/pessoas.zip", "pessoas_2022-2025.csv"),encoding = "Latin-1"),
+            data.table::fread("dados_brutos/pessoas_2015-2021.csv", unzip("dados_brutos/pessoas.zip", "pessoas_2015-2021.csv"),encoding = "Latin-1")) |> 
     as_tibble() |> 
     select(id_infosiga = id_sinistro, 4:12)
 }

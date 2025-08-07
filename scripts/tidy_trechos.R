@@ -12,33 +12,38 @@ library(igraph)
 # available_features()
 
 download_osm <- function(){
-  assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
-  osm <- getbb('São Paulo') |> 
-    opq(bbox = _) |> 
-    add_osm_feature(key = 'highway', value = c(
-      "motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "service",
-      "motorway_link", "trunk_link", "primary_link", "secondary_link", "motorway_junction"))  |>
-    osmdata_sf()
-
-  osm <- as_tibble(osm$osm_lines) |>
-    select(id_osm = osm_id,
-           logradouro = name,
-           logradouro_alt1 = alt_name,
-           logradouro_alt2 = alt_name1,
-           logradouro_alt3 = alt_name_1,
-           logradouro_ref = ref,
-           tipo_via = highway,
-           faixas = lanes,
-           limite_velocidade = maxspeed,
-           limite_velocidade_pesados = "maxspeed:hgv",
-           motocicleta = motorcycle,
-           mao_unica = oneway,
-           superficie = surface,
-           elevado = bridge,
-           geometry) |> 
-    mutate(comprimento = st_length(geometry) |> as.numeric())
   
-  return(osm)
+  if (!file.exists("dados_brutos/dado_osm.gpkg")){
+    assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
+    osm <- getbb('São Paulo') |> 
+      opq(bbox = _) |> 
+      add_osm_feature(key = 'highway', value = c(
+        "motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "service",
+        "motorway_link", "trunk_link", "primary_link", "secondary_link", "motorway_junction"))  |>
+      osmdata_sf()
+    
+    osm <- as_tibble(osm$osm_lines) |>
+      select(id_osm = osm_id,
+             logradouro = name,
+             logradouro_alt1 = alt_name,
+             logradouro_alt2 = alt_name1,
+             logradouro_alt3 = alt_name_1,
+             logradouro_ref = ref,
+             tipo_via = highway,
+             faixas = lanes,
+             limite_velocidade = maxspeed,
+             limite_velocidade_pesados = "maxspeed:hgv",
+             motocicleta = motorcycle,
+             mao_unica = oneway,
+             superficie = surface,
+             elevado = bridge,
+             geometry) |> 
+      mutate(comprimento = st_length(geometry) |> as.numeric())
+    
+    st_write(osm, "dados_brutos/dado_osm.gpkg")
+    return(osm)
+  }else{return(st_read("dados_brutos/dado_osm.gpkg"))}
+  
 }
 
 
