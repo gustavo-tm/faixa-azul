@@ -42,7 +42,7 @@ download_osm <- function(){
     
     st_write(osm, "dados_brutos/dado_osm.gpkg")
     return(osm)
-  }else{return(st_read("dados_brutos/dado_osm.gpkg"))}
+  }else{return(st_read("dados_brutos/dado_osm.gpkg") |> rename(geometry = geom))}
   
 }
 
@@ -54,7 +54,8 @@ tidy_trechos_bruto <- function(osm){
   # Interpolação 
   logradouro <- osm |> 
     filter(!logradouro |> is.na()) |> 
-    select(-geometry) |> 
+    st_drop_geometry() |> 
+    select(!contains("geometry")) |> 
     group_by(logradouro) |> 
     
     #Pegar o valor que mais se repete naquele logradouro

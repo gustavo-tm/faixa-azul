@@ -295,6 +295,14 @@ summary_tabelinha_did <- function(did, nome){
 
 save_tabela_agregada <- function(tabela){
   tabela |> 
+    mutate(id = row_number()) |> 
+    (\(df) bind_rows(
+      df, 
+      df |> 
+        filter(str_detect(nome, "padrao")) |> 
+        mutate(id = id - .1,
+               across(c(everything(), -id), ~ ""))))() |> 
+    arrange(id) |> select(-id) |> 
     kable(format = "latex", booktabs = TRUE, longtable = TRUE, linesep = "", align = c("l", "r", "r", "c", "l"))|> 
     kable_styling(latex_options = c("repeat_header")) |> 
     write(file = "output/did/tabela_agregada.tex")
