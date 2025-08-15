@@ -164,6 +164,9 @@ tar_target(
   name = descritiva_staggered_descritivo,
   command = plot_staggered_descritivo(dado_sinistros, dado_match, dado_faixa_azul)),
   
+tar_target(
+  name = descritiva_prepos,
+  command = plot_antes_depois(dado_sinistros, dado_vitimas, dado_agregados, dado_match)),
   
   # 7. DID ----
   

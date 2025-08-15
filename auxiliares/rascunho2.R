@@ -453,6 +453,8 @@ sinistros |>
              data_implementacao <= make_date(year = 2024, month = 4)) |> 
       mutate(p = "12 meses antes e depois (vias implementadas até 04/24)")
   ))() |> 
+  group_by(p, dist, name) |> 
+  summarize(value = sum(value)) |> 
   ggplot(aes(x = dist, y = value, fill = name)) +
   geom_vline(xintercept = 0, linetype = "dashed")+ 
   # geom_vline(xintercept = 3.5, alpha = .3, colour = "grey60", lwd = 2)+ 
@@ -503,6 +505,8 @@ sinistros |>
              data_implementacao <= make_date(year = 2024, month = 4)) |> 
       mutate(p = "12 meses antes e depois (vias implementadas até 04/24)")
   ))() |> 
+  group_by(p, dist, moto) |>
+  summarize(n = sum(n)) |>
   ggplot(aes(x = dist, y = n, fill = moto)) +
   geom_vline(xintercept = 0, linetype = "dashed")+ 
   # geom_vline(xintercept = 3.5, alpha = .3, colour = "grey60", lwd = 2)+ 
