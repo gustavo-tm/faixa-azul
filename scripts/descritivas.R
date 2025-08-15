@@ -667,4 +667,109 @@ plot_staggered_descritivo <- function(sinistros, match, faixa_azul){
   ggsave("output/plot_staggered_descritivo.pdf", gg, width = 7, height = 4)
 }
 
+plot_antes_depois <- function(sinistros, vitimas, agregados, match){
+
+  gg <- sinistros |>
+    left_join(vitimas |> 
+                filter(gravidade_lesao == "FATAL") |> 
+                mutate(grupo = fct_collapse(str_to_upper(tipo_veiculo_vitima),
+                                            motocicleta = "MOTOCICLETA",
+                                            pedestre = "PEDESTRE",
+                                            nao_disponivel = "NAO DISPONIVEL",
+                                            other_level = "outros")) |> 
+                group_by(id_infosiga, grupo) |> 
+                summarize(obitos = n()) |> 
+                ungroup() |> 
+                pivot_wider(id_cols = id_infosiga, names_from = grupo, values_from = obitos, 
+                            names_prefix = "obitos_", values_fill = 0)) |> 
+    select(id_sinistro,  data, starts_with("obitos")) |> 
+    left_join(match) |> 
+    filter(golden_match) |> 
+    left_join(agregados |> select(id_trecho_agregado, data_implementacao)) |> 
+    filter(!is.na(data_implementacao)) |> 
+    mutate(data = make_date(year = year(data), month = month(data)),
+           dist = time_length(data - data_implementacao, "months") |> round(),
+           periodo = case_when(dist > 0 ~ "pos", dist < 0 ~ "pre")) |>
+    filter(abs(dist) <= 12) |> 
+    group_by(data_implementacao, dist) |> 
+    summarize(across(c(starts_with("obitos")), ~ sum(.x, na.rm = T))) |> 
+    select(-obitos_nao_disponivel) |> 
+    pivot_longer(starts_with("obito")) |> 
+    ungroup() |> 
+    complete(data_implementacao, dist, name, fill = list(value = 0)) |> 
+    (\(df) bind_rows(
+      df |> 
+        filter(abs(dist) <= 6, 
+               data_implementacao <= make_date(year = 2024, month = 10)) |> 
+        mutate(p = "06 meses antes e depois (vias implementadas até 10/24)"),
+      
+      df |> 
+        filter(abs(dist) <= 12, 
+               data_implementacao <= make_date(year = 2024, month = 4)) |> 
+        mutate(p = "12 meses antes e depois (vias implementadas até 04/24)")
+    ))() |> 
+    ggplot(aes(x = dist, y = value, fill = name)) +
+    geom_vline(xintercept = 0, linetype = "dashed")+ 
+    geom_vline(xintercept = 6.5, alpha = .3, colour = "grey60", lwd = 2)+ 
+    geom_vline(xintercept = -6.5, alpha = .3, colour = "grey60", lwd = 2)+ 
+    geom_vline(xintercept = 12.5, alpha = .3, colour = "grey60", lwd = 2)+ 
+    geom_vline(xintercept = -12.5, alpha = .3, colour = "grey60", lwd = 2)+ 
+    geom_col() +
+    facet_wrap(~p, nrow = 3) + 
+    scale_x_continuous(breaks = 0:24-12) +
+    scale_fill_discrete("Veículo da vítima", labels = c("Motocicleta", "Outros", "Pedestre")) +
+    labs(x = "Meses até o tratamento", y = "Óbitos") +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+  
+  ggsave("output/plot_prepos_obitos.pdf", gg, width = 10, height = 6)
+  
+  gg <- sinistros |>
+    mutate(moto = tp_veiculo_motocicleta > 0 & !is.na(tp_veiculo_motocicleta),
+           fatal = gravidade_fatal > 0 & !is.na(gravidade_fatal)) |>
+    select(id_sinistro,  data, moto) |> 
+    left_join(match) |> 
+    filter(golden_match) |> 
+    left_join(agregados |> select(id_trecho_agregado, data_implementacao)) |> 
+    filter(!is.na(data_implementacao)) |> 
+    mutate(data = make_date(year = year(data), month = month(data)),
+           dist = time_length(data - data_implementacao, "months") |> round(),
+           periodo = case_when(dist > 0 ~ "pos", dist < 0 ~ "pre")) |>
+    filter(abs(dist) <= 12) |> 
+    group_by(data_implementacao, dist, moto) |> 
+    summarize(n = n()) |> 
+    ungroup() |> 
+    complete(data_implementacao, dist, moto, fill = list(n = 0)) |> 
+    mutate(n = ifelse(make_date(year = 2025, month = 5) - months(dist) < data_implementacao, NA, n)) |> 
+    (\(df) bind_rows(
+      df |> 
+        filter(abs(dist) <= 6, 
+               data_implementacao <= make_date(year = 2024, month = 10)) |> 
+        mutate(p = "06 meses antes e depois (vias implementadas até 10/24)"),
+      
+      df |> 
+        filter(abs(dist) <= 12, 
+               data_implementacao <= make_date(year = 2024, month = 4)) |> 
+        mutate(p = "12 meses antes e depois (vias implementadas até 04/24)")
+    ))() |> 
+    ggplot(aes(x = dist, y = n, fill = moto)) +
+    geom_vline(xintercept = 0, linetype = "dashed")+ 
+    geom_vline(xintercept = 6.5, alpha = .3, colour = "grey60", lwd = 2)+ 
+    geom_vline(xintercept = -6.5, alpha = .3, colour = "grey60", lwd = 2)+ 
+    geom_vline(xintercept = 12.5, alpha = .3, colour = "grey60", lwd = 2)+ 
+    geom_vline(xintercept = -12.5, alpha = .3, colour = "grey60", lwd = 2)+ 
+    geom_col() +
+    facet_wrap(~p, nrow = 3) + 
+    scale_x_continuous(breaks = 0:24-12) +
+    scale_fill_discrete("Veículos envolvidos", labels = c("Não envolveu motocicleta",  "Envolveu motocicleta")) +
+    labs(x = "Meses até o tratamento", y = "Sinistros") +
+    theme_minimal() +
+    theme(legend.position = "bottom")  
+  
+  ggsave("output/plot_prepos_sinistros.pdf", gg, width = 10, height = 6)
+  
+}
+
+
+
 
