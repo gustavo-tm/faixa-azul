@@ -261,7 +261,6 @@ tar_target(
   # 7.5. Plot e resultados----
   tar_target(did_tabela_plot, 
              did_tabela |> select(expand_grid,
-                                  variavel_y,
                                   file,
                                   title)),
   # Tabelona de resultados
@@ -282,7 +281,6 @@ tar_target(
   tar_target(name = did_plot,
              command = plot_did(
                did = did_fit,
-               variavel_y = did_tabela_plot$variavel_y,
                tabela_summary = did_summary_tabelinha,
                expand_grid = did_tabela_plot$expand_grid,
                file = did_tabela_plot$file,

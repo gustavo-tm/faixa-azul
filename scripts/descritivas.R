@@ -76,7 +76,7 @@ plot_datas_FA <- function(logradouros, logradouros_id, match, sinistros){
                              select(id_logradouro)) |> 
                  unnest(trechos) |> 
                  rename(id_osm = trechos, nome = logradouro) |> 
-                 inner_join(match |> select(id_sinistro, id_osm)) |> 
+                 inner_join(match |> filter(golden_match) |> select(id_sinistro, id_osm)) |> 
                  left_join(sinistros |> 
                              select(id_sinistro, data, tipo, tp_veiculo_motocicleta)) |> 
                  mutate(motocicleta = replace_na(tp_veiculo_motocicleta, 0) > 0) |> 
@@ -277,6 +277,7 @@ plot_obitos_tempo <- function(sinistros, vitimas, match, faixa_azul, logradouros
     left_join(sinistros) |> 
     filter(gravidade_lesao == "FATAL", year(data) > 2015, year(data) < 2025) |> 
     left_join(match, by = join_by(id_sinistro)) |> 
+    filter(golden_match) |> 
     left_join(agregados) |> 
     filter(!is.na(data_implementacao)) |> 
     mutate(tipo_veiculo_vitima = str_to_upper(tipo_veiculo_vitima),

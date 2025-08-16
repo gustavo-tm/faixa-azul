@@ -1,3 +1,7 @@
 ﻿apenas_moto,filtro_sinistros,filtro_segmentos,segmento_nivel,rodarPSM,PSM_corte_minimo,intervalo_meses,filtrar_golden,por_km,log_delta,variavel_y,grupo_controle,pesos,remover_controle,expand_grid,file,title
 ,,,agregados,,,,,,,mortes_moto,,,,,obitos/motociclistas,
+,,,agregados,,,,,,1,mortes_moto,,,,,obitos/motociclistas_log,
 ,,,agregados,,,,,,,mortes_pedestre_bike,,,,,obitos/pedestre_bike,
+,,,agregados,,,,,,1,mortes_pedestre_bike,,,,,obitos/pedestre_bike_log,
+,(hora >= 7 & hora < 10) | (hora >= 17 & hora < 20),,agregados,,,,,,,envolvidos_fatal,,,,,obitos/pico,
+,(hora >= 7 & hora < 10) | (hora >= 17 & hora < 20),,agregados,,,,,,1,envolvidos_fatal,,,,,obitos/pico_log,

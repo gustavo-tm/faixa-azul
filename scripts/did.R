@@ -187,6 +187,9 @@ fit_did <- function(
   weightsname = NA, remover_formula = NA
 ){
   
+  df <- df |> 
+    rename(y = !!yname)
+  
   if (is.na(log_delta)){log_delta <- NULL}
   if (is.na(weightsname)){weightsname <- NULL}
   
@@ -200,7 +203,7 @@ fit_did <- function(
   # Calcular variáveis de resposta e controle por km
   if(por_km){
     df <- df |> 
-      mutate(across(c(matches("envolvidos"), sinistros, intersec, amenidades), 
+      mutate(across(c(y, intersec, amenidades), 
                     ~ .x * 1000 / comprimento))
   }
   
@@ -208,12 +211,11 @@ fit_did <- function(
   # Como tem zeros, necessário somar constante (delta)
   if (!is.null(log_delta)) {
     df <- df |> 
-      mutate(across(c(matches("envolvidos"), sinistros), 
-                    ~ log(.x + log_delta)))
+      mutate(y = log(y + log_delta))
   }
   
   fit <- att_gt(
-    yname = yname,
+    yname = "y",
     tname = "periodo",
     idname = "ID",
     gname = "coorte",
@@ -227,7 +229,7 @@ fit_did <- function(
   return(fit)
 }
 
-plot_did <- function(did, file, tabela_summary, variavel_y, title = NULL, expand_grid = .5){
+plot_did <- function(did, file, tabela_summary, title = NULL, expand_grid = .5){
   
   if (is.na(title)){title <- NULL}
   
@@ -254,7 +256,6 @@ plot_did <- function(did, file, tabela_summary, variavel_y, title = NULL, expand
   # tabelinha descritivas da base
   tabela2 <- did$DIDparams$data |> 
     as_tibble() |> 
-    rename(y = !!variavel_y) |> 
     summarize(Mínimo = min(y),
               Q1 = quantile(y, .25),
               Mediana = median(y),
