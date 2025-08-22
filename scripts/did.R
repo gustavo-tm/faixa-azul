@@ -20,7 +20,7 @@ limpar_tabela_did <- function(did_tabela){
            across(c(PSM_corte_minimo), ~ .x |> as.numeric() |> replace_na(0)),
            across(c(intervalo_meses), ~ .x |> as.numeric() |> replace_na(1)),
            variavel_y = variavel_y |> as.character() |> replace_na("sinistros"),
-           grupo_controle = grupo_controle |> as.character() |> replace_na("nevertreated"),
+           grupo_controle = grupo_controle |> as.character() |> replace_na("notyettreated"),
            expand_grid = expand_grid |> as.numeric() |> replace_na(.5))
 }
 
@@ -224,18 +224,19 @@ fit_did <- function(
     control_group = control_group,
     xformla = formula,
     base_period = "universal",
-    weightsname = weightsname)
+    weightsname = weightsname,
+    biters = 5000)
   
   return(fit)
 }
 
-plot_did <- function(did, file, tabela_summary, title = NULL, expand_grid = .5){
+plot_did <- function(did, file, tabela_summary, title = NULL, expand_grid = .5, intervalo_meses = 1){
   
   if (is.na(title)){title <- NULL}
   
   # gráfico
   plot <- did |> 
-    aggte(type = "dynamic", min_e = -12, max_e = 12, na.rm = TRUE) |> 
+    aggte(type = "dynamic", min_e = -12  / intervalo_meses, max_e = 12 / intervalo_meses, na.rm = TRUE) |> 
     ggdid() +
     scale_y_continuous(expand = expansion(mult = expand_grid)) +
     scale_x_continuous("Meses até data da implementação", breaks = c(0:9-4)*3) +
@@ -256,15 +257,13 @@ plot_did <- function(did, file, tabela_summary, title = NULL, expand_grid = .5){
   # tabelinha descritivas da base
   tabela2 <- did$DIDparams$data |> 
     as_tibble() |> 
-    summarize(Mínimo = min(y),
-              Q1 = quantile(y, .25),
+    summarize(Média = mean(y),
               Mediana = median(y),
-              Média = mean(y),
-              Q3 = quantile(y, .75),
-              Max = max(y)) |> 
+              "Desvio Padrão" = sd(y),
+              Máximo = max(y)) |> 
     gt() |> 
     fmt_number(decimals = 2) |> 
-    cols_width(everything() ~ 100)
+    cols_width(everything() ~ 600/4)
   
   figura <- (wrap_table(tabela1, space = "fixed") / plot / wrap_table(tabela2, space = "fixed"))
   
@@ -276,8 +275,8 @@ plot_did <- function(did, file, tabela_summary, title = NULL, expand_grid = .5){
   return(plot)
 }
 
-summary_tabelinha_did <- function(did, nome){
-  out <- aggte(did, type = "simple", min_e = -12, max_e = 12, na.rm = TRUE)
+summary_tabelinha_did <- function(did, nome, intervalo_meses = 1){
+  out <- aggte(did, type = "simple", min_e = -12 / intervalo_meses, max_e = 12  / intervalo_meses, na.rm = TRUE)
   ATT <- out$overall.att
   se <- out$overall.se
   ci_low = ATT - se * 1.96
@@ -308,5 +307,4 @@ save_tabela_agregada <- function(tabela){
     kable_styling(latex_options = c("repeat_header")) |> 
     write(file = "output/did/tabela_agregada.tex")
 }
-
 

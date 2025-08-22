@@ -262,12 +262,14 @@ tar_target(
   tar_target(did_tabela_plot, 
              did_tabela |> select(expand_grid,
                                   file,
+                                  intervalo_meses,
                                   title)),
   # Tabelona de resultados
   tar_target(name = did_summary_tabelinha,
              command = summary_tabelinha_did(
                did = did_fit,
-               nome = did_tabela_plot$file),
+               nome = did_tabela_plot$file,
+               intervalo_meses =  did_tabela_plot$intervalo_meses),
              pattern = map(did_fit, did_tabela_plot),
                iteration = "list"),
 
@@ -281,6 +283,7 @@ tar_target(
   tar_target(name = did_plot,
              command = plot_did(
                did = did_fit,
+               intervalo_meses =  did_tabela_plot$intervalo_meses,
                tabela_summary = did_summary_tabelinha,
                expand_grid = did_tabela_plot$expand_grid,
                file = did_tabela_plot$file,

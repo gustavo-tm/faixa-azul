@@ -1,5 +1,5 @@
 bind_rows(list(
-  read_csv("auxiliares/did_tabela_manual.csv"),
+  # read_csv("auxiliares/did_tabela_manual.csv"),
   read_csv("auxiliares/did_tabela_template.csv") |> mutate(t = "total"),
   read_csv("auxiliares/did_tabela_template.csv") |> mutate(t = "moto", apenas_moto = TRUE),
   read_csv("auxiliares/did_tabela_template.csv") |> mutate(t = "total-km", por_km = TRUE, ),
@@ -9,6 +9,11 @@ bind_rows(list(
   read_csv("auxiliares/did_tabela_template.csv") |> mutate(t = "moto-km-log", apenas_moto = TRUE, por_km = TRUE, log_delta = .1),
   read_csv("auxiliares/did_tabela_template.csv") |> mutate(t = "total-km-log", por_km = TRUE, log_delta = .1)
 )) |> 
+  (\(df) bind_rows(
+    df,
+    df |> mutate(t = str_c("bimestre-", t),
+                 intervalo_meses = 2)
+  ))() |> 
   mutate(file = ifelse(is.na(t), file, str_c(t, "/", file)),
          across(everything(), ~ .x |> as.character() |> replace_na("")),
          filtro_segmentos = case_when(por_km == "TRUE" & filtro_segmentos == "intersec >= 15" ~ "intersec / comprimento >= 0.03",

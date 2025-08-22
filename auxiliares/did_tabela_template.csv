@@ -11,3 +11,4 @@
 ,,intersec < 15,agregados,,,,,,,,,,,,intersec-,
 ,,faixas > 3,agregados,,,,,,,,,,,,faixas+,
 ,,faixas <= 3.2,agregados,,,,,,,,,,,,faixas-,
+,,,agregados,,,,,,,,nevertreated,,,,nevertreated,
