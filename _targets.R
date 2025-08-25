@@ -290,6 +290,7 @@ tar_target(
                title = did_tabela_plot$title),
              pattern = map(did_fit, did_tabela_plot, did_summary_tabelinha),
              iteration = "list")
+  
 
 
 

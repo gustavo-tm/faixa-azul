@@ -197,7 +197,12 @@ fit_did <- function(
   # Exemplo: "intersec, faixas"
   formula <- ~ comprimento + tipo_via + faixas + limite_velocidade + amenidades + intersec + radar_proximo
   if (!is.na(remover_formula)){
-    formula <- update(formula, paste(" .~. -", paste(remover_formula |> str_split_1(","), collapse = "-")))
+    if(remover_formula == "tudo"){
+      formula <- NULL
+    }else{
+      formula <- update(formula, paste(" .~. -", paste(remover_formula |> str_split_1(","), collapse = "-")))
+    }
+    
   }
   
   # Calcular variáveis de resposta e controle por km

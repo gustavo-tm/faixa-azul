@@ -1,3 +1,9 @@
+library(targets)
+library(tidyverse)
+library(did)
+
+sinistros <- tar_read(dado_sinistros)
+
 tar_read(dado_match_bind) |> left_join(tar_read(dado_match)) |> ungroup() |>  count(golden_match) |> mutate(p = n/sum(n))
 
 match |> left_join(match_bind) |> ungroup() |> 
@@ -526,6 +532,47 @@ sinistros |>
 
 sinistros |>
   left_join(vitimas |> 
+              filter(gravidade_lesao == "FATAL") |> 
+              mutate(grupo = fct_collapse(str_to_upper(tipo_veiculo_vitima),
+                                          motocicleta = "MOTOCICLETA",
+                                          pedestre = "PEDESTRE",
+                                          nao_disponivel = "NAO DISPONIVEL",
+                                          other_level = "outros")) |> 
+              group_by(id_infosiga, grupo) |> 
+              summarize(obitos = n()) |> 
+              ungroup() |> 
+              pivot_wider(id_cols = id_infosiga, names_from = grupo, values_from = obitos, 
+                          names_prefix = "obitos_", values_fill = 0)) |> 
+  select(id_sinistro,  data, starts_with("obitos")) |> 
+  left_join(match) |> 
+  filter(golden_match) |> 
+  left_join(agregados |> select(id_trecho_agregado, data_implementacao)) |> 
+  filter(!is.na(data_implementacao)) |> 
+  mutate(data = make_date(year = year(data), month = month(data)),
+         dist = time_length(data - data_implementacao, "months") |> round(),
+         periodo = case_when(dist > 0 ~ "pos", dist < 0 ~ "pre")) |>
+  filter(abs(dist) <= 12) |> 
+  group_by(data_implementacao, dist) |> 
+  summarize(across(c(starts_with("obitos")), ~ sum(.x, na.rm = T))) |> 
+  select(-obitos_nao_disponivel) |> 
+  pivot_longer(starts_with("obito")) |> 
+  # mutate(dist = dist |> as.character() |> str_replace("-", "a")) |> 
+  ungroup() |> 
+  complete(data_implementacao, dist, name, fill = list(value = 0)) |>
+  filter(dist != 0) |> 
+  mutate(pre = dist < 0,
+         value =  ifelse(pre, -value, value)) |> 
+  ggplot(aes(x = value, y = factor(-abs(dist)), fill = pre)) +
+  geom_col() +
+  labs(x = "Óbitos", y  = "Meses até a implementacão") +
+  scale_fill_discrete("Período", labels =  c("Depois da implementação", "Antes da implementação"))
+
+
+
+
+
+sinistros |>
+  left_join(vitimas |> 
               filter(gravidade_lesao == "FATAL", 
                      str_to_upper(tipo_veiculo_vitima) == "MOTOCICLETA") |> 
               group_by(id_infosiga) |> 
@@ -1000,4 +1047,237 @@ match |>
   summarize(n = n()) |> 
   ggplot() +
   geom_col(aes(y = n, fill = match_titulo, x = 1))
+
+y = "sinistros"
+
+did_df |> head() |> 
+  rename(y = !!y)
+
+
+
+did <- fit_did(tar_read(did_df, branches = 1) |> 
+                 mutate(y = ifelse(coorte != 0 & periodo > coorte, 0 , envolvidos_fatal)), 
+               yname = "y",
+               log_delta = 1)
+
+did |> 
+  aggte(type = "dynamic", min_e = -12, max_e = 12, na.rm = TRUE) |> 
+  ggdid()
+
+
+plot |> ggdid()
+
+
+out <- aggte(did, type = "simple", min_e = -12, max_e = 12, na.rm = TRUE)
+ATT <- out$overall.att
+se <- out$overall.se
+ci_low = ATT - se * 1.96
+ci_high = ATT + se * 1.96
+significance <- if(ci_low < 0 & ci_high > 0){""}else{"*"}
+
+# tabelinha resultados agregados
+tibble(
+  ATT = format(round(ATT, 3), nsmall = 3), 
+  SE = format(round(se, 3), nsmall = 3), 
+  "IC (95%)" = paste0("[", format(round(ci_low, 3), nsmall = 3), ", ", format(round(ci_high, 3), nsmall = 3), "]"),
+  Significante = if(ci_low < 0 & ci_high > 0){"Não"}else{"Sim"})
+
+sinistros |> 
+  filter(tipo != "NOTIFICACAO") |> 
+  # filter(tp_veiculo_nao_disponivel == 0 | is.na(tp_veiculo_nao_disponivel)) |>
+  mutate(m  = tp_veiculo_motocicleta > 0) |> 
+  group_by(m) |> 
+  summarize(n   = n()) |> 
+  mutate(p = n/sum(n))
+
+
+tar_read(dado_sinistros) |> 
+  filter(tipo != "NOTIFICACAO", year(data) == 2024) |>
+  select(id_sinistro, starts_with("tp_")) |> 
+  pivot_longer(starts_with("tp_veiculo")) |> 
+  filter(name != "tp_veiculo_nao_disponivel") |> 
+  drop_na() |> 
+  mutate(moto = name == "tp_veiculo_motocicleta") |> 
+  group_by(id_sinistro) |> 
+  summarize(moto = sum(moto)) |> 
+  count(moto) |> 
+  mutate(percentual = n/sum(n))
+
+
+tabela_periodos_datetime |> 
+  mutate(periodo_mod = ((periodo - 1) %/% 2 + 1))
+
+
+agrega_tempo <- memoise::memoise(function(segmentos_filtrado, sinistros_filtrado, match, 
+                                          intervalo_meses = 1, filtrar_golden = TRUE){})
+
+segmentos_filtrado <- tar_read(did_segmento_PSM, branches = 150)
+sinistros_filtrado <- tar_read(did_sinistro_filtrado, branches = 150)
+match <- tar_read(dado_match)
+
+
+segmentos <- segmentos_filtrado |>
+  pivot_longer(starts_with("id")) |> 
+  drop_na(value) |> 
+  pivot_wider(id_cols = everything(), names_from = name, values_from = value) |> 
+  mutate(ID = row_number())
+
+segmentos |>
+  left_join(match) |> 
+  left_join(sinistros_filtrado) |> 
+  
+  # Tornar datetimes mensais (desconsiderar o dia do mês) 
+  mutate(data = make_date(year = year(data), month = month(data))) |> 
+  left_join(tabela_periodos_datetime) |> 
+  mutate(periodo = ((periodo - 1) %/% intervalo_meses + 1)) |> 
+  
+  
+  # Filtrar golden match, e remover os que não tem match
+  filter(if(filtrar_golden == TRUE){eval(golden_match == TRUE)}else{TRUE},
+         !is.na(id_sinistro),
+         year(data) >= 2019) |> 
+  
+  # Agregar para o DID
+  group_by(ID, periodo) |> 
+  summarize(sinistros = n(),
+            envolvidos_fatal = sum(gravidade_fatal, na.rm = T),
+            envolvidos_grave = sum(gravidade_grave, na.rm = T),
+            envolvidos_leve = sum(gravidade_leve, na.rm = T),
+            envolvidos_ileso = sum(gravidade_ileso, na.rm = T),
+            envolvidos_na = sum(gravidade_nao_disponivel, na.rm = T),
+            mortes_moto = sum(mortes_motocicleta, na.rm = T),
+            mortes_pedestre_bike = sum(mortes_pedestre_bike, na.rm = T)) |> 
+  
+  # Painel balanceado e retornar os trechos sempre zero sinistros
+  ungroup() |> 
+  right_join(segmentos |> select(ID)) |> 
+  complete(ID, periodo) |> 
+  filter(!is.na(periodo)) |> 
+  mutate(across(everything(), ~ replace_na(.x, 0))) |> 
+  
+  # Recuperar os controles na base final
+  left_join(
+    segmentos |> 
+      
+      # Tornar datetimes mensais (desconsiderar o dia do mês) 
+      mutate(data_implementacao = make_date(year = year(data_implementacao), 
+                                            month = month(data_implementacao))) |> 
+      left_join(tabela_periodos_datetime |> 
+                  rename(coorte = periodo), 
+                by = join_by(data_implementacao == data)) |> 
+      mutate(coorte = ((coorte - 1) %/% intervalo_meses + 1) |> replace_na(0))) |> 
+  select(-data_implementacao)
+
+
+
+
+d <- tar_read(did_fit, branches = 2)
+
+summary(d$did_fit_aeb019e0ca3024f1)
+
+
+res <- tar_read(did_df,  branches = 2) |> 
+  att_gt(yname = "sinistros", 
+         tname = "periodo", 
+         idname = "ID", 
+         gname = "coorte", 
+         xformla = ~ 1,  # This is key - your covariates
+         data = _,
+         print_details =  F)
+
+res2 <- tar_read(did_df,  branches = 27) |> 
+  att_gt(yname = "sinistros", 
+         tname = "periodo", 
+         idname = "ID", 
+         gname = "coorte", 
+         xformla = ~ 1,  # This is key - your covariates
+         data = _,
+         print_details =  F,
+         biters = 5000,
+         base_period =  "universal")
+
+
+tar_read(did_tabela, branches  = 1) |> View()
+
+t <- d$did_fit_aeb019e0ca3024f1 |> summary()
+
+t <- tar_read(did_fit, branches = 14)[[1]] |> 
+  summary() 
+
+summary(d$did_fit_aeb019e0ca3024f1)
+out <- aggte(d$did_fit_536dae55cc7057d9, type = "simple", min_e = -12 / 1, max_e = 12  / 1, na.rm = TRUE)
+
+summary(out)
+
+
+extrair_w <- function(did){did$Wpval}
+extrair_w(res2)
+
+
+
+gg <- tar_read(did_df, branches = 1) |> 
+  select("Sinistros" = sinistros, "Sinistros Fatais" = envolvidos_fatal) |> 
+  pivot_longer(everything()) |> 
+  group_by(name) |> 
+  ggplot()  +
+  geom_histogram(aes(x = -value, y = after_stat(count * 2 / sum(count))), binwidth = .5) +
+  facet_wrap(~name) + 
+  scale_x_continuous("Número de sinistros", labels = abs, limits = c(-5, NA)) +
+  scale_y_continuous("Ocorrências na base de dados considerando todos os meses e vias", labels = scales::percent) +
+  coord_flip() +
+  theme_minimal()
+
+ggsave("DistribuicaoSinistros.pdf", gg, width = 10, height = 4)
+
+tar_read(did_df, branches = 1) |> 
+  ggplot()  +
+  geom_histogram(aes(x = sinistros, fill = coorte != 0), position = "dodge")
+
+tar_read(did_df, branches = 1) |> 
+  ggplot()  +
+  geom_histogram(aes(x = envolvidos_fatal), position = "dodge")
+
+
+tar_read(did_df, branches = 1) |> 
+  mutate(y= sinistros) |>
+  ggplot()  +
+  geom_histogram(aes(x = -y))  + coord_flip()
+
+tar_read(did_df, branches = 1) |> View()
+  summarize(across(c(sinistros,starts_with("envolvidos")), ~ sum(.x)), 
+            trechos = sum(trechos)) |> 
+  pivot_longer(everything()) 
+
+
+  
+tar_read(did_df, branches = 1) |> 
+  distinct(periodo)
+  
+tar_read(dado_faixa_azul) |> 
+  left_join(tar_read(dado_id_logradouros) |> 
+              unnest(id_osm = trechos))
+
+
+tar_read(dado_trechos) |> distinct(tipo_via)
+
+
+tar_read(dado_trechos_bruto) |> st_drop_geometry() |> 
+  count(tipo_via)
+
+tar_read(dado_faixa_azul) |> 
+  left_join(tar_read(dado_trechos_bruto) |> st_drop_geometry()) |> 
+  summarize(comprimento = sum(comprimento, na.rm =) / 1000)
+
+
+tar_read(dado_agregados) |> 
+  group_by(is.na(data_implementacao)) |> 
+  count(tipo_via) |> ungroup() |> summarize(sum(n))
+
+
+tar_read(did_tabela) |> mutate(soma = tar_read(TESTE) |> unlist()) |> 
+  select(file, soma) |> 
+  mutate(soma = round(soma)) |> 
+  kable(format = "latex", booktabs = TRUE, longtable = FALSE, linesep = "", align = c("l", "r"))|> 
+  kable_styling(latex_options = c("repeat_header"))
+
 
