@@ -1,0 +1,2 @@
+variable,coefficient,std_error,t_statistic,p_value,lower_ci,upper_ci
+jwdid,0.1439453,0.1418769,1.01,0.31,-0.1341283,0.4220189
