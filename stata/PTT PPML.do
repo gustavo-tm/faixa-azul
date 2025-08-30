@@ -1,53 +1,9 @@
 
-
 clear all
 program drop _all
 
-
-*Here set your path
 cd "C:\Dev\faixa-azul"
 
-
-global por_km = 1 			// 1 or 0
-
-if $por_km == 0 {
-	import delimited "C:\Dev\faixa-azul\dados_tratados\df_did_psm.csv"
-}
-if $por_km == 1 {
-	import delimited "C:\Dev\faixa-azul\dados_tratados\df_did-km_psm.csv"
-}
-
-
-// keep if tipo_via == "trunk"
-
-
-gen Y = sinistros_hora_17_20_moto
-gen month = mes
-gen group = data_implementacao
-
-* Create treatment indicator and relative time
-gen Ei = group  // Treatment month (0 for never-treated)
-gen K = month - Ei if Ei != 0  // Relative time (missing for never-treated)
-gen T = (K >= 0 & Ei != 0)     // Treatment indicator
-
-* Create event study dummies based on actual data range
-qui sum K if K != .
-local k_min = `r(min)'
-local k_max = `r(max)'
-
-di "Relative time range: `k_min' to `k_max'"
-
-* Leads (pre-treatment periods, K < 0)
-forvalues l = 2/`=abs(`k_min')' {
-    gen F`l'event = (K == -`l') if K != .
-    qui count if F`l'event == 1
-}
-
-* Lags (post-treatment periods, K >= 0)
-forvalues l = 0/`k_max' {
-    gen L`l'event = (K == `l') if K != .
-    qui count if L`l'event == 1
-}
 
 
 * ================================================================================
@@ -106,26 +62,6 @@ program define static_imput_boot, eclass
     ereturn scalar scale_factor = `scale'
     
 end
-
-
-* Test the program first (without bootstrap)
-// di "Testing the estimator..."
-// aggregate_imput_boot
-//
-// di "Main results:"
-// di "Imputation effect (ATT/scale): " e(imput_effect)
-// di "APT effect (mean Y/hatY): " e(apt_effect)
-// di "ATT level: " e(att_level)
-// di "Scale factor: " e(scale_factor)
-
-
-bootstrap imput=e(imput_effect) apt=e(apt_effect) att=e(att_level) scale=e(scale_factor), ///
-    reps(500) cluster(id) seed(12345): static_imput_boot
-
-* Store bootstrap results
-estimates store static_imputation
-
-
 
 
 
@@ -250,41 +186,522 @@ program define dynamic_imput_boot, eclass
     
 end
 
+
+
 * ================================================================================
-* RUN THE ESTIMATOR
+* RUN THE ESTIMATORS
 * ================================================================================
 
-* First, let's test the program without bootstrap to check for errors
-// imput_boot
-// matrix list e(b)
-
-* If the above works, then run with bootstrap
-bootstrap, reps(500) cluster(id) idcluster(newid): dynamic_imput_boot
-
-* Store results
-estimates store dynamic_imputation
-
-* Extract coefficient estimates and standard errors
-matrix imputation_ptt_b = e(b)
-matrix imputation_ptt_v = e(V)
 
 
-event_plot imputation_ptt_b#imputation_ptt_v, ///
-stub_lead(pre#) stub_lag(post#) trimlag(12) trimlead(12) ///
-plottype(scatter) ciplottype(rcap) together noautolegend ///
-graph_opt(xtitle("Meses") ytitle("Efeito") xlabel(-12(1)12) yline(0, lpattern(dash) lcolor(gray)) ///
-ylabel(-1.5(0.5)1.5) legend(off))
+*** SINISTROS ENVOLVENDO MOTO, POR KM ***
+import delimited "C:\Dev\faixa-azul\stata\input\km_moto.csv", clear
+
+gen Y = sinistros
+gen month = periodo
+gen group = coorte
+
+* Create treatment indicator and relative time
+qui gen Ei = group  // Treatment month (0 for never-treated)
+qui gen K = month - Ei if Ei != 0  // Relative time (missing for never-treated)
+qui gen T = (K >= 0 & Ei != 0)     // Treatment indicator
+
+* Create event study dummies based on actual data range
+qui sum K if K != .
+local k_min = `r(min)'
+local k_max = `r(max)'
+di "Relative time range: `k_min' to `k_max'"
+
+* Leads (pre-treatment periods, K < 0)
+forvalues l = 2/`=abs(`k_min')' {
+    qui gen F`l'event = (K == -`l') if K != .
+    qui count if F`l'event == 1
+}
+* Lags (post-treatment periods, K >= 0)
+forvalues l = 0/`k_max' {
+    qui gen L`l'event = (K == `l') if K != .
+    qui count if L`l'event == 1
+}
 
 
-graph save "C:\Dev\faixa-azul\stata\plots\imput\hora\17_20-moto-km.gph", replace
-graph export "C:\Dev\faixa-azul\stata\plots\imput\hora\17_20-moto-km.png", replace
+*** Static imputation
+bootstrap imput=e(imput_effect) apt=e(apt_effect) att=e(att_level) scale=e(scale_factor), ///
+    reps(1000) cluster(id) seed(12345): static_imput_boot
 
-* Display results
-// di "Imputation Estimator Results:"
-// di "=============================="
-// matrix list imputation_ptt_b, title("Proportional Treatment Effects (PTT)")
+estimates store s_imput_sin_moto_km
 
-* Create a nice results table
-// matrix results = imputation_ptt_b'
-// matrix colnames results = "PTT_Coefficient"
-// matlist results, title("Event Study Results - Imputation Estimator")
+*** Dynamic imputation
+bootstrap, reps(1000) cluster(id) idcluster(newid) seed(12345): dynamic_imput_boot
+
+estimates store d_imput_sin_moto_km
+
+* Dynamic visualization
+// matrix imputation_ptt_b = e(b)
+// matrix imputation_ptt_v = e(V)
+//
+// event_plot imputation_ptt_b#imputation_ptt_v, ///
+// stub_lead(pre#) stub_lag(post#) trimlag(12) trimlead(12) ///
+// plottype(scatter) ciplottype(rcap) together noautolegend ///
+// graph_opt(xtitle("Meses até a data de implemetação") ytitle("") xlabel(-12(1)12) yline(0, lpattern(dash) lcolor(gray)) ///
+// ylabel(-1.5(0.5)1.5) legend(off))
+//
+// graph export "C:\Dev\faixa-azul\stata\plots\imput\05-sinistros-atropelamento.png", replace
+
+
+
+
+*** TODOS OS SINISTROS, POR KM ***
+
+import delimited "C:\Dev\faixa-azul\stata\input\km_todos.csv", clear
+
+gen Y = sinistros
+gen month = periodo
+gen group = coorte
+
+* Create treatment indicator and relative time
+qui gen Ei = group  // Treatment month (0 for never-treated)
+qui gen K = month - Ei if Ei != 0  // Relative time (missing for never-treated)
+qui gen T = (K >= 0 & Ei != 0)     // Treatment indicator
+
+* Create event study dummies based on actual data range
+qui sum K if K != .
+local k_min = `r(min)'
+local k_max = `r(max)'
+di "Relative time range: `k_min' to `k_max'"
+
+* Leads (pre-treatment periods, K < 0)
+forvalues l = 2/`=abs(`k_min')' {
+    qui gen F`l'event = (K == -`l') if K != .
+    qui count if F`l'event == 1
+}
+* Lags (post-treatment periods, K >= 0)
+forvalues l = 0/`k_max' {
+    qui gen L`l'event = (K == `l') if K != .
+    qui count if L`l'event == 1
+}
+
+
+*** Static imputation
+bootstrap imput=e(imput_effect) apt=e(apt_effect) att=e(att_level) scale=e(scale_factor), ///
+    reps(1000) cluster(id) seed(12345): static_imput_boot
+
+estimates store s_imput_sin_todos_km
+
+*** Dynamic imputation
+bootstrap, reps(1000) cluster(id) idcluster(newid) seed(12345): dynamic_imput_boot
+
+estimates store d_imput_sin_todos_km
+
+
+
+
+*** ATROPELAMENTOS ENVOLVENDO MOTO, POR KM ***
+
+import delimited "C:\Dev\faixa-azul\stata\input\km_moto_atropelamento.csv", clear
+
+gen Y = sinistros
+gen month = periodo
+gen group = coorte
+
+* Create treatment indicator and relative time
+qui gen Ei = group  // Treatment month (0 for never-treated)
+qui gen K = month - Ei if Ei != 0  // Relative time (missing for never-treated)
+qui gen T = (K >= 0 & Ei != 0)     // Treatment indicator
+
+* Create event study dummies based on actual data range
+qui sum K if K != .
+local k_min = `r(min)'
+local k_max = `r(max)'
+di "Relative time range: `k_min' to `k_max'"
+
+* Leads (pre-treatment periods, K < 0)
+forvalues l = 2/`=abs(`k_min')' {
+    qui gen F`l'event = (K == -`l') if K != .
+    qui count if F`l'event == 1
+}
+* Lags (post-treatment periods, K >= 0)
+forvalues l = 0/`k_max' {
+    qui gen L`l'event = (K == `l') if K != .
+    qui count if L`l'event == 1
+}
+
+
+*** Static imputation
+bootstrap imput=e(imput_effect) apt=e(apt_effect) att=e(att_level) scale=e(scale_factor), ///
+    reps(1000) cluster(id) seed(12345): static_imput_boot
+
+estimates store s_imput_sin_atrop_km
+
+*** Dynamic imputation
+bootstrap, reps(1000) cluster(id) idcluster(newid) seed(12345): dynamic_imput_boot
+
+estimates store d_imput_sin_atrop_km
+
+
+
+
+*** TODOS OS ATROPELAMENTOS, POR KM ***
+
+import delimited "C:\Dev\faixa-azul\stata\input\km_todos_atropelamento.csv", clear
+
+gen Y = sinistros
+gen month = periodo
+gen group = coorte
+
+* Create treatment indicator and relative time
+qui gen Ei = group  // Treatment month (0 for never-treated)
+qui gen K = month - Ei if Ei != 0  // Relative time (missing for never-treated)
+qui gen T = (K >= 0 & Ei != 0)     // Treatment indicator
+
+* Create event study dummies based on actual data range
+qui sum K if K != .
+local k_min = `r(min)'
+local k_max = `r(max)'
+di "Relative time range: `k_min' to `k_max'"
+
+* Leads (pre-treatment periods, K < 0)
+forvalues l = 2/`=abs(`k_min')' {
+    qui gen F`l'event = (K == -`l') if K != .
+    qui count if F`l'event == 1
+}
+* Lags (post-treatment periods, K >= 0)
+forvalues l = 0/`k_max' {
+    qui gen L`l'event = (K == `l') if K != .
+    qui count if L`l'event == 1
+}
+
+
+*** Static imputation
+bootstrap imput=e(imput_effect) apt=e(apt_effect) att=e(att_level) scale=e(scale_factor), ///
+    reps(1000) cluster(id) seed(12345): static_imput_boot
+
+estimates store s_imput_todos_atrop_km
+
+*** Dynamic imputation
+bootstrap, reps(1000) cluster(id) idcluster(newid) seed(12345): dynamic_imput_boot
+
+estimates store d_imput_todos_atrop_km
+
+
+
+
+*** SINISTROS ENVOLVENDO MOTO EM HORARIO DE PICO, POR KM ***
+
+import delimited "C:\Dev\faixa-azul\stata\input\km_moto_horario_pico.csv", clear
+
+gen Y = sinistros
+gen month = periodo
+gen group = coorte
+
+* Create treatment indicator and relative time
+qui gen Ei = group  // Treatment month (0 for never-treated)
+qui gen K = month - Ei if Ei != 0  // Relative time (missing for never-treated)
+qui gen T = (K >= 0 & Ei != 0)     // Treatment indicator
+
+* Create event study dummies based on actual data range
+qui sum K if K != .
+local k_min = `r(min)'
+local k_max = `r(max)'
+di "Relative time range: `k_min' to `k_max'"
+
+* Leads (pre-treatment periods, K < 0)
+forvalues l = 2/`=abs(`k_min')' {
+    qui gen F`l'event = (K == -`l') if K != .
+    qui count if F`l'event == 1
+}
+* Lags (post-treatment periods, K >= 0)
+forvalues l = 0/`k_max' {
+    qui gen L`l'event = (K == `l') if K != .
+    qui count if L`l'event == 1
+}
+
+
+*** Static imputation
+bootstrap imput=e(imput_effect) apt=e(apt_effect) att=e(att_level) scale=e(scale_factor), ///
+    reps(1000) cluster(id) seed(12345): static_imput_boot
+
+estimates store s_imput_sin_hora_km
+
+*** Dynamic imputation
+bootstrap, reps(1000) cluster(id) idcluster(newid) seed(12345): dynamic_imput_boot
+
+estimates store d_imput_sin_hora_km
+
+
+
+
+*** TODOS OS SINISTROS EM HORARIO DE PICO, POR KM ***
+
+import delimited "C:\Dev\faixa-azul\stata\input\km_todos_horario_pico.csv", clear
+
+gen Y = sinistros
+gen month = periodo
+gen group = coorte
+
+* Create treatment indicator and relative time
+qui gen Ei = group  // Treatment month (0 for never-treated)
+qui gen K = month - Ei if Ei != 0  // Relative time (missing for never-treated)
+qui gen T = (K >= 0 & Ei != 0)     // Treatment indicator
+
+* Create event study dummies based on actual data range
+qui sum K if K != .
+local k_min = `r(min)'
+local k_max = `r(max)'
+di "Relative time range: `k_min' to `k_max'"
+
+* Leads (pre-treatment periods, K < 0)
+forvalues l = 2/`=abs(`k_min')' {
+    qui gen F`l'event = (K == -`l') if K != .
+    qui count if F`l'event == 1
+}
+* Lags (post-treatment periods, K >= 0)
+forvalues l = 0/`k_max' {
+    qui gen L`l'event = (K == `l') if K != .
+    qui count if L`l'event == 1
+}
+
+
+*** Static imputation
+bootstrap imput=e(imput_effect) apt=e(apt_effect) att=e(att_level) scale=e(scale_factor), ///
+    reps(1000) cluster(id) seed(12345): static_imput_boot
+
+estimates store s_imput_todos_hora_km
+
+*** Dynamic imputation
+bootstrap, reps(1000) cluster(id) idcluster(newid) seed(12345): dynamic_imput_boot
+
+estimates store d_imput_todos_hora_km
+
+
+
+
+*** SINISTROS ENVOLVENDO MOTO NAS VIAS COM MAIS INTERSECCOES, POR KM ***
+
+import delimited "C:\Dev\faixa-azul\stata\input\km_moto_interseccoes.csv", clear
+
+gen Y = sinistros
+gen month = periodo
+gen group = coorte
+
+* Create treatment indicator and relative time
+qui gen Ei = group  // Treatment month (0 for never-treated)
+qui gen K = month - Ei if Ei != 0  // Relative time (missing for never-treated)
+qui gen T = (K >= 0 & Ei != 0)     // Treatment indicator
+
+* Create event study dummies based on actual data range
+qui sum K if K != .
+local k_min = `r(min)'
+local k_max = `r(max)'
+di "Relative time range: `k_min' to `k_max'"
+
+* Leads (pre-treatment periods, K < 0)
+forvalues l = 2/`=abs(`k_min')' {
+    qui gen F`l'event = (K == -`l') if K != .
+    qui count if F`l'event == 1
+}
+* Lags (post-treatment periods, K >= 0)
+forvalues l = 0/`k_max' {
+    qui gen L`l'event = (K == `l') if K != .
+    qui count if L`l'event == 1
+}
+
+
+*** Static imputation
+bootstrap imput=e(imput_effect) apt=e(apt_effect) att=e(att_level) scale=e(scale_factor), ///
+    reps(1000) cluster(id) seed(12345): static_imput_boot
+
+estimates store s_imput_sin_intersec_km
+
+*** Dynamic imputation
+bootstrap, reps(1000) cluster(id) idcluster(newid) seed(12345): dynamic_imput_boot
+
+estimates store d_imput_sin_intersec_km
+
+
+
+
+*** TODOS OS SINISTROS NAS VIAS COM MAIS INTERSECCOES, POR KM ***
+
+import delimited "C:\Dev\faixa-azul\stata\input\km_todos_interseccoes.csv", clear
+
+gen Y = sinistros
+gen month = periodo
+gen group = coorte
+
+* Create treatment indicator and relative time
+qui gen Ei = group  // Treatment month (0 for never-treated)
+qui gen K = month - Ei if Ei != 0  // Relative time (missing for never-treated)
+qui gen T = (K >= 0 & Ei != 0)     // Treatment indicator
+
+* Create event study dummies based on actual data range
+qui sum K if K != .
+local k_min = `r(min)'
+local k_max = `r(max)'
+di "Relative time range: `k_min' to `k_max'"
+
+* Leads (pre-treatment periods, K < 0)
+forvalues l = 2/`=abs(`k_min')' {
+    qui gen F`l'event = (K == -`l') if K != .
+    qui count if F`l'event == 1
+}
+* Lags (post-treatment periods, K >= 0)
+forvalues l = 0/`k_max' {
+    qui gen L`l'event = (K == `l') if K != .
+    qui count if L`l'event == 1
+}
+
+
+*** Static imputation
+bootstrap imput=e(imput_effect) apt=e(apt_effect) att=e(att_level) scale=e(scale_factor), ///
+    reps(1000) cluster(id) seed(12345): static_imput_boot
+
+estimates store s_imput_todos_intersec_km
+
+*** Dynamic imputation
+bootstrap, reps(1000) cluster(id) idcluster(newid) seed(12345): dynamic_imput_boot
+
+estimates store d_imput_todos_intersec_km
+
+
+
+
+*** SINISTROS FATAIS ENVOLVENDO MOTO, POR KM ***
+
+import delimited "C:\Dev\faixa-azul\stata\input\km_moto_fatais.csv", clear
+
+gen Y = sinistros
+gen month = periodo
+gen group = coorte
+
+* Create treatment indicator and relative time
+qui gen Ei = group  // Treatment month (0 for never-treated)
+qui gen K = month - Ei if Ei != 0  // Relative time (missing for never-treated)
+qui gen T = (K >= 0 & Ei != 0)     // Treatment indicator
+
+* Create event study dummies based on actual data range
+qui sum K if K != .
+local k_min = `r(min)'
+local k_max = `r(max)'
+di "Relative time range: `k_min' to `k_max'"
+
+* Leads (pre-treatment periods, K < 0)
+forvalues l = 2/`=abs(`k_min')' {
+    qui gen F`l'event = (K == -`l') if K != .
+    qui count if F`l'event == 1
+}
+* Lags (post-treatment periods, K >= 0)
+forvalues l = 0/`k_max' {
+    qui gen L`l'event = (K == `l') if K != .
+    qui count if L`l'event == 1
+}
+
+
+*** Static imputation
+bootstrap imput=e(imput_effect) apt=e(apt_effect) att=e(att_level) scale=e(scale_factor), ///
+    reps(1000) cluster(id) seed(12345): static_imput_boot
+
+estimates store s_imput_sin_fatal_km
+
+*** Dynamic imputation
+bootstrap, reps(1000) cluster(id) idcluster(newid) seed(12345): dynamic_imput_boot
+
+estimates store d_imput_sin_fatal_km
+
+
+
+
+*** SINISTROS ENVOLVENDO MOTO, POR KM, BIMESTRAL ***
+
+import delimited "C:\Dev\faixa-azul\stata\input\km_moto_bimestral.csv", clear
+
+gen Y = sinistros
+gen month = periodo
+gen group = coorte
+
+* Create treatment indicator and relative time
+qui gen Ei = group  // Treatment month (0 for never-treated)
+qui gen K = month - Ei if Ei != 0  // Relative time (missing for never-treated)
+qui gen T = (K >= 0 & Ei != 0)     // Treatment indicator
+
+* Create event study dummies based on actual data range
+qui sum K if K != .
+local k_min = `r(min)'
+local k_max = `r(max)'
+di "Relative time range: `k_min' to `k_max'"
+
+* Leads (pre-treatment periods, K < 0)
+forvalues l = 2/`=abs(`k_min')' {
+    qui gen F`l'event = (K == -`l') if K != .
+    qui count if F`l'event == 1
+}
+* Lags (post-treatment periods, K >= 0)
+forvalues l = 0/`k_max' {
+    qui gen L`l'event = (K == `l') if K != .
+    qui count if L`l'event == 1
+}
+
+
+*** Static imputation
+bootstrap imput=e(imput_effect) apt=e(apt_effect) att=e(att_level) scale=e(scale_factor), ///
+    reps(1000) cluster(id) seed(12345): static_imput_boot
+
+estimates store s_imput_sin_moto_km_bi
+
+*** Dynamic imputation
+bootstrap, reps(1000) cluster(id) idcluster(newid) seed(12345): dynamic_imput_boot
+
+estimates store d_imput_sin_moto_km_bi
+
+
+
+
+
+
+estimates save stata/output/imput/imput.dta, replace
+estimates use "stata/output/imput/imput.dta", clear
+
+estimates dir
+* estimates restore name
+
+
+
+
+
+// estimates restore d_imput_todos_atrop_km
+// estimates restore d_imput_todos_hora_km
+estimates restore d_imput_todos_intersec_km
+
+_coef_table, level(95)
+matrix R = r(table)
+
+* Create a temporary dataset
+clear
+local k = colsof(R)
+local names : colnames R
+set obs `k'
+
+qui gen str20 variable = ""
+qui gen double coefficient = .
+qui gen double std_error = .
+qui gen double t_statistic = .
+qui gen double p_value = .
+qui gen double lower_ci = .
+qui gen double upper_ci = .
+
+forval i = 1/`k' {
+    local vname : word `i' of `names'
+    replace variable = "`vname'" in `i'
+    replace coefficient = R[1,`i'] in `i'
+    replace std_error = R[2,`i'] in `i'
+    replace t_statistic = R[3,`i'] in `i'
+    replace p_value = R[4,`i'] in `i'
+    replace lower_ci = R[5,`i'] in `i'
+    replace upper_ci = R[6,`i'] in `i'
+}
+
+* Export to CSV
+export delimited using "stata/output/imput/km_todos_interseccoes_dynamic.csv", replace
+
+
+
+
