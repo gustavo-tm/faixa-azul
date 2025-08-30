@@ -42,10 +42,13 @@ Para reproduzir este projeto, basta ter o R instalado e seguir os passos de exec
 
 1. **Clone o Repositório**
 
-2. **Restaure o Ambiente do Projeto**:
-   Abra o R na raiz do projeto e execute `renv::restore()`. Isso instalará todos os pacotes nas versões exatas usadas no desenvolvimento.
+2. **Abra o Projeto R**  
+   Após clonar o repositório, abra o arquivo `faixa-azul.Rproj` que está no diretório principal do projeto para iniciar a sessão no RStudio com o ambiente configurado.
 
-3. **Dados Brutos**: Os dados brutos já estão incluídos no repositório na pasta `dados_brutos/`. Para atualizar os dados com versões mais recentes:
+3. **Restaure o Ambiente do Projeto**  
+   Com o projeto aberto, execute no console do R `renv::restore()`. Esse comando instalará todas as versões dos pacotes usados durante o desenvolvimento.
+
+3. **Dados Brutos**: Os dados brutos utilizados na pesquisa publicada já estão incluídos no repositório na pasta `dados_brutos/`. Para atualizar os dados com versões mais recentes:
    - **Dados do InfoSiga**: Baixe a versão mais nova do site do InfoSiga
    - **Dados de Vias**: Reutilize a API do OpenStreetMap para baixar dados atualizados das vias (as funções de download estão incluídas em `scripts/tidy_trechos.R`)
    - **Faixa Azul**: Atualize manualmente quais vias receberam faixa azul
