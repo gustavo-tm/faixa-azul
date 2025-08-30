@@ -1,6 +1,4 @@
 library(targets)
-library(visNetwork)
-library(tarchetypes) 
 
 workers <- 4
 
@@ -16,7 +14,7 @@ assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
 tar_option_set(
   # circlize, webshot2, renv, targets, visNetwork, 
   packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "kableExtra", "igraph", "gganimate",
-               "tidygraph", "ggraph", "qs2", "MatchIt", "patchwork", "memoise"), 
+               "tidygraph", "ggraph", "qs2", "MatchIt", "patchwork", "memoise", "visNetwork"), 
   error = "trim",
   format = "qs", # Optionally set the default storage format. qs is fast.
 
@@ -183,9 +181,9 @@ tar_target(
   
   # Criação das tabelas de segmento por nível
   tar_target(name = did_segmento_combinado, 
-             bind_rows(dado_trechos |> mutate(segmento = "trechos"), 
-                       dado_agregados |> mutate(segmento = "agregados"), 
-                       dado_logradouros |> mutate(segmento = "logradouros") |> select(-nome))),
+             dplyr::bind_rows(dado_trechos |> dplyr::mutate(segmento = "trechos"), 
+                       dado_agregados |> dplyr::mutate(segmento = "agregados"), 
+                       dado_logradouros |> dplyr::mutate(segmento = "logradouros") |> select(-nome))),
   tar_target(name = did_segmento_nivel,
              command = segmento_nivel(
                segmentos = did_segmento_combinado, 
@@ -228,11 +226,14 @@ tar_target(
              did_tabela |> select(intervalo_meses,
                                   filtrar_golden,
                                   PSM_corte_minimo)),
+  tar_target(did_periodos_datetime, 
+             criar_periodos_datetime()),
   tar_target(name = did_df,
              command = agrega_tempo(
                segmentos_filtrado = did_segmento_PSM,
                sinistros_filtrado = did_sinistro_filtrado,
                match = dado_match,
+               tabela_periodos_datetime = did_periodos_datetime,
                intervalo_meses = did_tabela_agrega$intervalo_meses,
                filtrar_golden = did_tabela_agrega$filtrar_golden),
              pattern = map(did_segmento_PSM, did_sinistro_filtrado, did_tabela_agrega)),

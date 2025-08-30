@@ -1,8 +1,3 @@
-library(tidyverse)
-library(sf)
-library(osmdata)
-
-
 calcular_radares <- function(trechos){
   # Radar próximo ----
   radares <- getbb('São Paulo') |> 

@@ -1,10 +1,3 @@
-library(tidyverse)
-library(osmdata)
-library(sf)
-# library(mapview)
-library(igraph)
-# library(circlize)
-
 # https://cran.r-project.org/web/packages/osmdata/vignettes/osmdata.html
 # https://rspatialdata.github.io/osm.html
 

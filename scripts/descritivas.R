@@ -1,11 +1,3 @@
-library(tidyverse)
-library(sf)
-# library(mapview)
-# library(ggsankey)
-library(paletteer)
-library(gganimate)
-
-
 plot_obitos_ano <- function(sinistros, vitimas){
   gg <- vitimas |> 
     left_join(sinistros |> select(id_infosiga, data)) |> 

@@ -1,6 +1,3 @@
-library(tidyverse)
-library(gt)
-
 tidy_sinistros <- function(){
   
   tmp_dir <- tempdir()

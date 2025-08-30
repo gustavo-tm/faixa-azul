@@ -1,15 +1,11 @@
-# library(tidyverse)
-# library(sf)
-# library(memoise)
-# library(patchwork)
-# library(gt)
-
 # Tabela para tornar os datetimes numéricos (por limitação do pacote did)
-tabela_periodos_datetime <- tibble(
-  data = seq(make_date(year = 2015, month = 1),
-             make_date(year = 2030, month = 12),
-             by = "1 month")) |> 
-  mutate(periodo = row_number())
+criar_periodos_datetime <- function(){
+  tibble(
+    data = seq(make_date(year = 2015, month = 1),
+               make_date(year = 2030, month = 12),
+               by = "1 month")) |> 
+    mutate(periodo = row_number())
+}
 
 
 limpar_tabela_did <- function(did_tabela){
@@ -118,7 +114,7 @@ sinistro_filtro <- memoise::memoise(function(sinistros, vitimas, filtro, apenas_
 
 # Prepara a base para o did, agrega no nível período/segmento
 # Intervalo meses: 1 mensal, 2 bimestral, 3 trimestral...
-agrega_tempo <- memoise::memoise(function(segmentos_filtrado, sinistros_filtrado, match, 
+agrega_tempo <- memoise::memoise(function(segmentos_filtrado, sinistros_filtrado, match, tabela_periodos_datetime,
                          intervalo_meses = 1, filtrar_golden = TRUE){
   
   segmentos <- segmentos_filtrado |>

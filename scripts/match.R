@@ -1,8 +1,3 @@
-library(tidyverse)
-# library(stringdist)
-# library(fuzzyjoin)
-library(sf)
-
 # PREPARAÇÃO DADOS ----
 
 limpar <- function(coluna){
