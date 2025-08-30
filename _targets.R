@@ -14,7 +14,7 @@ assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
 tar_option_set(
   # circlize, webshot2, renv, targets, visNetwork, 
   packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "kableExtra", "igraph", "gganimate",
-               "tidygraph", "ggraph", "qs2", "MatchIt", "patchwork", "memoise", "visNetwork"), 
+               "tidygraph", "ggraph", "qs2", "MatchIt", "patchwork", "ggnewscale", "ggspatial", "memoise", "visNetwork"), 
   error = "trim",
   format = "qs", # Optionally set the default storage format. qs is fast.
 
@@ -127,11 +127,6 @@ tar_target(
   name = descritiva_datas_trechos,
   command = plot_datas_trechos(dado_faixa_azul, dado_trechos_bruto, dado_token_osm)),
 tar_target(
-  name = descritiva_obitos_tempo,
-  command = plot_obitos_tempo(dado_sinistros, dado_vitimas, dado_match, dado_faixa_azul, 
-                              dado_logradouros, dado_id_logradouros,
-                              dado_agregados, dado_id_agregados)),
-tar_target(
   name = descritiva_tamanho_FA,
   command = plot_tamanho_FA(dado_id_logradouros, dado_logradouros, dado_faixa_azul, dado_trechos_bruto)),
 tar_target(
@@ -149,19 +144,6 @@ tar_target(
 tar_target(
   name = descritiva_obitos_ano,
   command = plot_obitos_ano(dado_sinistros, dado_vitimas)),
-tar_target(
-  name = descritiva_proporcao_grupos,
-  command = plot_proporcao_grupos(dado_trechos_bruto, dado_faixa_azul)),
-tar_target(
-  name = descritiva_tratados_periodo,
-  command = plot_trechos_vias_periodo(dado_faixa_azul, dado_logradouros)),
-tar_target(
-  name = descritiva_comprimento_trechos,
-  command = plot_comprimento_trechos(dado_trechos_bruto)),
-tar_target(
-  name = descritiva_staggered_descritivo,
-  command = plot_staggered_descritivo(dado_sinistros, dado_match, dado_faixa_azul)),
-  
 tar_target(
   name = descritiva_prepos,
   command = plot_antes_depois(dado_sinistros, dado_vitimas, dado_agregados, dado_match)),
