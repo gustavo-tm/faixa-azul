@@ -145,6 +145,9 @@ tar_target(
   name = descritiva_obitos_ano,
   command = plot_obitos_ano(dado_sinistros, dado_vitimas)),
 tar_target(
+  name = descritiva_obitos_ano_FA,
+  command = plot_obitos_tempo(dado_sinistros, dado_vitimas, dado_match, dado_agregados)),
+tar_target(
   name = descritiva_prepos,
   command = plot_antes_depois(dado_sinistros, dado_vitimas, dado_agregados, dado_match)),
   

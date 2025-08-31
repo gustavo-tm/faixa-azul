@@ -15,7 +15,7 @@ plot_obitos_ano <- function(sinistros, vitimas){
            label = case_when(veiculo == "motocicleta" ~ scales::percent(obitos / sum(obitos)), 
                              veiculo == "outros" ~ sum(obitos) |> as.character())) |> 
     ggplot(aes(x = data)) +
-    geom_col(aes(y = obitos, fill = veiculo), colour = "white", lwd = .1) +
+    geom_col(aes(y = obitos, fill = veiculo)) +
     geom_text(aes(y = y, label = label), nudge_y = -50, colour = "white") +
     scale_fill_manual("Modo de transporte\nda vítima", 
                       values = c("grey40", 
@@ -100,7 +100,7 @@ plot_tamanho_FA <- function(logradouros_id, logradouros, faixa_azul, trechos){
     summarize(comprimento = sum(comprimento) / 1000) |> 
     mutate(ordem = sum(comprimento)) |> 
     ggplot(aes(x = comprimento, y = reorder(logradouro,ordem))) +
-    geom_col(aes(fill = FA), colour = "grey20", lwd = .1, width = .8) +
+    geom_col(aes(fill = FA),  width = .8) +
     scale_fill_manual("", values = c("FALSE" = "#A6A6A6", "TRUE" = "#4472C4"),
                       labels = c("TRUE" = "Com faixa azul", "FALSE" = "Sem faixa azul")) +
     labs(x = "Extensão (km) do logradouro", y = NULL) +
@@ -135,7 +135,7 @@ plot_obitos_tempo <- function(sinistros, vitimas, match, agregados){
            label = case_when(veiculo == "motocicleta" ~ scales::percent(obitos / sum(obitos)), 
                              veiculo == "outros" ~ sum(obitos) |> as.character())) |> 
     ggplot(aes(x = data)) +
-    geom_col(aes(y = obitos, fill = veiculo), colour = "grey20", lwd = .1) +
+    geom_col(aes(y = obitos, fill = veiculo)) +
     geom_text(aes(y = y, label = label), nudge_y = -3, colour = "white") +
     scale_fill_manual("Modo de transporte\nda vítima", 
                       values = c("grey40", 
@@ -194,7 +194,7 @@ plot_datas_trechos <- function(faixa_azul, trechos, token_osm){
   
   gg <- df |> 
     ggplot(aes(x= data_implementacao)) +
-    geom_col(aes(y = trechos_total, fill = logradouro), colour = "grey20", lwd = .1) +
+    geom_col(aes(y = trechos_total, fill = logradouro)) +
     labs(x = NULL, y = "Extensão (km) dos trechos com faixa azul",
          title = NULL) +
     theme_minimal() +
@@ -443,7 +443,7 @@ plot_antes_depois <- function(sinistros, vitimas, agregados, match){
     geom_vline(xintercept = -6.5, alpha = .3, colour = "grey60", lwd = 2)+ 
     geom_vline(xintercept = 12.5, alpha = .3, colour = "grey60", lwd = 2)+ 
     geom_vline(xintercept = -12.5, alpha = .3, colour = "grey60", lwd = 2)+ 
-    geom_col(colour = "grey20", lwd = .1) +
+    geom_col() +
     facet_wrap(~p, nrow = 3) + 
     scale_x_continuous(breaks = 0:24-12) +
     scale_fill_manual("Meio de transporte da vítima", 
@@ -491,7 +491,7 @@ plot_antes_depois <- function(sinistros, vitimas, agregados, match){
     geom_vline(xintercept = -6.5, alpha = .3, colour = "grey60", lwd = 2)+ 
     geom_vline(xintercept = 12.5, alpha = .3, colour = "grey60", lwd = 2)+ 
     geom_vline(xintercept = -12.5, alpha = .3, colour = "grey60", lwd = 2)+ 
-    geom_col(colour = "grey20", lwd = .1) +
+    geom_col() +
     facet_wrap(~p, nrow = 3, scales = "free_y") + 
     scale_x_continuous(breaks = 0:24-12) +
     scale_fill_manual("Veículos envolvidos", labels = c("Não envolveu motocicleta",  "Envolveu motocicleta"), 
