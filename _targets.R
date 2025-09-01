@@ -1,6 +1,8 @@
 library(targets)
 
-workers <- 4
+# ALTERAR O NÚMERO DE WORKERS PARA TORNAR A PIPELINE PARALELIZADA
+# RECOMENDA-SE DE 2 A 4 WORKERS
+workers <- 1
 
 # para garantir que osmdata vai funcionar
 assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
@@ -13,7 +15,7 @@ assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
 
 tar_option_set(
   # circlize, webshot2, renv, targets, visNetwork, 
-  packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "kableExtra", "igraph", "gganimate",
+  packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "kableExtra", "igraph", "gganimate", "gifski",
                "tidygraph", "ggraph", "qs2", "MatchIt", "patchwork", "ggnewscale", "ggspatial", "memoise", "visNetwork"), 
   error = "trim",
   format = "qs", # Optionally set the default storage format. qs is fast.
