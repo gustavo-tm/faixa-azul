@@ -1,6 +1,7 @@
 dados_brutos/legacy/*
 auxiliares/*
 sala_segura/*
+lib/*
 
 .Rhistory
 .RData
