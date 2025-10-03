@@ -1,8 +1,6 @@
 library(tidyverse)
 library(sf)
 
-sf_use_s2(FALSE)
-
 distrito <- st_read("dados_tratados/distrito/SIRGAS_SHP_distrito.shp", quiet = TRUE) |> 
   st_set_crs("epsg:31983") |> 
   st_buffer(100) |> 
@@ -15,6 +13,14 @@ trechos <- tar_read(dado_trechos_bruto) |>
 
 logradouros <- tar_read(dado_logradouros)
 logradouros_id <- tar_read(dado_id_logradouros)
+
 faixa_azul <- tar_read(dado_faixa_azul)
+
+sinistros <- tar_read(dado_sinistros) |> 
+  filter(!is.na(longitude), !is.na(latitude),
+         tipo != "NOTIFICACAO") |> 
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326)
+
+match <- tar_read(dado_match)
 
 save.image("app/dados.RData")

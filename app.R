@@ -16,9 +16,21 @@ ui <- page_fluid(
   title = "Faixa Azul",
   card(
     card_header("Mapa"),
+    checkboxInput(
+      inputId = "funcao_pontos",
+      label = "Selecionar apenas golden matches",
+      value = TRUE
+    ),
+    sliderInput(
+      inputId = "range_ano",
+      label = "Escolha as datas dos sinitros",
+      min = make_date(year = 2015),
+      max = make_date(year = 2025),
+      value = c(make_date(year = 2024), make_date(year = 2025))
+    ),
     pickerInput(
       inputId = "logradouro_selecionado",
-      label = "Selecione o logradouro", 
+      label = "Selecione os logradouros", 
       selected = " FARIA LIMA ",
       multiple = TRUE,
       choices = logradouros_id |> pull(logradouro) |> unique(),
@@ -27,18 +39,34 @@ ui <- page_fluid(
                               maxOptions = 10),
       width = "100%"
     ),
-    leafletOutput("map")
+    leafletOutput("map", height = 1000)
   )
   
 )
 
 server <- function(input, output, session){
   
-  logradouro_selecionado <- reactive(obter_logradouro(input$logradouro_selecionado))
+  
+  sinistros_selecionados <- reactive({
+    sinistros |> 
+      filter(data >= as.Date(input$range_ano[1]),
+             data <= as.Date(input$range_ano[2]))
+  })
+  
+  geometria_logradouro <- reactive(obter_logradouro(input$logradouro_selecionado))
+  pontos <- reactive({
+    if(input$funcao_pontos){
+      coletar_pontos_golden(input$logradouro_selecionado,
+                            sinistros_selecionados())
+    }else{
+      coletar_pontos_entorno(geometria_logradouro(),
+                             sinistros_selecionados())
+    }
+  })
   
   output$map <- renderLeaflet({
-    logradouro_selecionado() |> 
-      plotar_logradouro()
+    plotar_logradouro(geometria = geometria_logradouro(), 
+                      pontos = pontos())
   })
 }
 
