@@ -47,9 +47,9 @@ segmento_psm <- memoise::memoise(function(segmentos, sinistros, match, rodarPSM 
       left_join(sinistros |>
                   filter(year(data) >= 2019,
                          year(data) <= 2021) |>
-                  select(id_sinistro, gravidade_fatal)) |>
+                  select(id_sinistro, qtd_gravidade_fatal)) |>
       filter(golden_match) |>
-      mutate(sinistro_fatal = !is.na(gravidade_fatal) & gravidade_fatal > 0) |>
+      mutate(sinistro_fatal = !is.na(qtd_gravidade_fatal) & qtd_gravidade_fatal > 0) |>
       group_by(ID) |>
       summarise(sinistros_fatais = sum(sinistro_fatal),
                 sinistros_total = n()) |>
@@ -105,11 +105,11 @@ sinistro_filtro <- memoise::memoise(function(sinistros, vitimas, filtro, apenas_
   sinistros <- sinistros |> 
     left_join(vitimas)
   
-  if(apenas_moto == TRUE){sinistros <- sinistros |> filter(tp_veiculo_motocicleta > 0)}
+  if(apenas_moto == TRUE){sinistros <- sinistros |> filter(qtd_motocicleta > 0)}
 
   sinistros |> 
     filter(eval(parse(text = filtro))) |> 
-    select(id_sinistro, data, starts_with("gravidade"), starts_with("mortes_"))
+    select(id_sinistro, data, starts_with("qtd_gravidade"), starts_with("mortes_"))
 })
 
 # Prepara a base para o did, agrega no nível período/segmento
@@ -141,11 +141,11 @@ agrega_tempo <- memoise::memoise(function(segmentos_filtrado, sinistros_filtrado
     # Agregar para o DID
     group_by(ID, periodo) |> 
     summarize(sinistros = n(),
-              envolvidos_fatal = sum(gravidade_fatal, na.rm = T),
-              envolvidos_grave = sum(gravidade_grave, na.rm = T),
-              envolvidos_leve = sum(gravidade_leve, na.rm = T),
-              envolvidos_ileso = sum(gravidade_ileso, na.rm = T),
-              envolvidos_na = sum(gravidade_nao_disponivel, na.rm = T),
+              envolvidos_fatal = sum(qtd_gravidade_fatal, na.rm = T),
+              envolvidos_grave = sum(qtd_gravidade_grave, na.rm = T),
+              envolvidos_leve = sum(qtd_gravidade_leve, na.rm = T),
+              envolvidos_ileso = sum(qtd_gravidade_ileso, na.rm = T),
+              envolvidos_na = sum(qtd_gravidade_nao_disponivel, na.rm = T),
               mortes_moto = sum(mortes_motocicleta, na.rm = T),
               mortes_pedestre_bike = sum(mortes_pedestre_bike, na.rm = T)) |> 
     
@@ -166,9 +166,18 @@ agrega_tempo <- memoise::memoise(function(segmentos_filtrado, sinistros_filtrado
         left_join(tabela_periodos_datetime |> 
                     rename(coorte = periodo), 
                   by = join_by(data_implementacao == data)) |> 
-        mutate(coorte = ((coorte - 1) %/% intervalo_meses + 1) |> replace_na(0))) |> 
+        mutate(coorte = ((coorte - 1) %/% intervalo_meses + 1) |> replace_na(0))) |>
+    left_join(segmentos |> 
+                left_join(sinistros_filtrado |> 
+                            filter(data < make_date(year = 2022)) |> 
+                            left_join(match) |> 
+                            mutate(sinistro_contador = 1)) |> 
+                group_by(ID) |> 
+                summarize(sinistros_pre2022 = replace_na(sum(sinistro_contador), 0))) |> 
     select(-data_implementacao)
 })
+
+
 
 # Roda Callaway-Sant'Anna (did staggered)
 fit_did <- function(
@@ -257,6 +266,7 @@ plot_did <- function(did, file, tabela_summary, title = NULL, expand_grid = .5, 
   
   # tabelinha descritivas da base
   tabela2 <- did$DIDparams$data |> 
+    select(y) |> 
     as_tibble() |> 
     summarize(Média = mean(y),
               Mediana = median(y),

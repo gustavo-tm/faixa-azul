@@ -19,9 +19,9 @@ plot_obitos_ano <- function(sinistros, vitimas){
     geom_text(aes(y = y, label = label), nudge_y = -50, colour = "white") +
     scale_fill_manual("Modo de transporte\nda vítima", 
                       values = c("grey40", 
-                                 "grey80", 
+                                 # "grey80", 
                                  "#4472C4"), 
-                      labels = c("Outros", "Não disponível", "Motocicleta")) +
+                      labels = c("Outros", "Motocicleta")) +
     scale_x_date(NULL, date_breaks = "years", date_labels = "%Y") +
     labs(y = "Total de óbitos") +
     theme_minimal()
@@ -72,8 +72,8 @@ plot_datas_FA <- function(logradouros, logradouros_id, match, sinistros){
                  rename(id_osm = trechos, nome = logradouro) |> 
                  inner_join(match |> filter(golden_match) |> select(id_sinistro, id_osm)) |> 
                  left_join(sinistros |> 
-                             select(id_sinistro, data, tipo, tp_veiculo_motocicleta)) |> 
-                 mutate(motocicleta = replace_na(tp_veiculo_motocicleta, 0) > 0) |> 
+                             select(id_sinistro, data, tipo, qtd_motocicleta)) |> 
+                 mutate(motocicleta = replace_na(qtd_motocicleta, 0) > 0) |> 
                  arrange(motocicleta) |> 
                  filter(tipo == "SINISTRO FATAL")) +
     # geom_jitter() +
@@ -456,8 +456,8 @@ plot_antes_depois <- function(sinistros, vitimas, agregados, match){
   ggsave("output/plot - obitos pre vs pos.pdf", gg, width = 10, height = 6)
   
   gg <- sinistros |>
-    mutate(moto = tp_veiculo_motocicleta > 0 & !is.na(tp_veiculo_motocicleta),
-           fatal = gravidade_fatal > 0 & !is.na(gravidade_fatal)) |>
+    mutate(moto = qtd_motocicleta > 0 & !is.na(qtd_motocicleta),
+           fatal = qtd_gravidade_fatal > 0 & !is.na(qtd_gravidade_fatal)) |>
     select(id_sinistro,  data, moto) |> 
     left_join(match) |> 
     filter(golden_match) |> 

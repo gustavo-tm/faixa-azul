@@ -8,7 +8,7 @@ tidy_sinistros <- function(){
     data.table::fread(file.path(tmp_dir, "sinistros_2022-2025.csv"), encoding = "Latin-1")) |> 
   as_tibble() |> 
   filter(municipio == "SAO PAULO") |> 
-  filter(!if_all(c(tipo_via, administracao, conservacao, jurisdicao), ~ . %in% c("NAO DISPONIVEL", ""))) |>
+  filter(!if_all(c(tipo_via, administracao, conservacao, circunscricao), ~ . %in% c("NAO DISPONIVEL", ""))) |>
   select(id_infosiga = id_sinistro,
          ano = ano_sinistro,
          mes = mes_sinistro,
@@ -16,9 +16,8 @@ tidy_sinistros <- function(){
          hora = hora_sinistro,
          latitude, longitude,
          logradouro, numero = numero_logradouro,
-         contains("gravidade"),
-         contains("tp_veiculo"),
-         tipo_acidente = tipo_acidente_primario,
+         contains("qtd"),
+         tipo_acidente = tp_sinistro_primario,
          tipo = tipo_registro) |> 
   mutate(hora = str_sub(hora, 1, 2) |> as.numeric())
   
@@ -27,7 +26,7 @@ tidy_sinistros <- function(){
            data = lubridate::make_date(year = ano, month = mes, day = dia),
            id_sinistro = row_number()) |> 
     select(id_sinistro, id_infosiga, data, hora, logradouro, numero, latitude, longitude, tipo, tipo_acidente,
-           contains("tp_veiculo"), contains("gravidade"))
+           contains("qtd"))
   
   file.remove(file.path(tmp_dir, c("sinistros_2015-2021.csv", "sinistros_2022-2025.csv")))
   
@@ -35,8 +34,13 @@ tidy_sinistros <- function(){
 }
 
 tidy_vitimas <- function(){
-  bind_rows(data.table::fread(unzip("dados_brutos/pessoas.zip", "pessoas_2022-2025.csv"),encoding = "Latin-1"),
-            data.table::fread(unzip("dados_brutos/pessoas.zip", "pessoas_2015-2021.csv"),encoding = "Latin-1")) |> 
+  
+  tmp_dir <- tempdir()
+  unzip("dados_brutos/pessoas.zip", files = c("pessoas_2022-2025.csv", "pessoas_2015-2021.csv"), exdir = tmp_dir)
+  
+  bind_rows(
+    data.table::fread(file.path(tmp_dir, "pessoas_2022-2025.csv"),encoding = "Latin-1"),
+    data.table::fread(file.path(tmp_dir, "pessoas_2015-2021.csv"),encoding = "Latin-1")) |> 
     as_tibble() |> 
     select(id_infosiga = id_sinistro, 4:12)
 }

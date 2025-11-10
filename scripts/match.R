@@ -60,7 +60,7 @@ tokenizar <- function(df, id){
 
 
 tokenizar_infosiga <- function(sinistros){
-
+  
   infosiga.token <- sinistros |> 
     filter(tipo != "NOTIFICACAO", logradouro != "NAO DISPONIVEL") |> 
     select(id_sinistro, logradouro) |> 
@@ -152,7 +152,7 @@ match_dados <- function(sinistros, sinistros_token, trechos, trechos_token){
     st_drop_geometry() |> 
     ungroup()
   
-
+  
   match <- match_grafico |> 
     select(id_sinistro, id_osm, distancia_geografica = distancia) |> 
     left_join(match_nome) |> 
@@ -201,6 +201,3 @@ match_ids <- function(match_bind, trechos, id_agregados, id_logradouros) {
     select(id_sinistro, id_osm, id_trecho_agregado, id_logradouro, golden_match) |> 
     ungroup()
 }
-
-
-
