@@ -1,98 +1,138 @@
+ssc install hdfe, replace
+ssc install jwdid, replace
+ssc install estout, replace
 
 clear all
 program drop _all
 
-cd "C:\Dev\faixa-azul"
+cd "~/Developer/faixa-azul/stata"
+
+
+* ================================================================================
+* RUN JWDID PROGRAM
+* ================================================================================
+
+capture program drop run_jwdid
+program define run_jwdid
+    syntax , FILENAME(string) SAVENAME(string) [NEVERGROUP(numlist) METHOD(string)]
+    
+    if "`method'" == "" {
+        local method "poisson"
+    }
+    
+    import delimited "input/`filename'.csv", clear
+    
+    qui gen Y = sinistros
+    qui gen month = periodo
+    qui gen group = coorte
+    
+    local if_condition ""
+    if "`nevergroup'" != "" {
+		foreach num of numlist `nevergroup' {
+			if "`if_condition'" == "" {
+				local if_condition "if group != `num'"
+			}
+			else {
+				local if_condition "`if_condition' & group != `num'"
+			}
+		}
+	}
+    
+    jwdid Y `if_condition', ///
+        ivar(id) tvar(month) gvar(group) method(`method') never
+    estimates store jwdid_`savename'
+    
+    export_jwdid_results, filename("`filename'")
+    
+    display as result "`filename'"
+    display as text "  Excluded groups: `nevergroup'"
+end
+
+
+* ================================================================================
+* EXPORT RESULTS PROGRAM
+* ================================================================================
+
+capture program drop export_jwdid_results
+program define export_jwdid_results
+    syntax, FILENAME(string)
+	
+	display as result "Running simple aggregation..."
+    
+    estat simple
+    matrix simple_table = r(table)
+    
+    matrix simple_out = (simple_table[1,1], simple_table[2,1], simple_table[3,1], simple_table[4,1], simple_table[5,1], simple_table[6,1])
+    matrix colnames simple_out = coefficient std_error t_statistic p_value lower_ci upper_ci
+    
+    frame create simple_frame
+    frame simple_frame {
+        clear
+        svmat simple_out, names(col)
+        export delimited using "output/jwdid/`filename'-s.csv", replace
+    }
+    frame drop simple_frame
+	
+	
+	display as result "Running dynamic aggregation..."
+    
+    estat event, window(-12, 12)
+    matrix event_table = r(table)'
+    
+    matrix event_out = (event_table[1..., 1], event_table[1..., 2], event_table[1..., 5], event_table[1..., 4], event_table[1..., 5], event_table[1..., 6])
+    matrix colnames event_out = coefficient std_error t_statistic p_value lower_ci upper_ci
+    
+    frame create event_frame
+    frame event_frame {
+        clear
+        svmat event_out, names(col)
+        export delimited using "output/jwdid/`filename'-d.csv", replace
+    }
+    frame drop event_frame
+end
 
 
 *** SINISTROS ENVOLVENDO MOTO ***
-import delimited "C:\Dev\faixa-azul\stata\input\moto.csv", clear
 
-qui gen Y = sinistros
-qui gen month = periodo
-qui gen group = coorte
+* 1 PADRAO =====
+run_jwdid, filename("1-moto-padrao") savename("moto") nevergroup(85 121)
 
-jwdid Y if group != 121 & group != 85, ///
-	ivar(id) tvar(month) gvar(group) never method(poisson)
+run_jwdid, filename("1-moto-padrao-km") savename("moto_km") nevergroup(85 121)
 
-estat simple
-estat event, window(-12, 12)
+run_jwdid, filename("1-moto-padrao-bi") savename("moto_bi")
 
-// estat plot, pstyle1(p1) xtitle("Meses") ytitle("Efeito") legend(off) // ylabel(-0.3(0.1)0.3) // ylabel(-0.8(0.2)0.8)
-
-// graph save "C:\Dev\faixa-azul\stata\plots\jwdid\gravidade\fatal-todos.gph", replace
-// graph export "C:\Dev\faixa-azul\stata\plots\jwdid\gravidade\fatal-todos.png", replace
+run_jwdid, filename("1-moto-padrao-bi-km") savename("moto_bi_km")
 
 
+* 2 PICO =====
+run_jwdid, filename("2-moto-pico") savename("mpico") nevergroup(85 106 121 123)
+
+run_jwdid, filename("2-moto-pico-bi") savename("mpico_bi") nevergroup(43 53 61)
 
 
-*** TODOS OS SINISTROS ***
-import delimited "C:\Dev\faixa-azul\stata\input\todos.csv", clear
+* 3 ATROPELAMENTO =====
+* run_jwdid, filename("3-moto-atrop") savename("matrop") nevergroup(85 106 121 123)
 
-qui gen Y = sinistros
-qui gen month = periodo
-qui gen group = coorte
+run_jwdid, filename("3-moto-atrop-bi") savename("matrop_bi") nevergroup(43 56 61 64)
 
-jwdid Y if group != 121 & group != 85, ///
-	ivar(id) tvar(month) gvar(group) never method(poisson)
 
-estat simple
-estat event, window(-12, 12)
+* 4 INTERSECCAO =====
+run_jwdid, filename("4-moto-inter") savename("minter") nevergroup(114 121)
+
+run_jwdid, filename("4-moto-inter-bi") savename("minter_bi") nevergroup(61)
 
 
 
-
-*** ATROPELAMENTOS ENVOLVENDO MOTO, POR KM ***
-// import delimited "C:\Dev\faixa-azul\stata\input\km_moto_atropelamento.csv", clear
-//
-// qui gen Y = sinistros
-// qui gen month = periodo
-// qui gen group = coorte
-//
-// jwdid Y if group != 121 & group != 85, ///
-// 	ivar(id) tvar(month) gvar(group) never method(poisson)
-//
-// estat simple
-// estimates store s_jwdid_sin_atrop_km
-//
-// estat event, window(-12, 12)
-// estimates store d_jwdid_sin_atrop_km
-
-
-
-
-*** SINISTROS ENVOLVENDO MOTO EM HORARIO DE PICO, POR KM ***
-// import delimited "C:\Dev\faixa-azul\stata\input\km_moto_atropelamento.csv", clear
-//
-// qui gen Y = sinistros
-// qui gen month = periodo
-// qui gen group = coorte
-//
-// jwdid Y if group != 121 & group != 85, ///
-// 	ivar(id) tvar(month) gvar(group) never method(poisson)
-//
-// estat simple
-// estimates store s_jwdid_sin_atrop_km
-//
-// estat event, window(-12, 12)
-// estimates store d_jwdid_sin_atrop_km
+estimates save output/jwdid/jwdid-moto.dta, replace
 
 
 
 
 
-*** SINISTROS ENVOLVENDO MOTO, BIMESTRAL ***
-import delimited "C:\Dev\faixa-azul\stata\input\moto_bimestral.csv", clear
 
-qui gen Y = sinistros
-qui gen month = periodo
-qui gen group = coorte
 
-jwdid Y if group != 121 & group != 85, ///
-	ivar(id) tvar(month) gvar(group) never method(poisson)
 
-estat simple
-estat event, window(-12, 12)
+
 
 
 

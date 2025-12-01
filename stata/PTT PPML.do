@@ -1,9 +1,16 @@
+ssc install reghdfe, replace
+ssc install ppmlhdfe, replace
+ssc install did_imputation, replace
+ssc install parallel, replace
+ssc install outreg2, replace
+ssc install unique, replace
+ssc install egenmore, replace
+ssc install ftools, replace
+
+cd "~/Developer/faixa-azul/stata"
 
 clear all
 program drop _all
-
-cd "C:\Dev\faixa-azul"
-
 
 
 * ================================================================================
@@ -12,14 +19,15 @@ cd "C:\Dev\faixa-azul"
 
 cap: program drop static_imput_boot
 program define static_imput_boot, eclass
+	syntax, [WINDOW(integer 0)]
 
-    * Clean up any existing variables
     cap drop ife tfe ai at hatYUit delta APT
-    
+	
     * Step 1: Estimate counterfactual model using UNTREATED observations only
-    ppmlhdfe Y if T == 0, ///
+    ppmlhdfe Y if NT, ///
         absorb(ife=id tfe=month) ///
-        noomitted keepsing separation(fe)
+		noomitted keepsing separation(fe)
+		* noomitted keepsing separation(fe)
     
     local cst = _b[_cons]
     
@@ -33,11 +41,11 @@ program define static_imput_boot, eclass
     gen delta = Y - hatYUit
     
     * Step 4: Calculate aggregate ATT (Average Treatment on Treated)
-    qui sum delta if T == 1
+    qui sum delta if M
     local att = r(mean)
     
     * Step 5: Calculate scale factor (baseline counterfactual for treated)
-    qui sum hatYUit if T == 1 & Y != .
+    qui sum hatYUit if M & Y != .
     local scale = r(mean)
     
     * Step 6: Calculate proportional effect (main parameter of interest)
@@ -45,7 +53,7 @@ program define static_imput_boot, eclass
     
     * Step 7: Alternative measure - Average Proportional Treatment (APT)
     gen APT = Y / hatYUit
-    qui sum APT if T == 1
+    qui sum APT if M
     local apt_effect = r(mean)
     
     * Step 8: Store results in a matrix for ereturn
@@ -69,12 +77,24 @@ end
 * DYNAMIC IMPUTATION ESTIMATOR PROGRAM
 * ================================================================================
 
+cap: program drop dynamic_imput_boot
 program define dynamic_imput_boot, eclass
+	syntax, [WINDOW(integer 0)]
+	
+	if `window' == 0 {
+        local nt_condition (K == -1) | (group == 0)
+		
+		qui sum K if K != .
+		local k_min = `r(min)'
+		local k_max = `r(max)'
+    }
+	else {
+        local nt_condition NT == 1
+		
+		local k_min = -`window'
+		local k_max = `window'
+    }
 
-    * Get dimensions within the program (use actual K range)
-    qui sum K if K != .
-    local k_min = `r(min)'
-    local k_max = `r(max)'
     
     * Define the range more carefully
     * For leads: from k_min to -2 (we skip -1 as it's used for estimation)
@@ -109,7 +129,10 @@ program define dynamic_imput_boot, eclass
     cap drop ife tfe ai at hatYUit delta
 
     * Step 1: Estimate counterfactual model using clean observations
-    qui ppmlhdfe Y if (K == -1) | (Ei == 0), ///
+    *qui ppmlhdfe Y if (K == -1) | (group == 0), ///
+        absorb(ife=id tfe=month) ///
+        noomitted keepsing separation(fe)
+	qui ppmlhdfe Y if `nt_condition', ///
         absorb(ife=id tfe=month) ///
         noomitted keepsing separation(fe)
     
@@ -189,63 +212,416 @@ end
 
 
 * ================================================================================
-* RUN THE ESTIMATORS
+* FULL IMPUTATION ESTIMATOR PROGRAMS
 * ================================================================================
 
 
+capture program drop export_estimates
+program define export_estimates
+    syntax, FILENAME(string) ESTIMATE(string) TYPE(string) [WINDOW(integer 0) LEVEL(integer 95)]
+	
+    estimates restore `estimate'
+    
+    _coef_table, level(`level')
+    matrix R = r(table)
 
-*** SINISTROS ENVOLVENDO MOTO, POR KM ***
-import delimited "C:\Dev\faixa-azul\stata\input\km_moto.csv", clear
+    clear
+    local k = colsof(R)
+    local names : colnames R
+    set obs `k'
+    
+    qui gen str20 variable = ""
+    qui gen double coefficient = .
+    qui gen double std_error = .
+    qui gen double t_statistic = .
+    qui gen double p_value = .
+    qui gen double lower_ci = .
+    qui gen double upper_ci = .
+    
+    forval i = 1/`k' {
+        local vname : word `i' of `names'
+        replace variable = "`vname'" in `i'
+        replace coefficient = R[1,`i'] in `i'
+        replace std_error = R[2,`i'] in `i'
+        replace t_statistic = R[3,`i'] in `i'
+        replace p_value = R[4,`i'] in `i'
+        replace lower_ci = R[5,`i'] in `i'
+        replace upper_ci = R[6,`i'] in `i'
+    }
+    
+    export delimited using "output/imput/`window'-`filename'-`type'.csv", replace
+    di "Estimates exported to: output/imput/`window'-`filename'-type'.csv"
+end
+
+
+capture program drop  imput_estimation
+program define imput_estimation
+    version 14.0
+    syntax anything(name=args), [SSAVE(string) DSAVE(string) REPS(integer 1000) WINDOW(integer 0)]
+    
+    * Parse arguments
+    tokenize `args'
+    local filename `1'
+	
+	* Set default save names if not provided
+    if "`ssave'" == "" local ssave "bootstrap_static"
+    if "`dsave'" == "" local dsave "bootstrap_dynamic"
+	
+	import delimited "input/`filename'.csv", clear
+	
+	gen Y = sinistros
+	gen month = periodo
+	gen group = coorte
+	
+	qui gen K = month - group if group != 0  // Relative time (missing for never-treated)
+	qui gen T = (K >= 0 & group != 0)        // Treatment indicator
+	
+	* Handle capped vs uncapped cases
+	if `window' == 0 {
+		qui gen NT = (T == 0)
+		qui gen M = (T == 1)
+		
+		qui sum K if K != .
+		local k_min = `r(min)'
+		local k_max = `r(max)'
+	}
+	else {
+		qui gen NT = ((K >= -`window' & T == 0) | group == 0)
+		qui gen M = (K <= `window' & T == 1)
+		
+		local k_min = -`window' // `r(min)'
+		local k_max = `window' // `r(max)'
+	}
+
+
+	* Leads
+	forvalues l = 2/`=abs(`k_min')' {
+		qui gen F`l'event = (K == -`l') if K != .
+		qui count if F`l'event == 1
+	}
+	* Lags
+	forvalues l = 0/`k_max' {
+		qui gen L`l'event = (K == `l') if K != .
+		qui count if L`l'event == 1
+	}
+	
+	di _n "Running static imputation bootstrap..."
+    bootstrap imput=e(imput_effect) apt=e(apt_effect) att=e(att_level) scale=e(scale_factor), ///
+        reps(`reps') cluster(id) seed(12345): static_imput_boot, window(`window')
+    estimates store `ssave'
+	
+	di _n "Running dynamic imputation bootstrap..."
+    bootstrap, reps(`reps') cluster(id) idcluster(newid) seed(12345): dynamic_imput_boot, ///
+		window(`window')
+    estimates store `dsave'
+	
+	di _n "Estimations complete"
+    di "Static results stored as: `ssave'"
+    di "Dynamic results stored as: `dsave'"
+	
+	export_estimates, filename(`filename') estimate(`ssave') type("s") window(`window')
+	export_estimates, filename(`filename') estimate(`dsave') type("d") window(`window')
+end
+
+
+
+
+* ================================================================================
+* RUN THE ESTIMATORS
+* ================================================================================
+
+*** SINISTROS ENVOLVENDO MOTO ***
+
+* 1 PADRAO =====
+imput_estimation "1-moto-padrao", ///
+	ssave(imput_moto_s) dsave(imput_moto_d) window(0)
+
+imput_estimation "1-moto-padrao-km", ///
+	ssave(imput_moto_km_s) dsave(imput_moto_km_d) window(0)
+
+imput_estimation "1-moto-padrao-bi", ///
+	ssave(imput_moto_bi_s) dsave(imput_moto_bi_d) window(0)
+
+imput_estimation "1-moto-padrao-bi-km", ///
+	ssave(imput_moto_bi_km_s) dsave(imput_moto_bi_km_d) window(0)
+	
+* WINDOW
+imput_estimation "1-moto-padrao", ///
+	ssave(imput_w_moto_s) dsave(imput_w_moto_d) window(12)
+
+imput_estimation "1-moto-padrao-km", ///
+	ssave(imput_w_moto_km_s) dsave(imput_w_moto_km_d) window(12)
+
+imput_estimation "1-moto-padrao-bi", ///
+	ssave(imput_w_moto_bi_s) dsave(imput_w_moto_bi_d) window(6)
+
+imput_estimation "1-moto-padrao-bi-km", ///
+	ssave(imput_w_moto_bi_km_s) dsave(imput_w_moto_bi_km_d) window(6)
+	
+
+* 2 PICO =====
+imput_estimation "2-moto-pico", ///
+	ssave(imput_mpico_s) dsave(imput_mpico_d) window(0)
+
+imput_estimation "2-moto-pico-km", ///
+	ssave(imput_mpico_km_s) dsave(imput_mpico_km_d) window(0)
+
+imput_estimation "2-moto-pico-bi", ///
+	ssave(imput_mpico_bi_s) dsave(imput_mpico_bi_d) window(0)
+
+imput_estimation "2-moto-pico-bi-km", ///
+	ssave(imput_mpico_bi_km_s) dsave(imput_mpico_bi_km_d) window(0)
+
+* WINDOW
+imput_estimation "2-moto-pico", ///
+	ssave(imput_w_mpico_s) dsave(imput_w_mpico_d) window(12)
+
+imput_estimation "2-moto-pico-km", ///
+	ssave(imput_w_mpico_km_s) dsave(imput_w_mpico_km_d) window(12)
+
+imput_estimation "2-moto-pico-bi", ///
+	ssave(imput_w_mpico_bi_s) dsave(imput_w_mpico_bi_d) window(6)
+
+imput_estimation "2-moto-pico-bi-km", ///
+	ssave(imput_w_mpico_bi_km_s) dsave(imput_w_mpico_bi_km_d) window(6)
+	
+ 
+* 3 ATROPELAMENTO =====
+imput_estimation "3-moto-atrop", ///
+	ssave(imput_matrop_s) dsave(imput_matrop_d) window(0)
+
+imput_estimation "3-moto-atrop-km", ///
+	ssave(imput_matrop_km_s) dsave(imput_matrop_km_d) window(0)
+
+imput_estimation "3-moto-atrop-bi", ///
+	ssave(imput_matrop_bi_s) dsave(imput_matrop_bi_d) window(0)
+
+imput_estimation "3-moto-atrop-bi-km", ///
+	ssave(imput_matrop_bi_km_s) dsave(imput_matrop_bi_km_d) window(0)
+	
+* WINDOW
+imput_estimation "3-moto-atrop", ///
+	ssave(imput_w_matrop_s) dsave(imput_w_matrop_d) window(12)
+
+imput_estimation "3-moto-atrop-km", ///
+	ssave(imput_w_matrop_km_s) dsave(imput_w_matrop_km_d) window(12)
+
+imput_estimation "3-moto-atrop-bi", ///
+	ssave(imput_w_matrop_bi_s) dsave(imput_w_matrop_bi_d) window(6)
+
+imput_estimation "3-moto-atrop-bi-km", ///
+	ssave(imput_w_matrop_bi_km_s) dsave(imput_w_matrop_bi_km_d) window(6)
+	
+
+* 4 INTERSECCAO =====
+imput_estimation "4-moto-inter", ///
+	ssave(imput_minter_s) dsave(imput_minter_d) window(0)
+
+imput_estimation "4-moto-inter-km", ///
+	ssave(imput_minter_km_s) dsave(imput_minter_km_d) window(0)
+
+imput_estimation "4-moto-inter-bi", ///
+	ssave(imput_minter_bi_s) dsave(imput_minter_bi_d) window(0)
+
+imput_estimation "4-moto-inter-bi-km", ///
+	ssave(imput_minter_bi_km_s) dsave(imput_minter_bi_km_d) window(0)
+	
+* WINDOW
+imput_estimation "4-moto-inter", ///
+	ssave(imput_w_minter_s) dsave(imput_w_minter_d) window(12)
+
+imput_estimation "4-moto-inter-km", ///
+	ssave(imput_w_minter_km_s) dsave(imput_w_minter_km_d) window(12)
+
+imput_estimation "4-moto-inter-bi", ///
+	ssave(imput_w_minter_bi_s) dsave(imput_w_minter_bi_d) window(6)
+
+imput_estimation "4-moto-inter-bi-km", ///
+	ssave(imput_w_minter_bi_km_s) dsave(imput_w_minter_bi_km_d) window(6)
+
+	
+* SALVAR =====
+estimates save output/imput/imput-moto, replace
+* estimates use "output/imput/imput-moto"
+
+estimates dir
+	
+	
+
+*** TOTAL DE SINISTROS ***
+
+* 5 PADRAO =====
+imput_estimation "input/5-total-padrao.csv", ///
+	ssave(s_imput_total) dsave(d_imput_total)
+
+imput_estimation "input/5-total-padrao-bimestre.csv", ///
+	ssave(s_imput_total_bi) dsave(d_imput_total_bi)
+
+imput_estimation "input/5-total-padrao-km.csv", ///
+	ssave(s_imput_total_km) dsave(d_imput_total_km)
+
+imput_estimation "input/5-total-padrao-km-bimestre.csv", ///
+	ssave(s_imput_total_km_bi) dsave(d_imput_total_km_bi)
+
+* 6 PICO =====
+imput_estimation "input/6-total-pico.csv", ///
+	ssave(s_imput_totalpico) dsave(d_imput_totalpico)
+
+imput_estimation "input/6-total-pico-bimestre.csv", ///
+	ssave(s_imput_totalpico_bi) dsave(d_imput_totalpico_bi)
+
+imput_estimation "input/6-total-pico-km.csv", ///
+	ssave(s_imput_totalpico_km) dsave(d_imput_totalpico_km)
+
+imput_estimation "input/6-total-pico-km-bimestre.csv", ///
+	ssave(s_imput_totalpico_km_bi) dsave(d_imput_totalpico_km_bi)
+
+* 7 ATROPELAMENTO =====
+imput_estimation "input/7-total-atropelamento.csv", ///
+	ssave(s_imput_totalatrop) dsave(d_imput_totalatrop)
+
+imput_estimation "input/7-total-atropelamento-bimestre.csv", ///
+	ssave(s_imput_totalatrop_bi) dsave(d_imput_totalatrop_bi)
+
+imput_estimation "input/7-total-atropelamento-km.csv", ///
+	ssave(s_imput_totalatrop_km) dsave(d_imput_totalatrop_km)
+
+imput_estimation "input/7-total-atropelamento-km-bimestre.csv", ///
+	ssave(s_imput_totalatrop_km_bi) dsave(d_imput_totalatrop_km_bi)
+
+* 8 INTERSECCAO =====
+imput_estimation "input/8-total-intersec.csv", ///
+	ssave(s_imput_totalinter) dsave(d_imput_totalinter)
+
+imput_estimation "input/8-total-intersec-bimestre.csv", ///
+	ssave(s_imput_totalinter_bi) dsave(d_imput_totalinter_bi)
+
+imput_estimation "input/8-total-intersec-km.csv", ///
+	ssave(s_imput_totalinter_km) dsave(d_imput_totalinter_km)
+
+imput_estimation "input/8-total-intersec-km-bimestre.csv", ///
+	ssave(s_imput_totalinter_km_bi) dsave(d_imput_totalinter_km_bi)
+	
+	
+
+estimates save output/imput/imput.dta, replace
+*estimates use "output/imput/imput.dta", clear
+
+estimates dir
+* estimates restore name
+
+
+
+
+* estimates restore s_imput_motointer
+* estimates restore s_imput_motointer_bi
+* estimates restore s_imput_motointer_km
+* estimates restore s_imput_motointer_km_bi
+* estimates restore d_imput_motointer
+* estimates restore d_imput_motointer_bi
+* estimates restore d_imput_motointer_km
+estimates restore d_imput_motointer_km_bi
+
+
+_coef_table, level(95)
+matrix R = r(table)
+
+* Create a temporary dataset
+clear
+local k = colsof(R)
+local names : colnames R
+set obs `k'
+
+qui gen str20 variable = ""
+qui gen double coefficient = .
+qui gen double std_error = .
+qui gen double t_statistic = .
+qui gen double p_value = .
+qui gen double lower_ci = .
+qui gen double upper_ci = .
+
+forval i = 1/`k' {
+    local vname : word `i' of `names'
+    replace variable = "`vname'" in `i'
+    replace coefficient = R[1,`i'] in `i'
+    replace std_error = R[2,`i'] in `i'
+    replace t_statistic = R[3,`i'] in `i'
+    replace p_value = R[4,`i'] in `i'
+    replace lower_ci = R[5,`i'] in `i'
+    replace upper_ci = R[6,`i'] in `i'
+}
+
+* Export to CSV
+* export delimited using "output/imput/4-moto-inter-s.csv", replace
+* export delimited using "output/imput/4-moto-inter-bi-s.csv", replace
+* export delimited using "output/imput/4-moto-inter-km-s.csv", replace
+* export delimited using "output/imput/4-moto-inter-km-bi-s.csv", replace
+* export delimited using "output/imput/4-moto-inter-d.csv", replace
+* export delimited using "output/imput/4-moto-inter-bi-d.csv", replace
+* export delimited using "output/imput/4-moto-inter-km-d.csv", replace
+export delimited using "output/imput/4-moto-inter-km-bi-d.csv", replace
+
+
+
+
+
+
+
+
+import delimited "input/3-moto-atropelamento-km.csv", clear
 
 gen Y = sinistros
 gen month = periodo
 gen group = coorte
 
-* Create treatment indicator and relative time
-qui gen Ei = group  // Treatment month (0 for never-treated)
-qui gen K = month - Ei if Ei != 0  // Relative time (missing for never-treated)
-qui gen T = (K >= 0 & Ei != 0)     // Treatment indicator
+* qui gen Ei = group  // Treatment month (0 for never-treated)
+qui gen K = month - group if group != 0  // Relative time (missing for never-treated)
+qui gen T = (K >= 0 & group != 0)     // Treatment indicator
 
-* Create event study dummies based on actual data range
+
 qui sum K if K != .
 local k_min = `r(min)'
 local k_max = `r(max)'
 di "Relative time range: `k_min' to `k_max'"
 
-* Leads (pre-treatment periods, K < 0)
+* Leads
 forvalues l = 2/`=abs(`k_min')' {
     qui gen F`l'event = (K == -`l') if K != .
     qui count if F`l'event == 1
 }
-* Lags (post-treatment periods, K >= 0)
+* Lags
 forvalues l = 0/`k_max' {
     qui gen L`l'event = (K == `l') if K != .
     qui count if L`l'event == 1
 }
 
 
-*** Static imputation
 bootstrap imput=e(imput_effect) apt=e(apt_effect) att=e(att_level) scale=e(scale_factor), ///
-    reps(1000) cluster(id) seed(12345): static_imput_boot
+    reps(500) cluster(id) seed(12345): static_imput_boot
 
-estimates store s_imput_sin_moto_km
 
-*** Dynamic imputation
+
+
+
+
+
+
+
 bootstrap, reps(1000) cluster(id) idcluster(newid) seed(12345): dynamic_imput_boot
+estimates store d_imput_sin_moto
 
-estimates store d_imput_sin_moto_km
 
-* Dynamic visualization
-// matrix imputation_ptt_b = e(b)
-// matrix imputation_ptt_v = e(V)
-//
-// event_plot imputation_ptt_b#imputation_ptt_v, ///
-// stub_lead(pre#) stub_lag(post#) trimlag(12) trimlead(12) ///
-// plottype(scatter) ciplottype(rcap) together noautolegend ///
-// graph_opt(xtitle("Meses até a data de implemetação") ytitle("") xlabel(-12(1)12) yline(0, lpattern(dash) lcolor(gray)) ///
-// ylabel(-1.5(0.5)1.5) legend(off))
-//
-// graph export "C:\Dev\faixa-azul\stata\plots\imput\05-sinistros-atropelamento.png", replace
+* Padrao bimestre
+import delimited "input/1-moto-padrao-bimestre.csv", clear
+
+
+* Padrao por km
+import delimited "input/1-moto-padrao-bimestre.csv", clear
+
+
+* Padrao por km bimestre
+import delimited "input/1-moto-padrao-bimestre.csv", clear
+
 
 
 
@@ -669,7 +1045,7 @@ estimates dir
 
 // estimates restore d_imput_todos_atrop_km
 // estimates restore d_imput_todos_hora_km
-estimates restore d_imput_todos_intersec_km
+estimates restore s_imput_motoatrop_km
 
 _coef_table, level(95)
 matrix R = r(table)
