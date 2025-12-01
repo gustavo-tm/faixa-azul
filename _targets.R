@@ -20,7 +20,9 @@ tar_option_set(
   error = "trim",
   format = "qs", # Optionally set the default storage format. qs is fast.
 
-  controller = crew::crew_controller_local(workers = workers)
+  controller = crew::crew_controller_local(workers = workers),
+  storage = "worker",
+  retrieval = "worker"
 )
 
 # Run the R scripts in the R/ folder with your custom functions:
