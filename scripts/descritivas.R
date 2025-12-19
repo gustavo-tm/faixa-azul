@@ -17,13 +17,13 @@ plot_obitos_ano <- function(sinistros, vitimas){
     ggplot(aes(x = data)) +
     geom_col(aes(y = obitos, fill = veiculo)) +
     geom_text(aes(y = y, label = label), nudge_y = -50, colour = "white") +
-    scale_fill_manual("Modo de transporte\nda vítima", 
+    scale_fill_manual("Victim’s mode of transport", 
                       values = c("grey40", 
                                  # "grey80", 
                                  "#4472C4"), 
-                      labels = c("Outros", "Motocicleta")) +
+                      labels = c("Other", "Motorcycle")) +
     scale_x_date(NULL, date_breaks = "years", date_labels = "%Y") +
-    labs(y = "Total de óbitos") +
+    labs(y = "Total fatalities") +
     theme_minimal()
   
   ggsave("output/plot - obitos anuais por modo.pdf", gg, width = 9, height = 5)
@@ -155,9 +155,9 @@ plot_hora_sinistro <- function(sinistros){
     filter(year(data) > 2018, year(data) <= 2024) |>
     mutate(mes = fct_collapse(month(data) |> factor(),
                               "Jan-Mar" = 1:3,
-                              "Abr-Jun" = 4:6,
+                              "Apr-Jun" = 4:6,
                               "Jul-Set" = 7:9,
-                              "Out-Dez" = 10:12,
+                              "Oct-Dec" = 10:12,
                               other_level = "teste")) |>
     group_by(hora, dia = day(data), mes) |>
     summarize(sinistros = n()) |>
@@ -165,9 +165,9 @@ plot_hora_sinistro <- function(sinistros){
     geom_tile() +
     facet_grid(cols = vars(mes)) +
     theme_minimal() +
-    scale_fill_viridis_c("Total de sinistros") +
-    scale_y_continuous("Horário", breaks = 0:11*2) +
-    scale_x_continuous("Dia do mês", breaks = NULL)
+    scale_fill_viridis_c("Total crashes") +
+    scale_y_continuous("Time of occurrence", breaks = 0:11*2) +
+    scale_x_continuous("Day of the month", breaks = NULL)
   
   ggsave("output/plot - sinistros por horario.pdf", gg, width = 10, height =4)
 }
@@ -195,12 +195,12 @@ plot_datas_trechos <- function(faixa_azul, trechos, token_osm){
   gg <- df |> 
     ggplot(aes(x= data_implementacao)) +
     geom_col(aes(y = trechos_total, fill = logradouro)) +
-    labs(x = NULL, y = "Extensão (km) dos trechos com faixa azul",
+    labs(x = NULL, y = "Length (km) of the segments with blue lane",
          title = NULL) +
     theme_minimal() +
     # scale_fill_viridis_d(direction = -1) +
-    scale_fill_manual("Logradouros que receberam faixa azul (em ordem de implementação)\n", 
-                      values = paletteer::paletteer_d("ggsci::default_igv"),
+    scale_fill_manual("Streets that received the blue lane (in order of implementation)\n", 
+                      values = paletteer::paletteer_d("ggsci::default_igv", direction = -1),
                       breaks = df |> pull(logradouro) |> unique() |> rev()) +
     theme(legend.position = "bottom",
           legend.title.position = "top",

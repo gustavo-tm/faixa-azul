@@ -17,7 +17,7 @@ limpar_tabela_did <- function(did_tabela){
            across(c(intervalo_meses), ~ .x |> as.numeric() |> replace_na(1)),
            variavel_y = variavel_y |> as.character() |> replace_na("sinistros"),
            grupo_controle = grupo_controle |> as.character() |> replace_na("notyettreated"),
-           expand_grid = expand_grid |> as.numeric() |> replace_na(.5))
+           expand_grid = expand_grid |> as.numeric() |> replace_na(.35))
 }
 
 
@@ -249,8 +249,8 @@ plot_did <- function(did, file, tabela_summary, title = NULL, expand_grid = .5, 
     aggte(type = "dynamic", min_e = -12  / intervalo_meses, max_e = 12 / intervalo_meses, na.rm = TRUE) |> 
     ggdid() +
     scale_y_continuous(expand = expansion(mult = expand_grid)) +
-    scale_x_continuous("Meses até data da implementação", breaks = c(0:9-4)*3) +
-    scale_colour_manual(values = c("red", "blue"), labels = c("Pré faixa azul", "Pós faixa azul")) +
+    scale_x_continuous("Months to implementation", breaks = c(0:9-4)*3) +
+    scale_colour_manual(values = c("red", "blue"), labels = c("Before blue lane", "After blue lane")) +
     labs(title = title) +
     theme_minimal() +
     theme(legend.position = "top")
@@ -268,10 +268,10 @@ plot_did <- function(did, file, tabela_summary, title = NULL, expand_grid = .5, 
   tabela2 <- did$DIDparams$data |> 
     select(y) |> 
     as_tibble() |> 
-    summarize(Média = mean(y),
-              Mediana = median(y),
-              "Desvio Padrão" = sd(y),
-              Máximo = max(y)) |> 
+    summarize(Mean = mean(y),
+              Median = median(y),
+              "Standard deviation" = sd(y),
+              Maximum = max(y)) |> 
     gt() |> 
     fmt_number(decimals = 2) |> 
     cols_width(everything() ~ 600/4)
@@ -279,7 +279,7 @@ plot_did <- function(did, file, tabela_summary, title = NULL, expand_grid = .5, 
   figura <- (wrap_table(tabela1, space = "fixed") / plot / wrap_table(tabela2, space = "fixed"))
   
   ggsave(paste0("output/did/", file, ".pdf"), figura, 
-        width = 7, height = 6, 
+        width = 7, height = 5, 
         bg = "white",
         create.dir = TRUE)
   
@@ -299,8 +299,8 @@ summary_tabelinha_did <- function(did, nome, intervalo_meses = 1){
     nome = nome, 
     ATT = format(round(ATT, 3), nsmall = 3), 
     SE = format(round(se, 3), nsmall = 3), 
-    "IC (95%)" = paste0("[", format(round(ci_low, 3), nsmall = 3), ", ", format(round(ci_high, 3), nsmall = 3), "]"),
-    Significante = if(ci_low < 0 & ci_high > 0){"Não"}else{"Sim"})
+    "CI (95%)" = paste0("[", format(round(ci_low, 3), nsmall = 3), ", ", format(round(ci_high, 3), nsmall = 3), "]"),
+    Significant = if(ci_low < 0 & ci_high > 0){"Não"}else{"Sim"})
   return(tabelinha)
 }
 
