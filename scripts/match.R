@@ -94,8 +94,8 @@ match_dados_split <- function(sinistros, n){
     filter(tipo != "NOTIFICACAO", logradouro != "NAO DISPONIVEL") |> 
     #Resto da divisão por n vai trazer n grupos de tamanhos iguais 
     mutate(grupo = row_number() %% n) |> 
-    group_by(grupo) |> 
-    targets::tar_group()
+    ungroup() |> 
+    group_split(grupo)
 }
 
 
@@ -105,7 +105,7 @@ match_dados_split <- function(sinistros, n){
 
 match_dados <- function(sinistros, sinistros_token, trechos, trechos_token){
   
-  sinistros <- sinistros |> 
+  sinistros <- sinistros[[1]] |> 
     as_tibble() |> 
     filter(tipo != "NOTIFICACAO", logradouro != "NAO DISPONIVEL")
   
@@ -143,18 +143,15 @@ match_dados <- function(sinistros, sinistros_token, trechos, trechos_token){
                 st_transform("epsg:31983") |>
                 select(id_osm, geometria_trecho = geometry)) |> 
     filter(!st_is_empty(geometria_ponto), !st_is_empty(geometria_trecho)) |>
-    
-    # Encontrar o vizinho mais próximo e depois calcular a distância é significativamente mais rápido do que calcular todas as distâncias e depois pegar a menor, 
-    # mas essa parte demora bastante para rodar mesmo (são 8 milhões de comparações)
+    mutate(distance = st_distance(geometria_ponto, geometria_trecho, by_element = TRUE) |> as.numeric()) |> 
+    select(-starts_with("geometria")) |> 
     group_by(id_sinistro) |> 
-    filter(row_number() == st_nearest_feature(nth(geometria_ponto, 1), geometria_trecho)) |> 
-    mutate(distancia = st_distance(geometria_ponto, geometria_trecho, by_element = TRUE) |> as.numeric()) |> 
-    st_drop_geometry() |> 
+    filter(distance == min(distance)) |> 
     ungroup()
   
   
   match <- match_grafico |> 
-    select(id_sinistro, id_osm, distancia_geografica = distancia) |> 
+    select(id_sinistro, id_osm, distancia_geografica = distance) |> 
     left_join(match_nome) |> 
     select(id_sinistro, id_osm, logradouro = logradouro_limpo.y, similaridade, distancia_geografica, distancia_nome, match_tipo, match_titulo) |> 
     

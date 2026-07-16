@@ -16,7 +16,7 @@ assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
 tar_option_set(
   # circlize, webshot2, renv, targets, visNetwork, 
   packages = c("tidyverse", "sf", "osmdata", "fuzzyjoin", "stringdist", "did", "gt", "kableExtra", "igraph", "gganimate", "gifski",
-               "tidygraph", "ggraph", "qs2", "MatchIt", "patchwork", "ggnewscale", "ggspatial", "memoise", "visNetwork", "qs"), 
+               "tidygraph", "ggraph", "qs2", "MatchIt", "patchwork", "ggnewscale", "ggspatial", "memoise", "visNetwork"), 
   error = "trim",
   format = "qs", # Optionally set the default storage format. qs is fast.
 
@@ -113,8 +113,7 @@ list(
                           sinistros_token = dado_token_infosiga,
                           trechos = dado_trechos_bruto,
                           trechos_token = dado_token_osm),
-    pattern = NULL,
-    iteration = "group"),
+    pattern = map(dado_sinistros_chunks)),
 
   tar_target(
     name = dado_match_bind,

@@ -138,8 +138,8 @@ agrupar_logradouros <- function(trechos, token_osm){
   
   grafico <- conexoes |> 
     select(id_osm.x, id_osm.y) |> 
-    circlize::adjacencyList2Matrix(square = TRUE) |> 
-    graph_from_adjacency_matrix(mode = "undirected")
+    as.matrix() |> 
+    graph_from_edgelist(directed = FALSE)
   
 
   id_logradouros <- grafico |> 
@@ -203,15 +203,12 @@ agregar_trechos <- function(trechos, faixa_azul, metros = 500){
     # Identificar todas as vias que se conectam, mas tem o mesmo nome
     filter(logradouro.x == logradouro.y,
            id_osm.x != id_osm.y)
-  
-  conexoes |> 
-    distinct(id_osm.x)
-  
+
   # GRAFO ----
   grafo <- conexoes |>
     select(id_osm.x, id_osm.y) |>
-    circlize::adjacencyList2Matrix(square = TRUE) |>
-    graph_from_adjacency_matrix(mode = "undirected")
+    as.matrix() |> 
+    graph_from_edgelist(directed = FALSE)
   
   # GRAU E MEMBERSHIP ----
   logradouros <- tibble(
